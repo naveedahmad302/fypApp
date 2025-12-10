@@ -1,0 +1,125 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/RadioCanada-Bold.ttf",
+      "sha1": "354843cfe3340b390c0837dfccb95594de65c34e"
+    },
+    {
+      "path": "assets/fonts/RadioCanada-BoldItalic.ttf",
+      "sha1": "7e9f00d95beb94d9c9a3416022c6c1a4944965a5"
+    },
+    {
+      "path": "assets/fonts/RadioCanada-Italic.ttf",
+      "sha1": "1a510656e3f07e341081c09572bf9b7b6b9e57fc"
+    },
+    {
+      "path": "assets/fonts/RadioCanada-Light.ttf",
+      "sha1": "726a9333b4f1127d8aee86989d2234583dcb1894"
+    },
+    {
+      "path": "assets/fonts/RadioCanada-LightItalic.ttf",
+      "sha1": "aa79faec3b082cd4b0ee00f925a865bf056c57ce"
+    },
+    {
+      "path": "assets/fonts/RadioCanada-Medium.ttf",
+      "sha1": "a84a9a5010dfa0f0976e2c40592a221ef6af7c22"
+    },
+    {
+      "path": "assets/fonts/RadioCanada-MediumItalic.ttf",
+      "sha1": "35a315cb0339ab0439e89d1b1cde1e3690e1fa6c"
+    },
+    {
+      "path": "assets/fonts/RadioCanada-Regular.ttf",
+      "sha1": "ca50bd2d33eaaa2f0b3e1bae6cb638df0c392df7"
+    },
+    {
+      "path": "assets/fonts/RadioCanada-SemiBold.ttf",
+      "sha1": "377be68a9d4782ef097d0729574b233243eb54aa"
+    },
+    {
+      "path": "assets/fonts/RadioCanada-SemiBoldItalic.ttf",
+      "sha1": "f3c1f3a7fa8f624a5bb074902cf043f722478f84"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-Bold.ttf",
+      "sha1": "f7d021a56fbdb58468e3c3c05123bcb1da8200c8"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-BoldItalic.ttf",
+      "sha1": "c67f7cd76ed5d4541e54f1ad85ea7fff1a73afc6"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-Italic.ttf",
+      "sha1": "3215fff8703b55448367d594db8fb0e1ed9af460"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-Light.ttf",
+      "sha1": "a77d7fa9f58931181a61291432220dad6ac79f02"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-LightItalic.ttf",
+      "sha1": "71edd839e0fc4fcf09899727804feb0049ba6991"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-Medium.ttf",
+      "sha1": "02c20f14297d44b82ed826fccae90c1334dc0bd8"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-MediumItalic.ttf",
+      "sha1": "0b9c6a29f3c01746670392d33073ee1daceabeb5"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-Regular.ttf",
+      "sha1": "1cd6882ba4e61142994f03c89af61a2c093877d0"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-SemiBold.ttf",
+      "sha1": "47197895be3fe52191ddaabf23fccb4ba716472d"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_Condensed-SemiBoldItalic.ttf",
+      "sha1": "9aeeda1db0940a1a42fae4c47d76f8540dba6718"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-Bold.ttf",
+      "sha1": "466826c0556151cc9c5c01339844b3893d0a2c4f"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-BoldItalic.ttf",
+      "sha1": "63e671590c3539d026a353a2efd226a2c23653f9"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-Italic.ttf",
+      "sha1": "5f8b81ba3238254596c3a485f494bafeff7a171e"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-Light.ttf",
+      "sha1": "431c55f376110c4885fd65eb4745842d93a499a6"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-LightItalic.ttf",
+      "sha1": "e168f40ebac96cf64c04aa21c751520f32309f24"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-Medium.ttf",
+      "sha1": "f2d4d865304d8998de0661201c4ec2eff3ade9c2"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-MediumItalic.ttf",
+      "sha1": "f29a0f3b9b33cfb760266dd207c1a8a4ae78a4ff"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-Regular.ttf",
+      "sha1": "4b084457111a38984e493843622477df6655905e"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-SemiBold.ttf",
+      "sha1": "a1e1b6cee807d3c150d8dd742591b774070a2cd8"
+    },
+    {
+      "path": "assets/fonts/RadioCanada_SemiCondensed-SemiBoldItalic.ttf",
+      "sha1": "1c571fc65be65ba976bf067bd6a3600199474904"
+    }
+  ]
+}
