@@ -9,7 +9,8 @@ export type TBottomTabsStackParamsList = {
 };
 
 export type THomeTabStackParamsList = {
-  Home: undefined;
+  Hello: undefined;
+  Assessment: undefined;
 };
 
 export type TAssessmentTabStackParamsList = {

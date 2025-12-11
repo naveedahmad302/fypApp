@@ -115,7 +115,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                             <Text className="text-gray-800 text-lg font-semibold">Recording Status</Text>
                             <View className={`${isRecording ? 'bg-red-500' :
                                     hasRecorded ? 'bg-[#4A90E2]' :
-                                        'bg-green-500'
+                                        'bg-[#4A90E2]'
                                 } px-3 py-1 rounded-full`}>
                                 <Text className="text-white text-xs font-medium">
                                     {isRecording ? 'Recording' :

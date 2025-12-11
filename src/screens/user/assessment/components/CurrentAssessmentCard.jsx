@@ -4,36 +4,47 @@ import { Eye, Clock, ChevronRight } from 'lucide-react-native';
 
 const CurrentAssessmentCard = ({ onPress }) => {
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-sm flex flex-col">
-      <View className="bg-blue-100 px-3 py-1 rounded-full self-start mb-3 justify-center items-center">
-        <Text className="text-blue-600 text-xs font-medium">Current Assessment</Text>
+    <View className="bg-white rounded-2xl p-5 shadow-lg shadow-gray-200" style={{
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      marginTop: 20,
+    }}>
+      <View className="items-center mb-4">
+        <Text className="text-[#4A90E2] text-sm px-4 py-1.5 rounded-2xl bg-[#DBEAFE]">
+          Current Assessment
+        </Text>
       </View>
-      
-      <View className="flex-col space-x-3 justify-center items-center gap-4">
-        <View className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
-          <Eye size={24} color="white" />
+
+      <View className="items-center">
+        <View className="w-16 h-16 bg-[#DBEAFE] rounded-full items-center justify-center mb-4">
+          <Eye size={28} color="#4A90E2" />
         </View>
-        
-        <View className="flex-1 justify-center items-center">
-          <Text className="text-gray-900 text-lg font-semibold mb-1">Eye Tracking</Text>
-          <Text className="text-gray-600 text-sm mb-3">
+
+        <View className="w-full">
+          <Text className="text-center text-gray-900 text-xl font-bold mb-1.5">Eye Tracking</Text>
+          <Text className="text-center text-gray-600 text-sm mb-5 px-2">
             Analyze gaze patterns and visual attention
           </Text>
-          
-          <View className=" items-center justify-between">
+
+          <View className="flex-row items-center justify-center mb-3">
             <View className="flex-row items-center">
               <Clock size={16} color="#6B7280" />
-              <Text className="text-gray-600 text-sm ml-1">3-5 min</Text>
+              <Text className="text-gray-600 text-sm ml-1.5 self-center">3-5 min</Text>
             </View>
-            
-            <TouchableOpacity 
-              onPress={onPress}
-              className="bg-blue-500 px-4 py-2 rounded-xl flex-row items-center"
-            >
-              <Text className="text-white font-medium mr-1">Start</Text>
-              <ChevronRight size={16} color="white" />
-            </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            onPress={onPress}
+            className="w-full bg-[#4A90E2] rounded-2xl py-3.5 flex-row items-center justify-center"
+          >
+            <Text className="text-white font-radio-canada-bold font-semibold text-lg mr-2">
+              Next
+            </Text>
+            <ChevronRight size={18} color="white" strokeWidth={2.5} />
+          </TouchableOpacity>
         </View>
       </View>
     </View>

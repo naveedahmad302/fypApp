@@ -6,9 +6,9 @@ const AssessmentItem = ({ icon: Icon, title, duration, status = 'locked' }) => {
   const getStatusContent = () => {
     switch (status) {
       case 'completed':
-        return <Check size={20} color="#10B981" />;
+        return <Check size={20} color="#4A90E2" backgroundColor="#9CA3AF" />;
       case 'locked':
-        return <View className="bg-gray-100 px-2 py-1 rounded-full">
+        return <View className="bg-[#E5E7EB] px-2 py-1 rounded-full">
           <Text className="text-gray-600 text-xs font-medium">Locked</Text>
         </View>;
       default:
@@ -19,7 +19,7 @@ const AssessmentItem = ({ icon: Icon, title, duration, status = 'locked' }) => {
   const getIconColor = () => {
     switch (status) {
       case 'completed':
-        return '#10B981';
+        return '#4A90E2';
       case 'locked':
         return '#9CA3AF';
       default:
@@ -28,9 +28,10 @@ const AssessmentItem = ({ icon: Icon, title, duration, status = 'locked' }) => {
   };
 
   return (
-    <View className="bg-white rounded-xl p-3 flex-row items-center justify-between">
+    <View className={`bg-white rounded-xl p-3 flex-row items-center justify-between ${status === 'locked' ? 'opacity-50' : 'bg-white'}`}
+          style={status === 'locked' ? {} : { borderWidth: 0.5, borderColor: '#4A90E2' }}>
       <View className="flex-row items-center space-x-3">
-        <View className="w-10 h-10 rounded-lg flex items-center justify-center" 
+        <View className="w-12 h-12 rounded-full flex items-center justify-center mr-5" 
              style={{ backgroundColor: `${getIconColor()}20` }}>
           <Icon size={20} color={getIconColor()} />
         </View>
@@ -47,30 +48,37 @@ const AssessmentItem = ({ icon: Icon, title, duration, status = 'locked' }) => {
 
 const AssessmentOverview = () => {
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-sm mt-5">
+    <View className=" rounded-2xl pt-5">
       <Text className="text-gray-900 text-lg font-semibold mb-4">Assessment Overview</Text>
       
-      <View className="space-y-3">
+      <View>
+
+        <View className=' rounded-2xl border border-[#4A90E2]'>
         <AssessmentItem 
           icon={Eye} 
           title="Eye Tracking" 
           duration="3-4 min" 
           status="completed"
-        />
+          />
+          </View>
         
-        <AssessmentItem 
-          icon={Mic} 
-          title="Speech Analysis" 
-          duration="3-5 min" 
-          status="locked"
-        />
+        <View className="mt-2 rounded-2xl">
+          <AssessmentItem 
+            icon={Mic} 
+            title="Speech Analysis" 
+            duration="3-5 min" 
+            status="locked"
+          />
+        </View>
         
-        <AssessmentItem 
-          icon={Users} 
-          title="MCQ Assessment" 
-          duration="2-3 min" 
-          status="locked"
-        />
+        <View className="mt-2 rounded-2xl">
+          <AssessmentItem 
+            icon={Users} 
+            title="MCQ Assessment" 
+            duration="2-3 min" 
+            status="locked"
+          />
+        </View>
       </View>
     </View>
   );

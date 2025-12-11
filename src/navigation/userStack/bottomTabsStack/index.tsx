@@ -28,19 +28,20 @@ const ProfileIcon = ({ color }: { color: string; size: number }) => (
   <User color={color} />
 );
 
-const BOTTOM_TAB_HEIGHT = 80;
+const BOTTOM_TAB_HEIGHT = 75;
 export const tabBarStyle = {
   backgroundColor: 'white',
   height: BOTTOM_TAB_HEIGHT,
-  paddingTop: 0,
+  paddingTop: 8,
+  paddingBottom: 8,
   shadowColor: '#3EB7FF',
   // borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
+  // borderTopRightRadius: 20,
   paddingHorizontal: 0,
   // Shadow
   shadowOffset: {
     width: 0,
-    height: 4,
+    height: 4,  
   },
   shadowOpacity: 0.44,
   shadowRadius: 16,
@@ -83,8 +84,8 @@ export const BottomTabsStack: React.FC = () => {
         tabBarLabelStyle: {
           fontSize: 11,
           fontFamily: 'System',
-          marginTop: 2,
-          marginBottom: 4,
+          marginTop: 3,
+          marginBottom: 3,
         },
       }}
     >
@@ -93,8 +94,8 @@ export const BottomTabsStack: React.FC = () => {
         component={HomeTabStack}
         options={{
           tabBarIcon: HomeIcon,
-          tabBarLabel: 'Home',
-          title: 'Home',
+          tabBarLabel: 'Hello',
+          title: 'Hello',
         }}
       />
       <Tab.Screen

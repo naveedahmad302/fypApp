@@ -20,16 +20,18 @@ const AssessmentScreen: React.FC = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
+      <ScrollView showsVerticalScrollIndicator={false}>
+
       <View className="flex-1">
-        
         <ScrollView className="flex-1 bg-blue-50">
-          <View className="p-4 space-y-4">
+          <View className="p-5 px-8 space-y-4">
             <AssessmentProgressCard />
             <CurrentAssessmentCard onPress={handleStartEyeTracking} />
             <AssessmentOverview />
           </View>
         </ScrollView>
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

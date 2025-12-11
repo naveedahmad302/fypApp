@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TReportTabStackParamsList } from './types';
 import ReportScreen from '../../../screens/user/report/ReportScreen';
+import CustomHeader from '../../../components/CustomHeader';
 
 const Stack = createNativeStackNavigator<TReportTabStackParamsList>();
 
@@ -10,19 +11,13 @@ const ReportTabStack: React.FC = () => {
     <Stack.Navigator 
       screenOptions={{ 
         headerShown: true,
-        headerTitleAlign: 'center',
-        headerTitleStyle: {
-          fontSize: 18,
-          fontWeight: '600',
-        },
+        animation: 'slide_from_right',
+        header: () => <CustomHeader title="Analysis Reports" />,
       }}
     >
       <Stack.Screen 
-        name="Analysis Reports" 
+        name="Report" 
         component={ReportScreen}
-        options={{
-          title: 'Analysis Reports',
-        }}
       />
     </Stack.Navigator>
   );

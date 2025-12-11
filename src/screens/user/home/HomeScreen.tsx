@@ -1,7 +1,21 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { THomeTabStackNavigationProps } from '../../../navigation/userStack/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { 
+  THomeTabStackParamsList,
+  TBottomTabsStackParamsList 
+} from '../../../navigation/userStack/bottomTabsStack/types';
+import { Users, ArrowRight} from 'lucide-react-native';
+
+type HomeScreenNavigationProp = CompositeScreenProps<
+  NativeStackScreenProps<THomeTabStackParamsList, 'Hello'>,
+  BottomTabScreenProps<TBottomTabsStackParamsList>
+>;
+
+type Props = HomeScreenNavigationProp;
 
 const styles = StyleSheet.create({
   rotate45: {
@@ -12,74 +26,108 @@ const styles = StyleSheet.create({
   }
 });
 
-const HomeScreen: React.FC<THomeTabStackNavigationProps<'Home'>> = ({ navigation }) => {
+const HomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+    // <SafeAreaView className="flex-1 bg-[#F5F7FA]">
+      <ScrollView className="flex-1  bg-[#F5F7FA] py-7 px-5" showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="0 p-6 shadow-sm justify-center items-center">
-          <Text className="text-black font-radio-canada text-base mb-1">Hello NAVEED</Text>
+        <View className=" shadow-sm justify-center items-center pb-7">
+          <Text className="text-black font-radio-canada text-lg font-semibold mb-1">Your Assessment Journey</Text>
           <Text className="text-gray-500 text-sm">Step 0 of 3 • Continue where you left off</Text>
         </View>
 
         {/* Progress Section */}
-        <View className="bg-gray-50 mx-4  rounded-xl shadow-sm">
+        <View className="  rounded-xl">
           {/* Circular Progress */}
           <View className="items-center mb-6">
-            <View className="relative">
-              {/* Progress Circle Background */}
-              <View className="w-20 h-20 rounded-full border-4 border-gray-200 items-center justify-center">
-                {/* Progress Arc - This would typically be implemented with SVG or a progress library */}
-                <View className="w-16 h-16 rounded-full border-4 border-[#4A90E2] border-t-transparent items-center justify-center" style={styles.rotate45}>
-                  <View style={styles.rotateMinus45}>
-                    <Text className="text-2xl font-bold text-[#4A90E2]">2</Text>
-                    <Text className="text-xs text-gray-500 text-center">of 4</Text>
-                  </View>
-                </View>
+            <View className="relative mb-6">
+              <View className="w-36 h-36 rounded-full border-8 shadow-sm items-center justify-center">
+                <Text className="text-3xl font-bold font-radio-canada text-blue-500">0</Text>
+                <Text className="text-sm font-normal text-[#6B7280]">of 3</Text>
+              </View>
+              <View className="absolute inset-0 w-36 h-36">
+                <View
+                  className="w-full h-full rounded-full border-8"
+                  style={{
+                    borderTopColor: '#e5e7eb',
+                    borderRightColor: '#e5e7eb',
+                    borderBottomColor: '#e5e7eb',
+                    borderLeftColor: '#e5e7eb',
+                    transform: [{ rotate: '45deg' }]
+                  }}
+                />
+                <View
+                  className="absolute inset-0 w-36 h-36 rounded-full"
+                  style={{
+                    borderTopWidth: 1,
+                    borderTopColor: '#3b82f6',
+                    borderRightWidth: 0,
+                    borderBottomWidth: 0,
+                    borderLeftWidth: 0,
+                    transform: [{ rotate: '45deg' }]
+                  }}
+                />
               </View>
             </View>
-            
+
             {/* Progress Text */}
-            <View className="flex-row items-center mt-4">
+            <View className="flex-row items-center">
               <Text className="text-yellow-500 text-lg mr-2">⭐</Text>
-              <Text className="text-gray-700 font-medium">50% Complete</Text>
+              <Text className="text-gray-700 font-medium">0% Complete</Text>
             </View>
           </View>
 
           {/* Next Step Card */}
-          <View className="bg-gray-50 rounded-xl p-4">
-            <Text className="text-gray-600 text-sm mb-3">Next: Step 3 of 4</Text>
-            
-            {/* User Icon */}
-            <View className="items-center mb-4">
-              <View className="w-12 h-12 bg-teal-500 rounded-full items-center justify-center">
-                <Text className="text-white text-xl">👥</Text>
-              </View>
+          <View className="bg-white rounded-2xl p-5  shadow-lg shadow-gray-500/40 shadow-opacity-40" 
+          style={{
+            elevation: 5, // for Android
+            shadowColor: '#000', // for iOS
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+          }}>
+            <View className="items-center mb-3">
+              <Text className="text-[#4A90E2] text-sm px-3 py-1 rounded-2xl bg-[#DBEAFE] self-center">Next: Step 1 of 3</Text>
             </View>
 
+            {/* User Icon */}
+            <View className="items-center mb-4">
+              <View className="w-14 h-14 bg-[#4A90E2] rounded-full items-center justify-center shadow-md shadow-blue-500/30" style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: 5,
+              }}>
+                <Users size={25} color="white" />
+              </View>
+            </View>
             {/* Assessment Info */}
-            <Text className="text-xl font-bold text-center mb-2">MCQ Assessment</Text>
-            <Text className="text-gray-600 text-center mb-1">Comprehensive questionnaire</Text>
-            <Text className="text-gray-500 text-center text-sm mb-6">15-20 min</Text>
+            <Text className="text-xl font-bold text-center mb-2">Eye Assessment</Text>
+            <Text className="text-gray-600 text-center mb-1 text-sm">Analyse gaze patterns and visual attention</Text>
+            <Text className="text-[#6B7280] text-center rounded-xl text-sm mb-6 px-3 py-1 mt-2 bg-[#F3F4F6] self-center">3-4 min</Text>
 
             {/* Continue Button */}
             <TouchableOpacity
-              className="bg-[#4A90E2] rounded-lg py-4 flex-row items-center justify-center"
-              onPress={() => navigation.navigate('AssessmentScreen' as any)}
+              className="bg-[#4A90E2] rounded-2xl py-4 flex-row items-center justify-center"
+              onPress={() => {
+                // @ts-ignore - We know this navigation is valid
+                navigation.getParent()?.navigate('AssessmentTab', { screen: 'Assessment' });
+              }}
             >
-              <Text className="text-white font-semibold text-base mr-2">Continue Assessment</Text>
-              <Text className="text-white">→</Text>
+              <Text className="text-white font-radio-canada-bold font-semibold text-lg mr-2">Start Assessment</Text>
+             <ArrowRight size={18} color="#ffffff" strokeWidth={1.75} absoluteStrokeWidth />
             </TouchableOpacity>
 
             {/* Helper Text */}
-            <Text className="text-gray-500 text-center text-xs mt-3">
+            {/* <Text className="text-gray-500 text-center text-xs mt-3">
               You'll continue with MCQ Assessment
-            </Text>
+            </Text> */}
           </View>
         </View>
 
         {/* Additional Options */}
-        <View className="flex-1 p-4 mb-8">
+        {/* <View className="flex-1 p-4 mb-8">
           <View className="flex-row justify-between">
             <TouchableOpacity
               className="bg-white rounded-lg p-4 flex-1 mr-2 items-center shadow-sm"
@@ -88,7 +136,7 @@ const HomeScreen: React.FC<THomeTabStackNavigationProps<'Home'>> = ({ navigation
               <Text className="text-2xl mb-2">📊</Text>
               <Text className="font-medium">View Reports</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               className="bg-white rounded-lg p-4 flex-1 ml-2 items-center shadow-sm"
               onPress={() => navigation.navigate('Profile' as any)}
@@ -97,9 +145,9 @@ const HomeScreen: React.FC<THomeTabStackNavigationProps<'Home'>> = ({ navigation
               <Text className="font-medium">Profile</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </View> */}
       </ScrollView>
-    </SafeAreaView>
+    // </SafeAreaView>
   );
 };
 

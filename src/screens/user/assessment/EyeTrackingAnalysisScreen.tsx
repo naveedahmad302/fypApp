@@ -5,15 +5,17 @@ import { ChevronLeft } from 'lucide-react-native';
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import TrackingStatusCard from './components/TrackingStatusCard';
 import GazeVisualizationCard from './components/GazeVisualizationCard';
-import StartTrackingButton from './components//StartTrackingButton';
+import StartTrackingButton from './components/StartTrackingButton';
 
 const EyeTrackingAnalysisScreen: React.FC = () => {
   const navigation = useNavigation();
   const [isTracking, setIsTracking] = useState(false);
+  const [trackingProgress, setTrackingProgress] = useState(0);
   const [hasPermission, setHasPermission] = useState(false);
   const devices = useCameraDevices();
   const device = devices.front;
   const camera = useRef<Camera>(null);
+  const progressInterval = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -21,6 +23,35 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
       setHasPermission(status === 'authorized');
     })();
   }, []);
+
+  useEffect(() => {
+    if (isTracking) {
+      // Start progress simulation
+      progressInterval.current = setInterval(() => {
+        setTrackingProgress(prev => {
+          if (prev >= 100) {
+            handleTrackingComplete();
+            return 100;
+          }
+          // Even smaller increments for ultra-smooth progress
+          return prev + 1;
+        });
+      }, 50); // Very fast updates for ultra-smooth animation
+    } else {
+      // Stop progress simulation
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+        progressInterval.current = null;
+      }
+      setTrackingProgress(0);
+    }
+
+    return () => {
+      if (progressInterval.current) {
+        clearInterval(progressInterval.current);
+      }
+    };
+  }, [isTracking]);
 
   const handleBackPress = () => {
     if (isTracking) {
@@ -35,18 +66,26 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
 
   const handleStopTracking = () => {
     setIsTracking(false);
-    navigation.navigate('TrackingStatusScreen');
+  };
+
+  const handleTrackingComplete = () => {
+    setIsTracking(false);
+    // Navigate to the final screen after a short delay
+    setTimeout(() => {
+      navigation.navigate('TrackingStatusScreen');
+    }, 1000);
   };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View className="flex-1">
-       
-        
         {/* Content */}
         <ScrollView className="flex-1 bg-[#F5F7FA]">
-          <View className="p-4 space-y-4">
-            <GazeVisualizationCard isTracking={isTracking}>
+          <View className="p-4">
+            <GazeVisualizationCard 
+              isTracking={isTracking} 
+              trackingProgress={trackingProgress}
+            >
               {hasPermission && device && isTracking && (
                 <Camera
                   ref={camera}
@@ -59,26 +98,17 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
                 />
               )}
             </GazeVisualizationCard>
-            {/* Instructions */}
-            <View className="bg-white rounded-2xl p-4 shadow-sm">
-              <Text className="text-gray-900 text-lg font-semibold mb-2">Position Your Face</Text>
-              <Text className="text-gray-600 text-sm leading-relaxed">
-                Please position your face within the frame below. Ensure good lighting and keep your face visible throughout the assessment.
-              </Text>
-            </View>
-            
-            <TrackingStatusCard />
+          </View>
+          
+          {/* Start Button */}
+          <View className="px-7">
+            <StartTrackingButton 
+              isTracking={isTracking}
+              onStart={handleStartTracking}
+              onStop={handleStopTracking}
+            />
           </View>
         </ScrollView>
-        
-        {/* Start Button */}
-        <View className="bg-white px-4 py-4 border-t border-gray-100">
-          <StartTrackingButton 
-            isTracking={isTracking}
-            onStart={handleStartTracking}
-            onStop={handleStopTracking}
-          />
-        </View>
       </View>
     </SafeAreaView>
   );

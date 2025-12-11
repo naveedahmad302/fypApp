@@ -1,52 +1,92 @@
 import React, { ReactNode } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { Eye } from 'lucide-react-native';
 
 interface GazeVisualizationCardProps {
   children?: ReactNode;
   isTracking?: boolean;
+  trackingProgress?: number;
 }
 
-const GazeVisualizationCard: React.FC<GazeVisualizationCardProps> = ({ 
+const GazeVisualizationCard: React.FC<GazeVisualizationCardProps> = ({
   children,
-  isTracking = false 
+  isTracking = false,
+  trackingProgress = 0
 }) => {
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-sm">
-      <Text className="text-gray-900 text-lg font-semibold mb-4">Gaze Visualization</Text>
-      
-      <View className="bg-gray-900 rounded-xl h-64 flex items-center justify-center relative overflow-hidden">
-        {children || (
-          <>
-            {/* Face Detection Overlay */}
-            <View className="absolute inset-0 flex items-center justify-center">
-              <View className="w-32 h-32 border-2 border-blue-400 rounded-lg flex items-center justify-center">
-                <View className="w-2 h-2 bg-blue-400 rounded-full" />
-              </View>
-            </View>
-            
-            {/* Corner Brackets */}
-            <View className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-blue-400" />
-            <View className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-blue-400" />
-            <View className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-blue-400" />
-            <View className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-blue-400" />
-            
-            {/* Center Icon */}
-            <View className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <Eye size={32} color="#60A5FA" />
-            </View>
-          </>
-        )}
+    <View className='px-3'>
+      <View className=' rounded-2xl p-2'>
+        <Text className="text-[#4B5563] mb-4">Follow the visual cues while we analyze
+          your gaze patterns</Text>
+      </View>
+
+      <View className="bg-white rounded-2xl shadow-lg p-4 "
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4,
+          elevation: 1,
+        }}>
+        <View className="flex-row items-center justify-between mb-3">
+          <Text className="text-gray-900 text-lg font-semibold">Tracking Status</Text>
+          <View className={`px-3 py-1 rounded-full ${isTracking ? 'bg-blue-100' : 'bg-blue-100'}`}>
+            <Text className={`text-xs font-medium ${isTracking ? 'text-[#4A90E2]' : 'text-[#4A90E2]'}`}>
+              {isTracking ? `Recording ${trackingProgress}%` : 'Ready'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Progress Line */}
+        <View className="mb-4">
+          <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
+            <View 
+              className={`h-full rounded-full transition-all duration-300 ${isTracking ? 'bg-blue-500' : 'bg-blue-500'}`}
+              style={{ width: `${trackingProgress}%` }}
+            />
+          </View>
+        </View>
+
+        <View className="flex-row justify-between">
+          <Text className="text-[#6B7280] text-sm">
+            {isTracking ? 'Tracking in progress...' : 'Position your face in the centre and click start'}
+          </Text>
+        </View>
       </View>
       
-      {/* Status Text */}
-      <View className="mt-4 flex-row items-center justify-center">
-        <View className={`w-2 h-2 rounded-full mr-2 ${isTracking ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`} />
-        <Text className="text-gray-600 text-sm">
-          {isTracking ? 'Tracking active - Keep your face in frame' : 'Position your face in the frame'}
-        </Text>
+      <View className=" bg-white rounded-2xl p-4 mt-4 "
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4,
+          elevation: 1,
+        }}>
+        <Text className="text-gray-900 text-lg font-semibold mb-4">Gaze Visualizations</Text>
+
+        <View className="bg-gray-900 rounded-xl h-64 flex items-center justify-center relative overflow-hidden">
+          {children ? (
+            children
+          ) : (
+            <Image 
+              source={require('../../../../../assets/images/eyes.png')}
+              className="w-full h-full rounded-xl"
+              resizeMode="cover"
+            />
+          )}
+        </View>
+
+        {/* Status Text */}
+        <View className="mt-4 flex-row items-center justify-center">
+          <View className={`w-2 h-2 rounded-full mr-2 ${isTracking ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`} />
+          <Text className="text-gray-600 text-sm">
+            {isTracking ? 'Tracking active - Keep your face in frame' : 'Position your face in the frame'}
+          </Text>
+        </View>
       </View>
+
     </View>
+
   );
 };
 

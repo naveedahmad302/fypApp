@@ -10,41 +10,17 @@ interface TrackingStatusScreenProps {
 
 const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation: navProp }) => {
   const navigation = useNavigation();
-  const [progress, setProgress] = useState(0);
-  const [isRecording, setIsRecording] = useState(true);
-  const [gazePoints, setGazePoints] = useState(0);
-  const [avgFixation, setAvgFixation] = useState('0.0s');
+  const [progress] = useState(100); // Fixed at 100%
+  const [isRecording, setIsRecording] = useState(false); // Set to false since no recording
+  const [gazePoints] = useState(25); // Fixed final value
+  const [avgFixation] = useState('1.8s'); // Fixed final value
 
   useEffect(() => {
-    // Simulate recording progress
-    const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          setIsRecording(false);
-          clearInterval(progressInterval);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 200);
-
-    // Simulate gaze data collection
-    const gazeInterval = setInterval(() => {
-      setGazePoints(prev => Math.min(prev + 1, 25));
-      setAvgFixation(`${(Math.random() * 2 + 1.5).toFixed(1)}s`);
-    }, 800);
-
-    return () => {
-      clearInterval(progressInterval);
-      clearInterval(gazeInterval);
-    };
+    // No progress animation needed - screen shows completed results
   }, []);
 
   const handleTryAgain = () => {
-    // Reset and go back to eye tracking
-    setProgress(0);
-    setIsRecording(true);
-    setGazePoints(0);
+    // Go back to eye tracking screen
     const nav = navProp || navigation;
     nav.goBack();
   };
@@ -64,7 +40,7 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
             <Text className="text-gray-800 text-xl font-semibold">Tracking Status</Text>
             <View className={`${isRecording ? 'bg-red-500' : 'bg-green-500'} px-3 py-1 rounded-full`}>
               <Text className="text-white text-sm font-medium">
-                {isRecording ? 'Recording' : 'Complete'}
+                {isRecording ? 'Tracking' : 'Complete'}
               </Text>
             </View>
           </View>

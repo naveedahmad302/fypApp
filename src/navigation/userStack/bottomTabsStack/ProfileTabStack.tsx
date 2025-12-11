@@ -6,13 +6,20 @@ import { ChevronLeft, Save } from 'lucide-react-native';
 import { TProfileTabStackParamsList } from './types';
 import ProfileScreen from '../../../screens/user/profile/ProfileScreen';
 import EditProfileScreen from '../../../screens/user/profile/EditProfileScreen';
+import CustomHeader from '../../../components/CustomHeader';
 
 const Stack = createNativeStackNavigator<TProfileTabStackParamsList>();
 
 const ProfileTabStack: React.FC = () => {
   return (
     // @ts-ignore - React Navigation TypeScript issue with children prop
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: true,
+        animation: 'slide_from_right',
+        header: () => <CustomHeader title="Profile" />,
+      }}
+    >
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen 
         name="EditProfile" 
