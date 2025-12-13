@@ -20,6 +20,11 @@ end
 target 'fypApp' do
   config = use_native_modules!
 
+  # Facebook SDK pods
+  pod 'FBSDKCoreKit', '~> 18.0'
+  pod 'FBSDKLoginKit', '~> 18.0'
+  pod 'FBSDKShareKit', '~> 18.0'
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
