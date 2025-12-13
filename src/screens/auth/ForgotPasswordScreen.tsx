@@ -1,55 +1,64 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TAuthStackNavigationProps } from '../../navigation/authStack/types';
 import { Mail, ArrowLeft } from 'lucide-react-native';
 import CustomText from '../../components/CustomText';
+import { sendPasswordResetEmail } from '../../firebase/auth';
+import AlertModal from '../../components/AlertModal';
 
 const ForgotPasswordScreen: React.FC<TAuthStackNavigationProps<'ForgotPassword'>> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [alertModal, setAlertModal] = useState({
+    visible: false,
+    type: 'info' as 'success' | 'error' | 'warning' | 'info',
+    title: '',
+    message: '',
+  });
+
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
+    setAlertModal({ visible: true, type, title, message });
+  };
 
   const handleResetPassword = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
-      return;
-    }
-
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      showAlert('error', 'Invalid Email', 'Please enter a valid email address.');
       return;
     }
 
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert(
-        'Reset Link Sent',
-        'We have sent a password reset link to your email address. Please check your inbox.',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Login')
-          }
-        ]
+
+    try {
+      await sendPasswordResetEmail(email);
+      showAlert(
+        'success',
+        'Email Sent',
+        'We\'ve sent a password reset link to your email. Please check your inbox and follow the instructions.'
       );
-    }, 2000);
+      setEmail('');
+    } catch (error: any) {
+      showAlert('error', 'Error', error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-[#F7F8FA]">
       <ScrollView contentContainerClassName="flex-grow justify-center p-5">
         <View className="w-full max-w-md mx-auto">
-          {/* Back Button */}
-          {/* <TouchableOpacity 
-            onPress={() => navigation.navigate('Login')}
-            className="self-start mb-6 p-2"
+          {/* Back Button
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            className="flex-row items-center mb-6"
           >
-            <ArrowLeft size={24} color="#4A90E2" />
+            <ArrowLeft size={20} color="#4A90E2" />
+            <CustomText weight={500} className="text-[#4A90E2] text-base ml-2">
+              Back to Login
+            </CustomText>
           </TouchableOpacity> */}
 
           {/* Header */}
@@ -90,9 +99,9 @@ const ForgotPasswordScreen: React.FC<TAuthStackNavigationProps<'ForgotPassword'>
             </View>
           </View>
 
-          {/* Reset Password Button */}
+          {/* Submit Button */}
           <TouchableOpacity
-            className="bg-[#4A90E2] py-4 rounded-2xl items-center mb-6 shadow-lg"
+            className="bg-[#4A90E2] py-4 rounded-2xl items-center mt-2"
             onPress={handleResetPassword}
             disabled={isLoading}
           >
@@ -106,7 +115,7 @@ const ForgotPasswordScreen: React.FC<TAuthStackNavigationProps<'ForgotPassword'>
           </TouchableOpacity>
 
           {/* Back to Login Link */}
-          <View className="flex-row justify-center">
+          <View className="flex-row justify-center mt-10">
             <CustomText weight={400} className="text-sm text-gray-600">
               Remember your password?
             </CustomText>
@@ -116,6 +125,15 @@ const ForgotPasswordScreen: React.FC<TAuthStackNavigationProps<'ForgotPassword'>
           </View>
         </View>
       </ScrollView>
+      
+      {/* Alert Modal */}
+      <AlertModal
+        visible={alertModal.visible}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        onClose={() => setAlertModal({ ...alertModal, visible: false })}
+      />
     </SafeAreaView>
   );
 };

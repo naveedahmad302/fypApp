@@ -1,8 +1,109 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { Volume2, Clock, Eye, Mic, Users, CheckCircle, Check, ArrowRight, ChevronRight } from 'lucide-react-native';
+import { Volume2, Clock, Eye, Mic, Users, CheckCircle, Check, ArrowRight, ChevronRight,CircleCheckBig } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import CustomText from '../../../components/CustomText';
+
+// Define types for AssessmentItem props
+interface AssessmentItemProps {
+  icon: React.ComponentType<any>;
+  title: string;
+  duration: string;
+  status?: 'completed' | 'current' | 'locked';
+}
+
+// AssessmentItem component
+const AssessmentItem: React.FC<AssessmentItemProps> = ({ icon: Icon, title, duration, status = 'locked' }) => {
+  const getStatusContent = () => {
+    switch (status) {
+      case 'completed':
+        return <View className="bg-[#DBEAFE] px-2 py-1 rounded-full ">
+          {/* <Text className="text-[#4A90E2] text-xs font-semibold">Completed</Text> */}
+          <CircleCheckBig color={'#4A90E2'} />  
+        </View>;
+      case 'current':
+        return <View className="bg-[#DCFCE7] px-2 py-1 rounded-full ">
+          <Text className="text-[#22C55E] text-xs font-semibold">Current</Text>
+        </View>;
+      case 'locked':
+        return <View className="bg-white px-2 py-1 rounded-full">
+          <Text className="text-gray-600 text-xs font-medium">Locked</Text>
+        </View>;
+      default:
+        return null;
+    }
+  };
+
+  const getIconColor = () => {
+    switch (status) {
+      case 'completed':
+        return '#4A90E2';
+      case 'current':
+        return '#22C55E';
+      case 'locked':
+        return '#9CA3AF';
+      default:
+        return '#3B82F6';
+    }
+  };
+
+  return (
+    <View className={`rounded-2xl p-3 flex-row items-center justify-between ${status === 'locked' ? 'opacity-50' : status === 'current' ? 'bg-[#DCFCE7]' : 'bg-[#DBEAFE]'}`}
+          style={status === 'locked' ? {} : {  borderColor: status === 'current' ? '#22C55E' : '#4A90E2',  }}>
+      <View className="flex-row items-center space-x-3 ">
+        <View className="w-12 h-12 rounded-full flex items-center justify-center mr-5" 
+             style={{ backgroundColor: `${getIconColor()}20` }}>
+          <Icon size={20} color={getIconColor()} />
+        </View>
+        <View>
+          <Text className="text-gray-900 font-medium">{title}</Text>
+          <Text className="text-gray-600 text-sm">{duration}</Text>
+        </View>
+      </View>
+      
+      {getStatusContent()}
+    </View>
+  );
+};
+
+// AssessmentOverview component
+const AssessmentOverview = () => {
+  return (
+    <View className=" rounded-2xl pt-5">
+      <Text className="text-gray-900 text-lg font-semibold mb-4">Assessment Overview</Text>
+      
+      <View>
+        <View className=' rounded-2xl border border-[#4A90E2]'>
+        <AssessmentItem 
+          icon={Eye} 
+          title="Eye Tracking" 
+          duration="3-4 min" 
+          status="completed"
+          />
+          </View>
+        
+        <View className="mt-2 rounded-2xl border border-[#22C55E]">
+          <AssessmentItem 
+            icon={Mic} 
+            title="Speech Analysis" 
+            duration="3-5 min" 
+            status="current"
+          />
+        </View>
+        
+        <View className="mt-2 rounded-2xl border border-[#d7d7d757]">
+          <AssessmentItem 
+            icon={Users} 
+            title="MCQ Assessment" 
+            duration="2-3 min" 
+            status="locked"
+          />
+        </View>
+      </View>
+    </View>
+  );
+};
 
 interface SpeechProgressScreenProps {
   navigation?: any;
@@ -17,49 +118,45 @@ const SpeechProgressScreen: React.FC<SpeechProgressScreenProps> = ({ navigation:
   };
 
   return (
-    // <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1 ">
-        <View className="px-6 py-8 bg-[#F5F7FA]">
+      <ScrollView className="flex-1 bg-[#F7F8FA]">
+        <View className="p-5">
           {/* Progress Header */}
-          <View className="bg-white rounded-2xl p-4 shadow-lg shadow-gray-200" style={{
+          <View className='bg-[#FFFFFF] p-5 rounded-2xl shadow-lg shadow-gray-200 mb-6' style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.3,
             shadowRadius: 4,
             elevation: 1,
           }}>
-            <View className="bg-white rounded-2xl p-2 shadow-sm">
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-gray-900 text-lg font-semibold">Assessment Progress</Text>
-                <View className="bg-blue-100 px-3 py-1 rounded-full">
-                  <Text className="text-[#4A90E2] text-xs font-medium">Step 2 of 3</Text>
-                </View>
+            <View className="flex-row items-center justify-between mb-4">
+              <CustomText weight={600} className="text-lg font-semibold text-gray-800">Assessment Progress</CustomText>
+              <View className="bg-[#DBEAFE] px-3 py-1 rounded-full">
+                <CustomText weight={500} className="text-[#4A90E2] text-xs font-medium">Step 2 of 3</CustomText>
               </View>
-              <View className="mb-3">
-                <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
-                  <View className="bg-[#4A90E2] h-full rounded-full" style={{ width: '25%' }} />
-                </View>
+            </View>
+            <View className="mb-3">
+              <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
+                <View className="bg-[#4A90E2] h-full rounded-full" style={{ width: '25%' }} />
               </View>
-              <View className="flex-row justify-between">
-                <Text className="text-[#6B7280] text-sm">1 of 3 completed</Text>
-                <Text className="text-[#6B7280] text-sm font-medium">25% Complete</Text>
-              </View>
+            </View>
+            <View className="flex-row justify-between">
+              <CustomText weight={400} className="text-[#6B7280] text-sm">1 of 3 completed</CustomText>
+              <CustomText weight={500} className="text-[#6B7280] text-sm font-medium">25% Complete</CustomText>
             </View>
           </View>
 
           {/* Current Assessment */}
-          <View className="bg-white rounded-2xl p-5 shadow-lg shadow-gray-200" style={{
+          <View className='bg-[#FFFFFF] p-5 rounded-2xl shadow-lg shadow-gray-200 mb-6' style={{
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
+            shadowOpacity: 0.3,
             shadowRadius: 4,
-            elevation: 3,
-            marginTop: 20,
+            elevation: 1,
           }}>
             <View className="items-center mb-4">
-              <Text className="text-[#4A90E2] text-sm px-4 py-1.5 rounded-2xl bg-[#DBEAFE]">
+              <CustomText weight={500} className="text-[#4A90E2] text-sm px-4 py-1.5 rounded-2xl bg-[#DBEAFE]">
                 Current Assessment
-              </Text>
+              </CustomText>
             </View>
             
             <View className="items-center">
@@ -67,23 +164,30 @@ const SpeechProgressScreen: React.FC<SpeechProgressScreenProps> = ({ navigation:
                 <Volume2 size={28} color="#4A90E2" />
               </View>
               <View className="w-full">
-                <Text className="text-center text-gray-900 text-xl font-bold mb-1.5">Speech Analysis</Text>
-                <Text className="text-center text-gray-600 text-sm mb-5 px-2">
+                <CustomText weight={700} className="text-center text-gray-900 text-xl font-bold mb-1.5">Speech Analysis</CustomText>
+                <CustomText weight={400} className="text-center text-gray-600 text-sm mb-5 px-2">
                   Record and analyse speech patterns
-                </Text>
+                </CustomText>
                 <View className="flex-row items-center justify-center mb-3">
                   <View className="flex-row items-center">
                     <Clock size={16} color="#6B7280" />
-                    <Text className="text-gray-600 text-sm ml-1.5 self-center">3-5 min</Text>
+                    <CustomText weight={400} className="text-gray-600 text-sm ml-1.5 self-center">3-5 min</CustomText>
                   </View>
                 </View>
                 <TouchableOpacity
                   onPress={() => navigateToAssessment('RecordingScreen')}
-                  className="w-full bg-[#4A90E2] rounded-2xl py-3.5 flex-row items-center justify-center"
+                  className="w-full bg-[#4A90E2] rounded-2xl py-3.5 flex-row items-center justify-center shadow-lg"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4,
+                    elevation: 1,
+                  }}
                 >
-                  <Text className="text-white font-semibold text-lg mr-2">
+                  <CustomText weight={600} className="text-white font-semibold text-lg mr-2">
                     Next
-                  </Text>
+                  </CustomText>
                   <ArrowRight size={18} color="white" strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
@@ -91,64 +195,7 @@ const SpeechProgressScreen: React.FC<SpeechProgressScreenProps> = ({ navigation:
           </View>
 
           {/* Assessment Overview */}
-          <View className=" rounded-2xl pt-5">
-            <Text className="text-gray-900 text-lg font-semibold mb-4">Assessment Overview</Text>
-            
-            <View>
-              <View className=' rounded-2xl border border-[#4A90E2]'>
-                <View className="bg-white rounded-xl p-3 flex-row items-center justify-between">
-                  <View className="flex-row items-center space-x-3">
-                    <View className="w-12 h-12 rounded-full flex items-center justify-center mr-5" 
-                         style={{ backgroundColor: '#4A90E220' }}>
-                      <Eye size={20} color="#4A90E2" />
-                    </View>
-                    <View>
-                      <Text className="text-gray-900 font-medium">Eye Tracking</Text>
-                      <Text className="text-gray-600 text-sm">3-4 min</Text>
-                    </View>
-                  </View>
-                  <Check size={20} color="#4A90E2" />
-                </View>
-              </View>
-              
-              <View className="mt-2 rounded-2xl">
-                <View className="bg-white rounded-xl p-3 flex-row items-center justify-between" 
-                      style={{ borderWidth: 0.5, borderColor: '#4A90E2' }}>
-                  <View className="flex-row items-center space-x-3">
-                    <View className="w-12 h-12 rounded-full flex items-center justify-center mr-5" 
-                         style={{ backgroundColor: '#4A90E220' }}>
-                      <Mic size={20} color="#4A90E2" />
-                    </View>
-                    <View>
-                      <Text className="text-gray-900 font-medium">Speech Analysis</Text>
-                      <Text className="text-gray-600 text-sm">3-5 min</Text>
-                    </View>
-                  </View>
-                  <View className="bg-[#DCFCE7] px-2 py-1 rounded-full">
-                    <Text className="text-green-600 text-xs font-medium">Current</Text>
-                  </View>
-                </View>
-              </View>
-              
-              <View className="mt-2 rounded-2xl">
-                <View className="bg-white rounded-xl p-3 flex-row items-center justify-between opacity-50">
-                  <View className="flex-row items-center space-x-3">
-                    <View className="w-12 h-12 rounded-full flex items-center justify-center mr-5" 
-                         style={{ backgroundColor: '#9CA3AF20' }}>
-                      <Users size={20} color="#9CA3AF" />
-                    </View>
-                    <View>
-                      <Text className="text-gray-900 font-medium">MCQ Assessment</Text>
-                      <Text className="text-gray-600 text-sm">2-3 min</Text>
-                    </View>
-                  </View>
-                  <View className="bg-[#E5E7EB] px-2 py-1 rounded-full">
-                    <Text className="text-gray-600 text-xs font-medium">Locked</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
+          <AssessmentOverview />
 
           {/* Progress Summary
           <View className="mt-6 p-4 bg-gray-50 rounded-lg">
@@ -160,7 +207,6 @@ const SpeechProgressScreen: React.FC<SpeechProgressScreenProps> = ({ navigation:
           </View> */}
         </View>
       </ScrollView>
-    // </SafeAreaView>
   );
 };
 

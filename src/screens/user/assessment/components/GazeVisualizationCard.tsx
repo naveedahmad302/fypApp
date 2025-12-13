@@ -30,8 +30,8 @@ const GazeVisualizationCard: React.FC<GazeVisualizationCardProps> = ({
         }}>
         <View className="flex-row items-center justify-between mb-3">
           <Text className="text-gray-900 text-lg font-semibold">Tracking Status</Text>
-          <View className={`px-3 py-1 rounded-full ${isTracking ? 'bg-blue-100' : 'bg-blue-100'}`}>
-            <Text className={`text-xs font-medium ${isTracking ? 'text-[#4A90E2]' : 'text-[#4A90E2]'}`}>
+          <View className={`px-3 py-1 rounded-full ${isTracking ? 'bg-[#ffb4b434]' : 'bg-blue-100'}`}>
+            <Text className={`text-xs font-medium ${isTracking ? 'text-red-500' : 'text-[#4A90E2]'}`}>
               {isTracking ? `Recording ${trackingProgress}%` : 'Ready'}
             </Text>
           </View>
@@ -41,7 +41,7 @@ const GazeVisualizationCard: React.FC<GazeVisualizationCardProps> = ({
         <View className="mb-4">
           <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
             <View 
-              className={`h-full rounded-full transition-all duration-300 ${isTracking ? 'bg-blue-500' : 'bg-blue-500'}`}
+              className={`h-full rounded-full transition-all duration-300 ${isTracking ? 'bg-red-500' : 'bg-blue-500'}`}
               style={{ width: `${trackingProgress}%` }}
             />
           </View>

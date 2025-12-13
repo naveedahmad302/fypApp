@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { RefreshCw, Check, Eye, Clock, Target } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import CustomText from '../../../components/CustomText';
 
 interface TrackingStatusScreenProps {
   navigation?: any;
@@ -32,38 +33,54 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1">
-        <View className="px-6 py-8">
+    <SafeAreaView edges={[]} className="flex-1 bg-[#F7F8FA]">
+      <ScrollView contentContainerClassName="flex-grow justify-center p-5">
+        <View className="w-full max-w-md mx-auto">
           {/* Tracking Status Header */}
-          <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-gray-800 text-xl font-semibold">Tracking Status</Text>
-            <View className={`${isRecording ? 'bg-red-500' : 'bg-green-500'} px-3 py-1 rounded-full`}>
-              <Text className="text-white text-sm font-medium">
-                {isRecording ? 'Tracking' : 'Complete'}
-              </Text>
-            </View>
-          </View>
+          
 
           {/* Progress Bar */}
-          <View className="mb-6">
-            <View className="w-full h-2 bg-gray-200 rounded-full mb-2">
+          <View className='bg-[#FFFFFF] p-5 rounded-2xl shadow-lg shadow-gray-200 mb-6' style={{
+            
+             shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4,
+          elevation: 1,
+          }}>
+            <View className="flex-row justify-between items-center mb-6">
+            <CustomText weight={700} className="text-lg font-bold text-gray-900">
+              Tracking Status
+            </CustomText>
+            <View className={`${isRecording ? 'bg-red-500' : 'bg-[#DBEAFE]'} px-3 py-1 rounded-full`}>
+              <CustomText weight={500} className="text-[#4A90E2] text-sm font-medium">
+                {isRecording ? 'Tracking' : 'Complete'}
+              </CustomText>
+            </View>
+          </View>
+            <View className="w-full h-2 bg-gray-200 rounded-full mb-3">
               <View 
                 className={`h-full rounded-full transition-all duration-300 ${
-                  isRecording ? 'bg-blue-500' : 'bg-green-500'
+                  isRecording ? 'bg-[#4A90E2]' : 'bg-[#4A90E2]'
                 }`}
                 style={{ width: `${progress}%` }}
               />
             </View>
-            <Text className="text-gray-500 text-sm">
+            <CustomText weight={400} className="text-gray-600 text-sm">
               {isRecording ? `Recording... ${progress}% complete` : 'Recording Complete'}
-            </Text>
+            </CustomText>
           </View>
 
           {/* Gaze Visualization */}
-          <View className="mb-8">
-            <Text className="text-gray-800 text-lg font-semibold mb-4">Gaze Visualization</Text>
-            <View className="bg-gray-100 p-8 rounded-lg items-center justify-center" style={{ height: 200 }}>
+          <View className='bg-[#FFFFFF] p-5 rounded-2xl shadow-lg shadow-gray-200 mb-6' style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 1,
+          }}>
+            <CustomText weight={600} className="text-lg font-bold text-gray-800 mb-4">Gaze Visualization</CustomText>
+            <View className="bg-[#F3F4F6] p-8 rounded-2xl items-center justify-center" style={{ height: 200 }}>
               {/* Face outline with tracking points */}
               <View className="relative">
                 {/* Face outline */}
@@ -94,50 +111,69 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
           </View>
 
           {/* Action Buttons */}
-          <View className="flex-row mb-8">
+          <View className="flex-row mb-6">
             <TouchableOpacity 
-              className="flex-1 border border-blue-500 py-3 rounded-lg mr-3 flex-row items-center justify-center"
+              className="flex-1 border border-[#4A90E2] py-4 rounded-2xl mr-3 flex-row items-center justify-center"
               onPress={handleTryAgain}
             >
-              <RefreshCw size={20} color="#3B82F6" />
-              <Text className="text-blue-500 font-semibold ml-2">Try Again</Text>
+              <RefreshCw size={20} color="#4A90E2" />
+              <CustomText weight={500} className="text-[#4A90E2] font-semibold ml-2">Try Again</CustomText>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              className="flex-1 bg-blue-500 py-3 rounded-lg ml-3 flex-row items-center justify-center"
+              className="flex-1 bg-[#4A90E2] py-4 rounded-2xl ml-3 flex-row items-center justify-center shadow-lg"
               onPress={handleComplete}
               disabled={isRecording}
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 1,
+              }}
             >
               <Check size={20} color="white" />
-              <Text className="text-white font-semibold ml-2">Complete</Text>
+              <CustomText weight={600} className="text-white font-semibold ml-2">Complete</CustomText>
             </TouchableOpacity>
           </View>
 
           {/* Preliminary Results */}
-          <View>
-            <Text className="text-blue-500 text-lg font-semibold mb-4">Preliminary Results</Text>
+          <View className='bg-white p-4 rounded-2xl'>
+            <CustomText weight={600} className="text-lg bg-white font-semibold text-[#4A90E2] mb-4">Preliminary Results</CustomText>
             
             <View className="flex-row mb-6">
-              <View className="flex-1 bg-gray-50 p-4 rounded-lg mr-3 items-center">
+              <View className="flex-1 bg-[#F3F4F6] p-4 rounded-2xl mr-3 items-center shadow-sm" style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 1,
+              }}>
                 <Target size={24} color="#374151" className="mb-2" />
-                <Text className="text-gray-800 text-2xl font-bold mb-1">{gazePoints}</Text>
-                <Text className="text-gray-500 text-sm text-center">Gaze Points</Text>
+                <CustomText weight={700} className="text-gray-900 text-2xl font-bold mb-1">{gazePoints}</CustomText>
+                <CustomText weight={400} className="text-gray-600 text-sm text-center">Gaze Points</CustomText>
               </View>
               
-              <View className="flex-1 bg-gray-50 p-4 rounded-lg ml-3 items-center">
+              <View className="flex-1 bg-[#F3F4F6] p-4 rounded-2xl ml-3 items-center shadow-sm" style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 1,
+              }}>
                 <Clock size={24} color="#374151" className="mb-2" />
-                <Text className="text-gray-800 text-2xl font-bold mb-1">{avgFixation}</Text>
-                <Text className="text-gray-500 text-sm text-center">Avg. Fixation</Text>
+                <CustomText weight={700} className="text-gray-900 text-2xl font-bold mb-1">{avgFixation}</CustomText>
+                <CustomText weight={400} className="text-gray-600 text-sm text-center">Avg. Fixation</CustomText>
               </View>
             </View>
 
-            <View className="bg-blue-50 p-4 rounded-lg">
-              <Text className="text-gray-600 text-sm text-center">
+            <View className="bg-[#F0FDFA] p-4 rounded-2xl border border-[#22C55E]">
+              <CustomText weight={400} className="text-gray-600 text-sm text-center">
                 {isRecording 
                   ? 'Eye tracking in progress. Please maintain focus on the center point.'
                   : 'Results saved to your assessment profile.\nClick Complete to proceed to next assessment.'
                 }
-              </Text>
+              </CustomText>
             </View>
           </View>
         </View>

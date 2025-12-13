@@ -44,7 +44,7 @@ const GroupChatScreen = ({ route }: { route: GroupChatScreenRouteProp }) => {
       sender: 'Minhaj',
       initials: 'MN',
       avatar: '#9C27B0',
-      message: 'Good morning everyone! Hope you all have a wonderful day ahead �',
+      message: 'Good morning everyone! Hope you all have a wonderful day ahead',
       time: '8:30 AM',
       isOwn: false,
     },

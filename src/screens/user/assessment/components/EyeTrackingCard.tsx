@@ -2,9 +2,10 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { Camera, CameraOff, CheckCircle, AlertCircle } from 'lucide-react-native';
 
-const TrackingStatusCard = () => {
+const EyeTrackingCard = () => {
   return (
     <View className="bg-white rounded-2xl p-4 shadow-sm">
+        
       <Text className="text-gray-900 text-lg font-semibold mb-4">Tracking Status</Text>
       
       {/* Camera Status */}
@@ -40,4 +41,4 @@ const TrackingStatusCard = () => {
   );
 };
 
-export default TrackingStatusCard;
+export default EyeTrackingCard;

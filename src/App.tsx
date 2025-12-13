@@ -25,7 +25,7 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <SafeAreaView style={styles.container} className="bg-blue-500">
+      <SafeAreaView style={styles.container} className="">
         {/* <GestureHandlerRootView> */}
           <Navigation navigationRef={navigationRef as any} routeNameRef={routeNameRef} />
         {/* </GestureHandlerRootView> */}

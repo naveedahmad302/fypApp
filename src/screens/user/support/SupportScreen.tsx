@@ -28,7 +28,7 @@ const SupportScreen: React.FC = () => {
           <View className="w-12 h-12 bg-green-100 rounded-full items-center justify-center">
             <Heart  size={24} color="#10b981"  />
           </View>
-          <Text className="text-xl font-radio-canada font-bold ml-3 text-gray-900">You're Not Alone</Text>
+          <Text className="text-lg font-radio-canada font-bold ml-3 text-gray-900">You're Not Alone</Text>
         </View>
         <Text className="text-gray-600 font-radio-canada leading-relaxed">
           Connect with others on similar journeys, share experiences, and 
@@ -37,7 +37,7 @@ const SupportScreen: React.FC = () => {
       </View>
 
       <View className=" rounded-xl mb-5">
-        <Text className="text-xl font-radio-canada font-bold mb-4 text-gray-900">Community Groups</Text>
+        <Text className="text-lg font-radio-canada font-bold mb-4 text-gray-900">Community Groups</Text>
         
         <View className="mb-5 bg-white rounded-xl p-4" style={{
           shadowColor: '#000',
@@ -51,7 +51,7 @@ const SupportScreen: React.FC = () => {
               <Users size={24} color="#3b82f6" />
             </View>
             <View className="flex-1 ml-4">
-              <Text className="font-radio-canada font-bold text-lg text-gray-900">Parents Support Circle</Text>
+              <Text className="font-radio-canada font-bold text-base text-gray-900">Parents Support Circle</Text>
               <Text className="text-gray-500 text-sm font-radio-canada">Community • 234 members</Text>
             </View>
           </View>
@@ -79,7 +79,7 @@ const SupportScreen: React.FC = () => {
               <Calendar size={24} color="#8b5cf6" />
             </View>
             <View className="flex-1 ml-4">
-              <Text className="font-radio-canada font-bold text-gray-900 text-lg">Weekly Check Ins</Text>
+              <Text className="font-radio-canada font-bold text-gray-900 text-base">Weekly Check Ins</Text>
               <Text className="text-gray-500 text-sm font-radio-canada">Weekly Meetings • 39 members</Text>
             </View>
           </View>

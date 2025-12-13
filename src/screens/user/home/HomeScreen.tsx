@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     // <SafeAreaView className="flex-1 bg-[#F5F7FA]">
-      <ScrollView className="flex-1  bg-[#F5F7FA] py-7 px-5" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1  bg-[#F5F7FA] py-7 px-7" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className=" shadow-sm justify-center items-center pb-7">
           <Text className="text-black font-radio-canada text-lg font-semibold mb-1">Your Assessment Journey</Text>
@@ -59,7 +59,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 <View
                   className="absolute inset-0 w-36 h-36 rounded-full"
                   style={{
-                    borderTopWidth: 1,
+                    borderTopWidth:0,
                     borderTopColor: '#3b82f6',
                     borderRightWidth: 0,
                     borderBottomWidth: 0,

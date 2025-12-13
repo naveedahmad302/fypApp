@@ -73,7 +73,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     // Navigate to the final screen after a short delay
     setTimeout(() => {
       navigation.navigate('TrackingStatusScreen');
-    }, 1000);
+    }, 100);
   };
 
   return (

@@ -78,7 +78,7 @@ const ReportScreen: React.FC<TReportTabStackNavigationProps<'Report'>> = ({ navi
                 </Text>
             </View>
 
-            <View className=" mx-4 mt-4 rounded-lg p-4">
+            <View className=" mx-3 mt-4 rounded-lg p-4">
                 <Text className="text-lg font-radio-canada font-semibold mb-4 text-gray-900">Assessment Results</Text>
 
                 {/* Eye Tracking Assessment */}
@@ -148,7 +148,7 @@ const ReportScreen: React.FC<TReportTabStackNavigationProps<'Report'>> = ({ navi
                 </View>
             </View>
 
-            <View className="flex-row mx-8 mb-6" style={{gap:10}}>
+            <View className="flex-row mx-8 mb-6" style={{ gap: 10 }}>
                 <TouchableOpacity
                     className="flex-1 bg-white border border-blue-500 py-4 rounded-xl flex-row items-center justify-center"
                     onPress={() => console.log('Share Report')}

@@ -171,10 +171,10 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                     }}>
                         <Text className="text-gray-800 font-radio-canada text-base ml-2 font-bold mb-3">Speaking Prompt</Text>
                         <View className=" p-4 mx-2 rounded-lg bg-[#F3F4F6] ">
-                            <Text className="text-gray-800 font-radio-canada font-semibold mb-2">
+                            <Text className="text-gray-800 font-radio-canada font-bold mb-2  text-center">
                                 Please describe what you did today
                             </Text>
-                            <Text className="text-gray-500 font-radio-canada text-sm">
+                            <Text className="text-gray-500 font-radio-canada text-sm text-center">
                                 Speak naturally and take your time. There's no right or wrong answer.
                             </Text>
                         </View>
@@ -343,7 +343,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                                 <View className="space-y-3 mb-4">
                                     <View className="flex-row justify-between items-center py-2 border-b border-gray-100">
                                         <Text className="text-gray-700 font-radio-canada text-sm font-medium">Speech Clarity</Text>
-                                        <View className="bg-[#DBEAFE] px-2 py-1 rounded-fulls">
+                                        <View className="bg-[#DBEAFE] px-2 py-1 rounded-full">
                                             <Text className="text-[#4A90E2] font-radio-canada text-xs font-medium">Good</Text>
                                         </View>
                                     </View>

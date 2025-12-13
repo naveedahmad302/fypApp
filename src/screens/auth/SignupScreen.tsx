@@ -7,6 +7,7 @@ import { Mail, Lock, User, Eye, EyeOff, Check, Square } from 'lucide-react-nativ
 import CustomText from '../../components/CustomText';
 import { signUp } from '../../firebase/auth';
 import { saveUserToFirestore } from '../../firebase/firestore';
+import AlertModal from '../../components/AlertModal';
 
 const SignupScreen: React.FC<TAuthStackNavigationProps<'Signup'>> = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -17,31 +18,89 @@ const SignupScreen: React.FC<TAuthStackNavigationProps<'Signup'>> = ({ navigatio
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const { setAuthenticated } = useAuth();
+  const [alertModal, setAlertModal] = useState({
+    visible: false,
+    type: 'info' as 'success' | 'error' | 'warning' | 'info',
+    title: '',
+    message: '',
+  });
+  const { setAuthenticated, setUser } = useAuth();
+
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
+    setAlertModal({ visible: true, type, title, message });
+  };
 
   const handleSignup = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      showAlert('error', 'Missing Information', 'Please fill in all fields');
       return;
     }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showAlert('error', 'Invalid Email', 'Please enter a valid email address.');
+      return;
+    }
+    
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      showAlert('error', 'Password Mismatch', 'Passwords do not match');
       return;
     }   
+    
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      showAlert('error', 'Weak Password', 'Password must be at least 6 characters');
       return;
     }
+    
     if (!agreeToTerms) {
-      Alert.alert('Error', 'Please agree to the Terms of Service and Privacy Policy');
+      showAlert('error', 'Terms Not Accepted', 'Please agree to the Terms of Service and Privacy Policy');
       return;
     }
+    
     setIsLoading(true);
-    setTimeout(() => {
+    
+    try {
+      // Create user with email and password
+      const user = await signUp(email, password);
+      
+      // Save additional user data to Firestore
+      await saveUserToFirestore(user.uid, email, fullName);
+      
+      showAlert('success', 'Account Created', 'Your account has been created successfully!');
+      
+      // Navigate to login after a short delay
+      setTimeout(() => {
+        // Clear form
+        setFullName('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setAgreeToTerms(false);
+        
+        // Navigate to login screen
+        navigation.navigate('Login', { 
+          email: email, // Pre-fill email in login
+          message: 'Account created successfully! Please sign in.'
+        });
+      }, 1500);
+      
+    } catch (error: any) {
+      // Handle different Firebase Auth errors
+      let errorMessage = 'An error occurred during signup. Please try again.';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'The email address is not valid.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'The password is too weak.';
+      }
+      
+      showAlert('error', 'Signup Failed', errorMessage);
+    } finally {
       setIsLoading(false);
-      Alert.alert('Success', 'Account created successfully!');
-      setAuthenticated(true);
-    }, 2000);
+    }
   };
 
   return (
@@ -223,6 +282,15 @@ const SignupScreen: React.FC<TAuthStackNavigationProps<'Signup'>> = ({ navigatio
           </TouchableOpacity>
         </View>
       </ScrollView>
+      
+      {/* Alert Modal */}
+      <AlertModal
+        visible={alertModal.visible}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        onClose={() => setAlertModal({ ...alertModal, visible: false })}
+      />
     </SafeAreaView>
   );
 };

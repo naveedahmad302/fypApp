@@ -20,7 +20,7 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
     title: '',
     message: '',
   });
-  const { setAuthenticated } = useAuth();
+  const { setAuthenticated, setUser } = useAuth();
 
   const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
     setAlertModal({ visible: true, type, title, message });
@@ -43,13 +43,24 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
 
   try {
     const user = await signIn(email, password);
-    showAlert('success', 'Login Successful', `Welcome back, ${user.email || 'User'}`);
+    
+    // Fetch user data from Firestore
+    const userData = await getUserFromFirestore(user.uid);
+    
+    showAlert('success', 'Login Successful', `Welcome back, ${userData?.fullName || user.email}`);
     
     setTimeout(() => {
-      setAuthenticated(true); // Update your context
+      setAuthenticated(true);
+      if (userData) {
+        setUser({
+          name: userData.fullName,
+          email: userData.email,
+          uid: userData.uid
+        });
+      }
     }, 1500);
   } catch (error: any) {
-    showAlert('error', 'Login Failed', error.message);
+    showAlert('error', 'Login Failed', 'Incorrect credentials. Please try again.');
   } finally {
     setIsLoading(false);
   }
@@ -65,7 +76,16 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
           <CustomText weight={400} className="text-base text-center text-gray-600 mb-10">
             Sign in to continue your journey
           </CustomText>
-          <View className='bg-[#FFFFFF] p-5 rounded-3xl shadow-2xl shadow-[#000000] mb-10 '>
+          <View className='bg-[#FFFFFF] p-5 rounded-3xl shadow-2xl shadow-[#000000] mb-10' style={{
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 4,
+            },
+            shadowOpacity: 0.3,
+            shadowRadius: 4.65,
+            elevation: 8,
+          }}>
             {/* Email Input */}
             <View className="mb-5">
               <CustomText weight={500} className="text-base font-medium mb-2 text-gray-800">

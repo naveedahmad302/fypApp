@@ -6,9 +6,11 @@ const AssessmentItem = ({ icon: Icon, title, duration, status = 'locked' }) => {
   const getStatusContent = () => {
     switch (status) {
       case 'completed':
-        return <Check size={20} color="#4A90E2" backgroundColor="#9CA3AF" />;
+        return <View className="bg-[#DCFCE7] px-2 py-1 rounded-full ">
+          <Text className="text-[#22C55E] text-xs font-semibold">Current</Text>
+        </View>;
       case 'locked':
-        return <View className="bg-[#E5E7EB] px-2 py-1 rounded-full">
+        return <View className="bg-white px-2 py-1 rounded-full">
           <Text className="text-gray-600 text-xs font-medium">Locked</Text>
         </View>;
       default:
@@ -19,7 +21,7 @@ const AssessmentItem = ({ icon: Icon, title, duration, status = 'locked' }) => {
   const getIconColor = () => {
     switch (status) {
       case 'completed':
-        return '#4A90E2';
+        return '#22C55E';
       case 'locked':
         return '#9CA3AF';
       default:
@@ -28,9 +30,9 @@ const AssessmentItem = ({ icon: Icon, title, duration, status = 'locked' }) => {
   };
 
   return (
-    <View className={`bg-white rounded-xl p-3 flex-row items-center justify-between ${status === 'locked' ? 'opacity-50' : 'bg-white'}`}
-          style={status === 'locked' ? {} : { borderWidth: 0.5, borderColor: '#4A90E2' }}>
-      <View className="flex-row items-center space-x-3">
+    <View className={`rounded-2xl p-3 flex-row items-center justify-between ${status === 'locked' ? 'opacity-50' : 'bg-[#F0FDFA]'}`}
+          style={status === 'locked' ? {} : {  borderColor: '#4A90E2',  }}>
+      <View className="flex-row items-center space-x-3 ">
         <View className="w-12 h-12 rounded-full flex items-center justify-center mr-5" 
              style={{ backgroundColor: `${getIconColor()}20` }}>
           <Icon size={20} color={getIconColor()} />
@@ -53,7 +55,7 @@ const AssessmentOverview = () => {
       
       <View>
 
-        <View className=' rounded-2xl border border-[#4A90E2]'>
+        <View className=' rounded-2xl border border-[#22C55E]'>
         <AssessmentItem 
           icon={Eye} 
           title="Eye Tracking" 
@@ -62,7 +64,7 @@ const AssessmentOverview = () => {
           />
           </View>
         
-        <View className="mt-2 rounded-2xl">
+        <View className="mt-2 rounded-2xl border border-[#d7d7d757]">
           <AssessmentItem 
             icon={Mic} 
             title="Speech Analysis" 
@@ -71,7 +73,7 @@ const AssessmentOverview = () => {
           />
         </View>
         
-        <View className="mt-2 rounded-2xl">
+        <View className="mt-2 rounded-2xl border border-[#d7d7d757]">
           <AssessmentItem 
             icon={Users} 
             title="MCQ Assessment" 

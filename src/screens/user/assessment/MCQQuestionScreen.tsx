@@ -142,7 +142,7 @@ const MCQQuestionScreen: React.FC<MCQQuestionScreenProps> = ({ navigation: navPr
             elevation: 3,
           }}>
             <Text className="text-gray-800 text-lg font-semibold mb-4 leading-relaxed">
-              {questions[currentQuestion].question}
+              {currentQuestion + 1}. {questions[currentQuestion].question}
             </Text>
 
             {/* Options */}
@@ -165,11 +165,13 @@ const MCQQuestionScreen: React.FC<MCQQuestionScreenProps> = ({ navigation: navPr
                         <Circle size={16} color="#9CA3AF" />
                       )}
                     </View>
-                    <Text className={`flex-1 text-sm leading-relaxed ${
-                      selectedOption === index ? 'text-[#4A90E2] font-medium' : 'text-gray-700'
-                    }`}>
-                      {option}
-                    </Text>
+                    <View className="flex-1">
+                      <Text className={`text-sm leading-relaxed ${
+                        selectedOption === index ? 'text-[#4A90E2] font-medium' : 'text-gray-700'
+                      }`}>
+                        {option}
+                      </Text>
+                    </View>
                   </View>
                 </TouchableOpacity>
               ))}
