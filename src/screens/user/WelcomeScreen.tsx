@@ -29,8 +29,8 @@ const WelcomeScreen: React.FC<TAuthStackNavigationProps<'Welcome'>> = ({ navigat
         <View className="space-y-4 mb-12">
           {/* Safe & Private Card */}
           <View className="bg-white rounded-2xl p-5 flex-row items-start shadow-sm border border-gray-100">
-            <View className="w-12 h-12 bg-teal-50 rounded-full items-center justify-center mr-4 flex-shrink-0">
-              <Shield size={24} color="#14b8a6" />
+            <View className="w-12 h-12 bg-[#DBEAFE] rounded-full items-center justify-center mr-4 flex-shrink-0">
+              <Shield size={24} color="#4A90E2" />
             </View>
             <View className="flex-1">
               <Text className="text-lg font-semibold text-gray-800 mb-1">
@@ -44,8 +44,8 @@ const WelcomeScreen: React.FC<TAuthStackNavigationProps<'Welcome'>> = ({ navigat
 
           {/* Supportive Community Card */}
           <View className="bg-white rounded-2xl p-5 flex-row items-start shadow-sm border border-gray-100">
-            <View className="w-12 h-12 bg-purple-50 rounded-full items-center justify-center mr-4 flex-shrink-0">
-              <Users size={24} color="#8b5cf6" />
+            <View className="w-12 h-12 bg-[#DBEAFE] rounded-full items-center justify-center mr-4 flex-shrink-0">
+              <Users size={24} color="#4A90E2" />
             </View>
             <View className="flex-1">
               <Text className="text-lg font-semibold text-gray-800 mb-1">
@@ -63,7 +63,7 @@ const WelcomeScreen: React.FC<TAuthStackNavigationProps<'Welcome'>> = ({ navigat
           className="w-full bg-[#4A90E2] rounded-2xl py-4 items-center shadow-lg"
           onPress={() => navigation.navigate('Login')}
         >
-          <Text className="text-white text-lg font-semibold">Get Started</Text>
+          <Text className="text-white text-bases font-semibold">Get Started</Text>
         </TouchableOpacity>
       </View>  
     </SafeAreaView>

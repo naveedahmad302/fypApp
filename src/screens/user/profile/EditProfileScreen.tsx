@@ -21,7 +21,13 @@ const EditProfileScreen: React.FC = ({ navigation }: any) => {
         <CustomText className="text-blue-500 font-medium">Change Profile Picture</CustomText>
       </View>
 
-      <View className="bg-white px-4 py-3 mt-2 rounded-2xl">
+      <View className="bg-white px-4 py-3 mt-2 rounded-2xl" style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+      }}>
         <CustomText className="text-gray-600 mb-2">Full Name</CustomText>
         <View className="flex-row items-center bg-[#F1F5F9] rounded-xl p-1 mb-4">
           <View className="pl-3">
@@ -82,16 +88,22 @@ const EditProfileScreen: React.FC = ({ navigation }: any) => {
           />
         </View>
 
-        <CustomText className="text-gray-600 mb-2">Bio</CustomText>
+        {/* <CustomText className="text-gray-600 mb-2">Bio</CustomText>
         <TextInput 
           className="border border-gray-200 rounded-lg p-3 h-20"
           multiline
           defaultValue="Parent of a wonderful child on the spectrum. Passionate about autism awareness and advocacy."
           placeholder="Tell us about yourself..."
-        />
+        /> */}
       </View>
 
-      <View className="bg-white px-4 py-4 mt-6">
+      <View className="bg-white px-4 py-4 mt-6 mb-10 rounded-2xl" style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+      }}>
         <CustomText className="text-lg font-semibold mb-4">Privacy Settings</CustomText>
         
         <View className="flex-row items-center justify-between mb-4">
@@ -106,7 +118,7 @@ const EditProfileScreen: React.FC = ({ navigation }: any) => {
           />
         </View>
 
-        <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center justify-between ">
           <View>
             <CustomText className="text-base font-medium">Show Activity Status</CustomText>
             <CustomText className="text-gray-500 text-sm">Let others see when you're online</CustomText>

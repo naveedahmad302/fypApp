@@ -7,6 +7,7 @@ export type TAuthStackParamsList = {
   Welcome: undefined;
   Login: undefined;
   Signup: undefined;
+  ForgotPassword: undefined;
   
   
 };

@@ -9,6 +9,7 @@ interface CustomHeaderProps {
   showActionButtons?: boolean;
   onCancel?: () => void;
   onSave?: () => void;
+  headerLeft?: React.ReactNode;
 }
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({ 
@@ -16,7 +17,8 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
   showBackButton = false, 
   showActionButtons = false, 
   onCancel, 
-  onSave 
+  onSave,
+  headerLeft
 }) => {
   const navigation = useNavigation();
 
@@ -26,24 +28,32 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
 
   return (
     <View style={styles.headerContainer}>
-      {showBackButton && (
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={handleBackPress}
-        >
-          <ChevronLeft size={24} color="#000000" />
-        </TouchableOpacity>
-      )}
-      
-      {showActionButtons && onCancel && (
-        <TouchableOpacity 
-          style={styles.cancelButton} 
-          onPress={onCancel}
-        >
-          <ChevronLeft size={20} color="#3b82f6"/>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-      )}
+      <View style={styles.headerLeftContainer}>
+        {headerLeft ? (
+          headerLeft
+        ) : (
+          <>
+            {showBackButton && (
+              <TouchableOpacity 
+                style={styles.backButton} 
+                onPress={handleBackPress}
+              >
+                <ChevronLeft size={24} color="#000000" />
+              </TouchableOpacity>
+            )}
+            
+            {showActionButtons && onCancel && (
+              <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={onCancel}
+              >
+                <ChevronLeft size={20} color="#3b82f6"/>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+      </View>
       
       <Text style={[
         styles.headerTitle, 
@@ -71,17 +81,16 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 15,
     backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
     flexDirection: 'row',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingHorizontal: 16,
+  },
+  headerLeftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   headerTitle: {
     fontSize: 18,
@@ -101,7 +110,8 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    left: 16,
+    // left: ,
+    top: -25,
     zIndex: 1,
     padding: 4,
   },

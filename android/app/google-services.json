@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "996258236172",
+    "project_id": "autism-detection-7c9bf",
+    "storage_bucket": "autism-detection-7c9bf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:996258236172:android:2e2b04fa95ef182c7dab29",
+        "android_client_info": {
+          "package_name": "com.fypapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2ew1q1U8GPLC7Q_SuhSBV3-zUpbJmrns"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -5,6 +5,7 @@ import LoginScreen from '../../screens/auth/LoginScreen';
 import WelcomeScreen from '../../screens/user/WelcomeScreen';
 import { TAuthStackParamsList } from './types';
 import SignupScreen from '../../screens/auth/SignupScreen';
+import ForgotPasswordScreen from '../../screens/auth/ForgotPasswordScreen';
 
 const Stack = createNativeStackNavigator<TAuthStackParamsList>();
 
@@ -21,6 +22,7 @@ const AuthStack: React.FC = () => {
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
   );
 }

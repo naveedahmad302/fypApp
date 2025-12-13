@@ -1,31 +1,59 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { TAuthStackNavigationProps } from '../../navigation/authStack/types';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import CustomText from '../../components/CustomText';
+import AlertModal from '../../components/AlertModal';
+import { signIn } from '../../firebase/auth';
+import { getUserFromFirestore } from '../../firebase/firestore';
 
 const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [alertModal, setAlertModal] = useState({
+    visible: false,
+    type: 'info' as 'success' | 'error' | 'warning' | 'info',
+    title: '',
+    message: '',
+  });
   const { setAuthenticated } = useAuth();
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert('Success', 'Login successful!');
-      setAuthenticated(true);
-    }, 2000);
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
+    setAlertModal({ visible: true, type, title, message });
   };
+
+  const handleLogin = async () => {
+  if (!email || !password) {
+    showAlert('error', 'Missing Information', 'Please fill in all fields to continue.');
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showAlert('error', 'Invalid Email', 'Please enter a valid email address.');
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const user = await signIn(email, password);
+    showAlert('success', 'Login Successful', `Welcome back, ${user.email || 'User'}`);
+    
+    setTimeout(() => {
+      setAuthenticated(true); // Update your context
+    }, 1500);
+  } catch (error: any) {
+    showAlert('error', 'Login Failed', error.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <SafeAreaView className="flex-1 bg-[#F7F8FA]">
@@ -89,7 +117,7 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
             </View>
 
             {/* Forgot Password */}
-            <TouchableOpacity className="self-end mb-6">
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} className="self-end mb-6">
               <CustomText weight={500} className="text-sm text-[#4A90E2] font-medium">
                 Forgot Password?
               </CustomText>
@@ -128,13 +156,24 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
 
           {/* Google Button */}
           <TouchableOpacity className="w-48 h-14 flex-row items-center justify-center border border-gray-200 rounded-xl py-3 bg-white mx-auto">
-            <View className="w-6 h-6 rounded-2xl bg-[#4285f4] items-center justify-center mr-3">
-              <CustomText weight={700} className="text-white text-base font-bold">G</CustomText>
-            </View>
+            <Image 
+              source={require('../../../assets/images/google-logo.png')} 
+              style={{ width: 24, height: 24, marginRight: 12 }}
+              resizeMode="contain"
+            />
             <CustomText weight={500} className="text-base text-gray-800 font-medium">Google</CustomText>
           </TouchableOpacity>
         </View>
       </ScrollView>
+      
+      {/* Alert Modal */}
+      <AlertModal
+        visible={alertModal.visible}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        onClose={() => setAlertModal({ ...alertModal, visible: false })}
+      />
     </SafeAreaView>
   );
 };

@@ -1,12 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { User, Eye, Search, HelpCircle, Bell, Shield,SquarePen, Settings, ChevronRight } from 'lucide-react-native';
+import { User, Eye, Search, HelpCircle, Bell, Shield,SquarePen, Settings, ChevronRight, Wifi } from 'lucide-react-native';
 import { TProfileStackNavigationProps } from '../../../navigation/userStack/types';
+import AlertModal from '../../../components/AlertModal';
+import { checkFirebaseConnection, ConnectionStatus } from '../../../firebase';
 
 const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({ navigation }) => {
+    const [alertModal, setAlertModal] = useState({
+        visible: false,
+        type: 'info' as 'success' | 'error' | 'warning' | 'info',
+        title: '',
+        message: '',
+    });
+
     const handleEditProfile = () => {
         navigation.navigate('EditProfile' as any);
     };
+
+    const checkFirebaseStatus = async () => {
+        try {
+            const status = await checkFirebaseConnection();
+            
+            if (status.isConnected) {
+                setAlertModal({
+                    visible: true,
+                    type: 'success',
+                    title: 'Firebase Connected',
+                    message: 'Firebase Auth and Firestore are both working correctly!',
+                });
+            } else {
+                let message = 'Firebase connection issues detected:\n\n';
+                if (!status.auth) message += '• Firebase Auth: Not connected\n';
+                if (!status.firestore) message += '• Firestore: Not connected\n';
+                if (status.error) message += `\nError: ${status.error}`;
+                
+                setAlertModal({
+                    visible: true,
+                    type: 'error',
+                    title: 'Firebase Connection Failed',
+                    message,
+                });
+            }
+        } catch (error: any) {
+            setAlertModal({
+                visible: true,
+                type: 'error',
+                title: 'Connection Check Failed',
+                message: `Failed to check Firebase connection: ${error.message}`,
+            });
+        }
+    };
+
   return (
     <ScrollView className="flex-1 bg-[#F9FAFB] px-7" showsVerticalScrollIndicator={false}>
       <View className=" mt-2 rounded-xl p-6" >
@@ -19,11 +63,19 @@ const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({ navi
           <Text className="text-gray-500 font-radio-canada mb-6">Member since January 2025</Text>
           
           <TouchableOpacity 
-            className="bg-[#4A90E2] py-4 rounded-xl w-full flex-row items-center justify-center"
+            className="bg-[#4A90E2] py-4 rounded-xl w-full flex-row items-center justify-center mb-3"
             onPress={() =>handleEditProfile()}
           >
             <SquarePen size={19} color="white" />
             <Text className="text-white text-center font-radio-canada font-medium ml-2">Edit Profile</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            className="bg-gray-100 py-3 rounded-xl w-full flex-row items-center justify-center"
+            onPress={checkFirebaseStatus}
+          >
+            <Wifi size={18} color="#4A90E2" />
+            <Text className="text-gray-700 text-center font-radio-canada font-medium ml-2">Test Firebase Connection</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -151,6 +203,13 @@ const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({ navi
       <View className="py-3 justify-center ">
         <Text className="text-center font-radio-canada font-thin text-gray-400">SpectrumCare v1.0.0</Text>
       </View>
+      <AlertModal
+        visible={alertModal.visible}
+        type={alertModal.type}
+        title={alertModal.title}
+        message={alertModal.message}
+        onClose={() => setAlertModal(prev => ({ ...prev, visible: false }))}
+      />
     </ScrollView>
   );
 };

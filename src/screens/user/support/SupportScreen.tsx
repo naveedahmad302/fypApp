@@ -1,9 +1,20 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Heart, Users, Calendar, Star, ArrowRight } from 'lucide-react-native';
-import { TUserStackNavigationProps } from '../../../navigation/userStack/types';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { TSupportTabStackParamsList } from '../../../navigation/userStack/bottomTabsStack/types';
 
 const SupportScreen: React.FC = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<TSupportTabStackParamsList, 'Support'>>();
+  
+  const handleJoinParentsCircle = () => {
+    navigation.navigate('GroupChat', { groupName: 'Parents Support Circle' });
+  };
+
+  const handleJoinWeeklyCheckIns = () => {
+    navigation.navigate('GroupChat', { groupName: 'Weekly Check Ins' });
+  };
   return (
     <ScrollView className="flex-1 bg-[#F9FAFB] px-7" showsVerticalScrollIndicator={false}>
       <View className="bg-white mt-6 rounded-xl p-4 mb-3" style={{
@@ -47,7 +58,10 @@ const SupportScreen: React.FC = () => {
           <Text className="text-gray-600 font-radio-canada mb-4 leading-relaxed">
             A supportive community for parents navigating the autism journey.
           </Text>
-          <TouchableOpacity className="bg-blue-500 py-3 px-6 rounded-xl flex-row items-center justify-center">
+          <TouchableOpacity 
+            className="bg-blue-500 py-3 px-6 rounded-xl flex-row items-center justify-center"
+            onPress={handleJoinParentsCircle}
+          >
             <Text className="text-white text-center font-radio-canada font-medium">Join Group</Text>
             <ArrowRight size={16} color="#ffffff" className="ml-2" />
           </TouchableOpacity>
@@ -72,7 +86,10 @@ const SupportScreen: React.FC = () => {
           <Text className="text-gray-600 font-radio-canada mb-4 leading-relaxed">
             Regular virtual meetups for sharing progress and challenges.
           </Text>
-          <TouchableOpacity className="bg-blue-500 py-3 px-6 rounded-xl flex-row items-center justify-center">
+          <TouchableOpacity 
+            className="bg-blue-500 py-3 px-6 rounded-xl flex-row items-center justify-center"
+            onPress={handleJoinWeeklyCheckIns}
+          >
             <Text className="text-white text-center font-radio-canada font-medium">Join Group</Text>
             <ArrowRight size={16} color="#ffffff" className="ml-2" />
           </TouchableOpacity>

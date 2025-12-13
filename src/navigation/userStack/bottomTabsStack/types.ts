@@ -32,6 +32,7 @@ export type TReportTabStackParamsList = {
 
 export type TSupportTabStackParamsList = {
   Support: undefined;
+  GroupChat: { groupName: string };
 };
 
 export type TProfileTabStackParamsList = {
