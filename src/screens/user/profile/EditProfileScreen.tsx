@@ -41,7 +41,7 @@ const EditProfileScreen: React.FC = ({ navigation }: any) => {
           </View>
           <TextInput 
             className="flex-1 ml-3 text-base"
-            defaultValue="naveed@example.com"
+            defaultValue="naveed@gmail.com"
             placeholder="Enter email"
           />
         </View>

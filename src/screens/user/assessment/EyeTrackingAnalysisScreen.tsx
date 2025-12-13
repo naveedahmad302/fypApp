@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, ScrollView, SafeAreaView, TouchableOpacity, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft } from 'lucide-react-native';
+// import { ChevronLeft } from 'lucide-react-native';
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
-import TrackingStatusCard from './components/TrackingStatusCard';
+// import TrackingStatusCard from './components/TrackingStatusCard';
 import GazeVisualizationCard from './components/GazeVisualizationCard';
 import StartTrackingButton from './components/StartTrackingButton';
 

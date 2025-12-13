@@ -7,7 +7,7 @@ import SupportTabStack from './SupportTabStack';
 import ProfileTabStack from './ProfileTabStack';
 import { TBottomTabsStackParamsList } from './types';
 import { windowWidth } from '../../../utils';
-import { Home, FileText, BarChart2, HelpCircle, User } from 'lucide-react-native';
+import { Home, FileText, BarChart2, HelpCircle, User, Users } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator<TBottomTabsStackParamsList>();
 
@@ -22,7 +22,7 @@ const AssessmentIcon = ({ color }: { color: string; size: number }) => (
   <BarChart2 color={color} />
 );
 const SupportIcon = ({ color }: { color: string; size: number }) => (
-  <HelpCircle color={color} />
+  <Users color={color} />
 );
 const ProfileIcon = ({ color }: { color: string; size: number }) => (
   <User color={color} />
@@ -73,7 +73,7 @@ export const BottomTabsStack: React.FC = () => {
           textAlign: 'center',
           alignSelf: 'center',
         },
-        tabBarActiveTintColor: '#3EB7FF',
+        tabBarActiveTintColor: '#4A90E2',
         tabBarInactiveTintColor: '#6B7280',
         tabBarStyle: tabBarStyle,
         tabBarShowLabel: true,

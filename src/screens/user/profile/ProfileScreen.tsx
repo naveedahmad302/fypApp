@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { User, Eye, Search, HelpCircle, Bell, Shield, Settings, ChevronRight } from 'lucide-react-native';
+import { User, Eye, Search, HelpCircle, Bell, Shield,SquarePen, Settings, ChevronRight } from 'lucide-react-native';
 import { TProfileStackNavigationProps } from '../../../navigation/userStack/types';
 
 const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({ navigation }) => {
@@ -8,102 +8,149 @@ const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({ navi
         navigation.navigate('EditProfile' as any);
     };
   return (
-    <ScrollView className="flex-1 bg-gray-50">
-      <View className="items-center py-8 bg-white">
-        <View className="w-20 h-20 bg-blue-500 rounded-full items-center justify-center mb-4">
-          <User size={32} color="white" />
-        </View>
-        <Text className="text-xl font-bold mb-1">Naveed Ahmed</Text>
-        <Text className="text-gray-500 mb-1">naveed@example.com</Text>
-        <Text className="text-gray-500 mb-4">Member since January 2025</Text>
-        
-        <TouchableOpacity 
-          className="bg-blue-500 px-6 py-2 rounded-lg"
-          onPress={() =>handleEditProfile()}
-        >
-          <Text className="text-white font-medium">Edit Profile</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View className="flex-row bg-white mx-4 mt-4 rounded-lg">
-        <View className="flex-1 items-center py-4">
-          <Text className="text-2xl font-bold text-blue-500">3</Text>
-          <Text className="text-gray-600">Assessments</Text>
-        </View>
-        <View className="w-px bg-gray-200" />
-        <View className="flex-1 items-center py-4">
-          <Text className="text-2xl font-bold text-blue-500">100%</Text>
-          <Text className="text-gray-600">Complete</Text>
+    <ScrollView className="flex-1 bg-[#F9FAFB] px-7" showsVerticalScrollIndicator={false}>
+      <View className=" mt-2 rounded-xl p-6" >
+        <View className="items-center mb-2">
+          <View className="w-24 h-24 bg-[#4A90E2] rounded-full items-center justify-center mb-4">
+            <User size={36} color="white" />
+          </View>
+          <Text className="text-2xl font-radio-canada font-bold text-gray-900 mb-1">Naveed Ahmad</Text>
+          <Text className="text-gray-500 font-radio-canada mb-1">naveed@gmail.com</Text>
+          <Text className="text-gray-500 font-radio-canada mb-6">Member since January 2025</Text>
+          
+          <TouchableOpacity 
+            className="bg-[#4A90E2] py-4 rounded-xl w-full flex-row items-center justify-center"
+            onPress={() =>handleEditProfile()}
+          >
+            <SquarePen size={19} color="white" />
+            <Text className="text-white text-center font-radio-canada font-medium ml-2">Edit Profile</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
-      <View className="bg-white mx-4 mt-4 rounded-lg p-4">
-        <Text className="text-lg font-semibold mb-4">Assessment Journey</Text>
+      <View className="bg-white  rounded-xl p-5" style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+      }}>
+        <View className="flex-row">
+          <View className="flex-1 items-center">
+            <Text className="text-3xl font-radio-canada font-bold text-blue-500">3</Text>
+            <Text className="text-gray-600 font-radio-canada mt-1">Assessments</Text>
+          </View>
+          <View className="w-px bg-gray-200" />
+          <View className="flex-1 items-center">
+            <Text className="text-3xl font-radio-canada font-bold text-blue-500">100%</Text>
+            <Text className="text-gray-600 font-radio-canada mt-1">Complete</Text>
+          </View>
+        </View>
+      </View>
+        <Text className="text-lg font-radio-canada mt-4 font-bold mb-6 text-gray-900">Assessment Journey</Text>
+
+      <View className="bg-white rounded-xl p-6" style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+      }}>
         
-        <View className="flex-row items-center mb-3">
-          <Eye size={20} color="#10b981" />
-          <Text className="flex-1 ml-3">Eye Tracking</Text>
-          <Text className="text-green-500 font-medium">Completed</Text>
+        <View className="flex-row items-center mb-4">
+          {/* <View className="w-10 h-10 bg-green-50 rounded-full items-center justify-center">
+            <Eye size={20} color="#10b981" />
+          </View> */}
+          <Text className="flex-1  font-radio-canada font-medium text-gray-900">Eye Tracking</Text>
+          <Text className="text-green-600 font-radio-canada font-medium">Completed</Text>
         </View>
         
-        <View className="flex-row items-center mb-3">
-          <Search size={20} color="#10b981" />
-          <Text className="flex-1 ml-3">Speech Analysis</Text>
-          <Text className="text-green-500 font-medium">Completed</Text>
+        <View className="flex-row items-center mb-4">
+          {/* <View className="w-10 h-10 bg-green-50 rounded-full items-center justify-center">
+            <Search size={20} color="#10b981" />
+          </View> */}
+          <Text className="flex-1  font-radio-canada font-medium text-gray-900">Speech Analysis</Text>
+          <Text className="text-green-600 font-radio-canada font-medium">Completed</Text>
         </View>
         
         <View className="flex-row items-center">
-          <HelpCircle size={20} color="#10b981" />
-          <Text className="flex-1 ml-3">MCQ Assessment</Text>
-          <Text className="text-green-500 font-medium">Completed</Text>
+          {/* <View className="w-10 h-10 bg-green-50 rounded-full items-center justify-center">
+            <HelpCircle size={20} color="#10b981" />
+          </View> */}
+          <Text className="flex-1 font-radio-canada font-medium text-gray-900">MCQ Assessment</Text>
+          <Text className="text-green-600 font-radio-canada font-medium">Completed</Text>
         </View>
       </View>
+        {/* <Text className="text-xl font-radio-canada mt-4 font-bold mb-6 text-gray-900">Settings</Text>
 
-      <View className="bg-white mx-4 mt-4 rounded-lg p-4">
-        <Text className="text-lg font-semibold mb-4">Settings</Text>
+      <View className="bg-white  rounded-xl p-4" style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+      }}>
         
-        <TouchableOpacity className="flex-row items-center py-3">
-          <View className="w-8 h-8 bg-blue-100 rounded-full items-center justify-center">
-            <Bell size={16} color="#3b82f6" />
+        <TouchableOpacity className="flex-row items-center py-4">
+          <View className="w-10 h-10 bg-blue-50 rounded-full items-center justify-center">
+            <Bell size={20} color="#3b82f6" />
           </View>
-          <Text className="flex-1 ml-3">Notifications</Text>
-          <Text className="text-gray-400">Manage notification preferences</Text>
-          <ChevronRight size={16} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="font-radio-canada font-medium text-gray-900">Notifications</Text>
+            <Text className="text-gray-400 text-sm font-radio-canada mt-1">Manage notification preferences</Text>
+          </View>
+          <ChevronRight size={20} color="#9ca3af" />
         </TouchableOpacity>
         
-        <TouchableOpacity className="flex-row items-center py-3">
-          <View className="w-8 h-8 bg-green-100 rounded-full items-center justify-center">
-            <Shield size={16} color="#10b981" />
+        <TouchableOpacity className="flex-row items-center py-4">
+          <View className="w-10 h-10 bg-green-50 rounded-full items-center justify-center">
+            <Shield size={20} color="#10b981" />
           </View>
-          <Text className="flex-1 ml-3">Privacy & Security</Text>
-          <Text className="text-gray-400">Control your privacy and data</Text>
-          <ChevronRight size={16} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="font-radio-canada font-medium text-gray-900">Privacy & Security</Text>
+            <Text className="text-gray-400 text-sm font-radio-canada mt-1">Control your privacy and data</Text>
+          </View>
+          <ChevronRight size={20} color="#9ca3af" />
         </TouchableOpacity>
         
-        <TouchableOpacity className="flex-row items-center py-3">
-          <View className="w-8 h-8 bg-purple-100 rounded-full items-center justify-center">
-            <HelpCircle size={16} color="#8b5cf6" />
+        <TouchableOpacity className="flex-row items-center py-4">
+          <View className="w-10 h-10 bg-purple-50 rounded-full items-center justify-center">
+            <HelpCircle size={20} color="#8b5cf6" />
           </View>
-          <Text className="flex-1 ml-3">Help & Support</Text>
-          <Text className="text-gray-400">Get help and contact support</Text>
-          <ChevronRight size={16} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="font-radio-canada font-medium text-gray-900">Help & Support</Text>
+            <Text className="text-gray-400 text-sm font-radio-canada mt-1">Get help and contact support</Text>
+          </View>
+          <ChevronRight size={20} color="#9ca3af" />
         </TouchableOpacity>
         
-        <TouchableOpacity className="flex-row items-center py-3">
-          <View className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center">
-            <Settings size={16} color="#6b7280" />
+        <TouchableOpacity className="flex-row items-center py-4">
+          <View className="w-10 h-10 bg-gray-50 rounded-full items-center justify-center">
+            <Settings size={20} color="#6b7280" />
           </View>
-          <Text className="flex-1 ml-3">Account Settings</Text>
-          <ChevronRight size={16} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="font-radio-canada font-medium text-gray-900">Account Settings</Text>
+          </View>
+          <ChevronRight size={20} color="#9ca3af" />
         </TouchableOpacity>
-      </View>
+      </View> */}
 
       <TouchableOpacity 
-        className="bg-white mx-4 mt-4 rounded-lg p-4"
+        className="bg-white mt-6 mb-5 border border-red-400 rounded-xl p-4"
         onPress={() => console.log('Navigate to Support')}
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 3,
+        }}
       >
-        <Text className="text-red-500 text-center font-medium">Sign Out</Text>
+        <Text className="text-red-500 text-center font-radio-canada font-medium">Sign Out</Text>
       </TouchableOpacity>
+      <View className="py-3 justify-center ">
+        <Text className="text-center font-radio-canada font-thin text-gray-400">SpectrumCare v1.0.0</Text>
+      </View>
     </ScrollView>
   );
 };

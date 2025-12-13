@@ -13,7 +13,7 @@ const SupportTabStack: React.FC = () => {
       screenOptions={{ 
         headerShown: true,
         animation: 'slide_from_right',
-        header: () => <CustomHeader title="Support" />,
+        header: () => <CustomHeader title="Support & Community" />,
       }}
     >
       <Stack.Screen name="Support" component={SupportScreen} />

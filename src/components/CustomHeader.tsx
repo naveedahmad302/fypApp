@@ -1,14 +1,23 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Save } from 'lucide-react-native';
 
 interface CustomHeaderProps {
   title: string;
   showBackButton?: boolean;
+  showActionButtons?: boolean;
+  onCancel?: () => void;
+  onSave?: () => void;
 }
 
-const CustomHeader: React.FC<CustomHeaderProps> = ({ title, showBackButton = false }) => {
+const CustomHeader: React.FC<CustomHeaderProps> = ({ 
+  title, 
+  showBackButton = false, 
+  showActionButtons = false, 
+  onCancel, 
+  onSave 
+}) => {
   const navigation = useNavigation();
 
   const handleBackPress = () => {
@@ -25,9 +34,34 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ title, showBackButton = fal
           <ChevronLeft size={24} color="#000000" />
         </TouchableOpacity>
       )}
-      <Text style={[styles.headerTitle, showBackButton && styles.titleWithBackButton]}>
+      
+      {showActionButtons && onCancel && (
+        <TouchableOpacity 
+          style={styles.cancelButton} 
+          onPress={onCancel}
+        >
+          <ChevronLeft size={20} color="#3b82f6"/>
+          <Text style={styles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
+      )}
+      
+      <Text style={[
+        styles.headerTitle, 
+        showBackButton && styles.titleWithBackButton,
+        showActionButtons && styles.titleWithActionButtons
+      ]}>
         {title}
       </Text>
+      
+      {showActionButtons && onSave && (
+        <TouchableOpacity 
+          style={styles.saveButton} 
+          onPress={onSave}
+        >
+          <Save size={20} color="#3b82f6" />
+          <Text style={styles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -59,13 +93,45 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   titleWithBackButton: {
-    left: 40,
+    left: 30,
+  },
+  titleWithActionButtons: {
+    left: 60,
+    right: 60,
   },
   backButton: {
     position: 'absolute',
     left: 16,
     zIndex: 1,
     padding: 4,
+  },
+  cancelButton: {
+    position: 'absolute',
+    left: 16,
+    zIndex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  cancelButtonText: {
+    color: '#3b82f6',
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  saveButton: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  saveButtonText: {
+    color: '#3b82f6',
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 4,
   },
 });
 

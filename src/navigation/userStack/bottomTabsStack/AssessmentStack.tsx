@@ -5,7 +5,7 @@ import AssessmentScreen from '../../../screens/user/assessment/AssessmentScreen'
 import EyeTrackingAnalysisScreen from '../../../screens/user/assessment/EyeTrackingAnalysisScreen';
 import TrackingStatusScreen from '../../../screens/user/assessment/TrackingStatusScreen';
 import RecordingScreen from '../../../screens/user/assessment/RecordingScreen';
-import AssessmentProgressScreen from '../../../screens/user/assessment/AssessmentProgressScreen';
+import SpeechProgressScreen from '../../../screens/user/assessment/SpeechProgressScreen';
 import MCQAssessmentScreen from '../../../screens/user/assessment/MCQAssessmentScreen';
 import MCQQuestionScreen from '../../../screens/user/assessment/MCQQuestionScreen';
 import AssessmentCompleteScreen from '../../../screens/user/assessment/AssessmentCompleteScreen';
@@ -26,7 +26,7 @@ const AssessmentStack: React.FC = () => {
         return 'Eye Tracking';
       case 'RecordingScreen':
         return 'Speech Analysis';
-      case 'AssessmentProgressScreen':
+      case 'SpeechProgressScreen':
         return 'Assessment Progress';
       case 'MCQAssessmentScreen':
         return 'MCQ Assessment';
@@ -62,7 +62,7 @@ const AssessmentStack: React.FC = () => {
       <Stack.Screen name="EyeTrackingAnalysis" component={EyeTrackingAnalysisScreen} />
       <Stack.Screen name="TrackingStatusScreen" component={TrackingStatusScreen} />
       <Stack.Screen name="RecordingScreen" component={RecordingScreen} />
-      <Stack.Screen name="AssessmentProgressScreen" component={AssessmentProgressScreen} />
+      <Stack.Screen name="SpeechProgressScreen" component={SpeechProgressScreen} />
       <Stack.Screen name="MCQAssessmentScreen" component={MCQAssessmentScreen} />
       <Stack.Screen name="MCQQuestionScreen" component={MCQQuestionScreen} />
       <Stack.Screen name="AssessmentCompleteScreen" component={AssessmentCompleteScreen} />

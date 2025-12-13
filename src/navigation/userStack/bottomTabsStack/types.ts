@@ -18,7 +18,7 @@ export type TAssessmentTabStackParamsList = {
   EyeTrackingAnalysis: undefined;
   TrackingStatusScreen: undefined;
   RecordingScreen: undefined;
-  AssessmentProgressScreen: undefined;
+  SpeechProgressScreen: undefined;
   MCQAssessmentScreen: undefined;
   MCQQuestionScreen: undefined;
   AssessmentComplete: undefined;

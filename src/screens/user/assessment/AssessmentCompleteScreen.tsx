@@ -13,7 +13,9 @@ const AssessmentCompleteScreen: React.FC<AssessmentCompleteScreenProps> = ({ nav
 
     const handleViewResults = () => {
         const nav = navProp || navigation;
-        nav.navigate('Report');
+        nav.getParent()?.navigate('ReportTab', { screen: 'Report' });
+
+        // nav.navigate('ReportScreen');
     };
 
     const handleBackToHome = () => {
@@ -26,7 +28,13 @@ const AssessmentCompleteScreen: React.FC<AssessmentCompleteScreenProps> = ({ nav
             <ScrollView className="flex-1 px-6 py-8">
                 {/* Success Header */}
                 <View className="items-center mb-8">
-                    <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-4">
+                    <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-4 shadow-lg shadow-gray-200" style={{
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                        elevation: 3,
+                    }}>
                         <CheckCircle size={40} color="#10B981" />
                     </View>
                     <Text className="text-2xl font-bold text-gray-800 mb-2">Assessment Complete!</Text>
@@ -36,7 +44,13 @@ const AssessmentCompleteScreen: React.FC<AssessmentCompleteScreenProps> = ({ nav
                 </View>
 
                 {/* Completion Stats */}
-                <View className="bg-white rounded-2xl p-6 mb-6">
+                <View className="bg-white rounded-2xl p-6 mb-6 shadow-lg shadow-gray-200" style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                    elevation: 3,
+                }}>
                     <Text className="text-lg font-semibold text-gray-800 mb-4">Summary</Text>
 
                     <View className="space-y-16">
@@ -68,7 +82,7 @@ const AssessmentCompleteScreen: React.FC<AssessmentCompleteScreenProps> = ({ nav
                 </View>
 
                 {/* Achievement Badge */}
-                {/* <View className="bg-gradient-to-r text from-[#4A90E2] to-[#6366F1] rounded-2xl p-6 mb-6">
+                {/* <View className="bg-gradient-to-r from-[#4A90E2] to-[#6366F1] rounded-2xl p-6 mb-6">
                     <View className="flex-row items-center">
                         <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mr-4">
                             <Award size={32} color="white" />
@@ -112,9 +126,15 @@ const AssessmentCompleteScreen: React.FC<AssessmentCompleteScreenProps> = ({ nav
                 <View className="space-y-3 mb-8">
                     <TouchableOpacity
                         onPress={handleViewResults}
-                        className="bg-[#4A90E2] py-4 rounded-2xl flex-row items-center justify-center"
+                        className="bg-[#4A90E2] py-4 rounded-2xl flex-row items-center justify-center shadow-lg shadow-gray-200" style={{
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.1,
+                            shadowRadius: 4,
+                            elevation: 5,
+                        }}
                     >
-                        <Text className="text-white font-semibold text-lg mr-2">View Your Assessment Report</Text>
+                        <Text className="text-white font-medium text-lg mr-2">View Your Assessment Report</Text>
                         {/* <TrendingUp size={20} color="white" /> */}
                     </TouchableOpacity>
 

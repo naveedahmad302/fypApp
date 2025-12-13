@@ -28,7 +28,7 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
   const handleComplete = () => {
     // Navigate to recording screen or next assessment
     const nav = navProp || navigation;
-    nav.navigate('AssessmentProgressScreen');
+    nav.navigate('SpeechProgressScreen');
   };
 
   return (

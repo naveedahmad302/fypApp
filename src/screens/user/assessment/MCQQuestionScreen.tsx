@@ -108,11 +108,17 @@ const MCQQuestionScreen: React.FC<MCQQuestionScreenProps> = ({ navigation: navPr
   const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F5F7FA]">
+    <SafeAreaView edges={[]} className="flex-1  bg-[#F5F7FA]">
       <View className="flex-1">
         {/* Progress Bar */}
         <View className="px-4 py-2 mx-4 mt-4">
-          <View className="bg-white rounded-2xl p-4">
+          <View className="bg-white rounded-2xl p-4 shadow-lg shadow-gray-200" style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 2,
+          }}>
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-black text-md font-bold">Progress</Text>
               <Text className="text-gray-600 text-xs">Question {currentQuestion + 1} of {questions.length}</Text>
@@ -128,18 +134,24 @@ const MCQQuestionScreen: React.FC<MCQQuestionScreenProps> = ({ navigation: navPr
 
         {/* Question */}
         <View className="px-4 py-2 mx-4">
-          <View className="bg-white rounded-2xl p-4">
+          <View className="bg-white rounded-2xl p-4 shadow-lg shadow-gray-200" style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+          }}>
             <Text className="text-gray-800 text-lg font-semibold mb-4 leading-relaxed">
               {questions[currentQuestion].question}
             </Text>
 
             {/* Options */}
-            <View className="space-y-3 max-h-80">
+            <View className="py-5 max-h-80">
               {questions[currentQuestion].options.map((option, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => handleOptionSelect(index)}
-                  className={`p-4 rounded-lg border transition-all ${
+                  className={`p-3 rounded-lg border transition-all mb-3 ${
                     selectedOption === index
                       ? 'border-2 border-[#4A90E2] bg-[#DBEAFE]'
                       : 'border-2 border-gray-200 bg-white'
@@ -148,9 +160,9 @@ const MCQQuestionScreen: React.FC<MCQQuestionScreenProps> = ({ navigation: navPr
                   <View className="flex-row items-start">
                     <View className="mr-3 mt-1">
                       {selectedOption === index ? (
-                        <CheckCircle size={18} color="#4A90E2" />
+                        <CheckCircle size={16} color="#4A90E2" />
                       ) : (
-                        <Circle size={18} color="#9CA3AF" />
+                        <Circle size={16} color="#9CA3AF" />
                       )}
                     </View>
                     <Text className={`flex-1 text-sm leading-relaxed ${
@@ -166,14 +178,14 @@ const MCQQuestionScreen: React.FC<MCQQuestionScreenProps> = ({ navigation: navPr
         </View>
          
         {/* Navigation Buttons */}
-        <View className="px-4 py-3 mx-4 mb-4">
-          <View className=" rounded-2xl p-4 border-t border-gray-100">
+        <View className="absolute bottom-0 left-0 right-0 px-4 py-3 mb-4">
+          <View className="rounded-2xl p-4  " >
             <View className="flex-row space-x-3">
               {/* Previous Button */}
               <TouchableOpacity
                 onPress={handlePrevious}
                 disabled={currentQuestion === 0}
-                className={`flex-1 py-3 rounded-lg flex-row items-center justify-center ${
+                className={`flex-1 py-4 rounded-lg mr-3 flex-row items-center justify-center ${
                   currentQuestion === 0
                     ? 'bg-gray-200 opacity-50'
                     : 'bg-gray-200'
@@ -191,18 +203,18 @@ const MCQQuestionScreen: React.FC<MCQQuestionScreenProps> = ({ navigation: navPr
               <TouchableOpacity
                 onPress={handleNext}
                 disabled={selectedOption === null}
-                className={`flex-1 rounded-lg flex-row items-center justify-center ${
+                className={`flex-1 rounded-lg  flex-row items-center justify-center ${
                   selectedOption === null
-                    ? 'bg-gray-100 opacity-50'
+                    ? 'bg-[#4A90E2] '
                     : 'bg-[#4A90E2]'
                 }`}
               >
                 <Text className={`mr-2 font-medium text-sm ${
-                  selectedOption === null ? "text-gray-400" : "text-white"
+                  selectedOption === null ? "text-white" : "text-white"
                 }`}>
                   {currentQuestion === questions.length - 1 ? 'Complete' : 'Next'}
                 </Text>
-                <ArrowRight size={18} color={selectedOption === null ? "#9CA3AF" : "white"} />
+                <ArrowRight size={18} color={selectedOption === null ? "white" : "white"} />
               </TouchableOpacity>
             </View>
           </View>
