@@ -1,4 +1,11 @@
 import auth from '@react-native-firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+// Configure Google Sign-In
+GoogleSignin.configure({
+  webClientId: '996258236172-49328nk2f3vhe9ejufq125mis22b18n4.apps.googleusercontent.com', 
+  offlineAccess: true,
+});
 
 // Sign in
 export const signIn = async (email: string, password: string) => {
@@ -12,7 +19,10 @@ export const signUp = async (email: string, password: string) => {
     const userCredential = await auth().createUserWithEmailAndPassword(email, password);
     return userCredential.user;
   } catch (error: any) {
-    throw new Error(error.message);
+    // Preserve the original error code and message
+    const customError = new Error(error.message);
+    (customError as any).code = error.code;
+    throw customError;
   }
 };
 
@@ -46,5 +56,30 @@ export const sendPasswordResetEmail = async (email: string) => {
     }
     
     throw new Error(errorMessage);
+  }
+};
+
+// Google Sign-In
+export const signInWithGoogle = async () => {
+  try {
+    // Check if device supports Google Play Services
+    await GoogleSignin.hasPlayServices({
+      showPlayServicesUpdateDialog: true,
+    });
+
+    // Get user info from Google
+    const userInfo = await GoogleSignin.signIn();
+
+    // Create Google credential with Firebase
+    const googleCredential = auth.GoogleAuthProvider.credential(userInfo.data?.idToken || '');
+
+    // Sign in with Firebase
+    const userCredential = await auth().signInWithCredential(googleCredential);
+    return userCredential.user;
+  } catch (error: any) {
+    // Preserve the original error code and message
+    const customError = new Error(error.message);
+    (customError as any).code = error.code;
+    throw customError;
   }
 };

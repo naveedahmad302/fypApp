@@ -6,36 +6,29 @@ import { TAuthStackNavigationProps } from '../../navigation/authStack/types';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import CustomText from '../../components/CustomText';
 import AlertModal from '../../components/AlertModal';
-import { signIn } from '../../firebase/auth';
+import { signIn, signInWithGoogle } from '../../firebase/auth';
 import { getUserFromFirestore } from '../../firebase/firestore';
+import { SocialLogin } from '../../components/SocialLogin';
+import { showSuccessToast, showErrorToast, showInfoToast } from '../../utils/toast';
 
 const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [alertModal, setAlertModal] = useState({
-    visible: false,
-    type: 'info' as 'success' | 'error' | 'warning' | 'info',
-    title: '',
-    message: '',
-  });
   const { setAuthenticated, setUser } = useAuth();
-
-  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
-    setAlertModal({ visible: true, type, title, message });
-  };
 
   const handleLogin = async () => {
   if (!email || !password) {
-    showAlert('error', 'Missing Information', 'Please fill in all fields to continue.');
+    showErrorToast('Please fill in all fields to continue.', 'Missing Information');
     return;
   }
 
   // Basic email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    showAlert('error', 'Invalid Email', 'Please enter a valid email address.');
+    showErrorToast('Please enter a valid email address.', 'Invalid Email');
     return;
   }
 
@@ -47,7 +40,7 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
     // Fetch user data from Firestore
     const userData = await getUserFromFirestore(user.uid);
     
-    showAlert('success', 'Login Successful', `Welcome back, ${userData?.fullName || user.email}`);
+    showSuccessToast(`Welcome back, ${userData?.fullName || user.email}`, 'Login Successful');
     
     setTimeout(() => {
       setAuthenticated(true);
@@ -60,9 +53,50 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
       }
     }, 1500);
   } catch (error: any) {
-    showAlert('error', 'Login Failed', 'Incorrect credentials. Please try again.');
+    showErrorToast('Incorrect credentials. Please try again.', 'Login Failed');
   } finally {
     setIsLoading(false);
+  }
+};
+
+const handleGoogleSignIn = async () => {
+  setIsGoogleLoading(true);
+
+  try {
+    const user = await signInWithGoogle();
+    
+    // Check if user exists in Firestore, if not create a basic profile
+    let userData = await getUserFromFirestore(user.uid);
+    
+    if (!userData && user.email && user.displayName) {
+      // Create basic user profile for Google sign-in users
+      const { saveUserToFirestore } = await import('../../firebase/firestore');
+      await saveUserToFirestore(user.uid, user.email, user.displayName);
+      userData = await getUserFromFirestore(user.uid);
+    }
+    
+    showSuccessToast(`Welcome back, ${userData?.fullName || user.displayName || user.email}`, 'Login Successful');
+    
+    setTimeout(() => {
+      setAuthenticated(true);
+      if (userData) {
+        setUser({
+          name: userData.fullName,
+          email: userData.email,
+          uid: userData.uid
+        });
+      } else if (user.email && user.displayName) {
+        setUser({
+          name: user.displayName,
+          email: user.email,
+          uid: user.uid
+        });
+      }
+    }, 1500);
+  } catch (error: any) {
+    showErrorToast('Failed to sign in with Google. Please try again.', 'Google Sign-In Failed');
+  } finally {
+    setIsGoogleLoading(false);
   }
 };
 
@@ -175,25 +209,27 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
           </View>
 
           {/* Google Button */}
-          <TouchableOpacity className="w-48 h-14 flex-row items-center justify-center border border-gray-200 rounded-xl py-3 bg-white mx-auto">
-            <Image 
-              source={require('../../../assets/images/google-logo.png')} 
-              style={{ width: 24, height: 24, marginRight: 12 }}
-              resizeMode="contain"
-            />
-            <CustomText weight={500} className="text-base text-gray-800 font-medium">Google</CustomText>
-          </TouchableOpacity>
+          {/* <TouchableOpacity 
+            className="w-48 h-14 flex-row items-center justify-center border border-gray-200 rounded-xl py-3 bg-white mx-auto"
+            onPress={handleGoogleSignIn}
+            disabled={isGoogleLoading}
+          >
+            {isGoogleLoading ? (
+              <ActivityIndicator color="#666" size="small" />
+            ) : (
+              <>
+                <Image 
+                  source={require('../../../assets/images/google-logo.png')} 
+                  style={{ width: 24, height: 24, marginRight: 12 }}
+                  resizeMode="contain"
+                />
+                <CustomText weight={500} className="text-base text-gray-800 font-medium">Google</CustomText>
+              </>
+            )}
+        </TouchableOpacity> */}
+          <SocialLogin />
         </View>
       </ScrollView>
-      
-      {/* Alert Modal */}
-      <AlertModal
-        visible={alertModal.visible}
-        type={alertModal.type}
-        title={alertModal.title}
-        message={alertModal.message}
-        onClose={() => setAlertModal({ ...alertModal, visible: false })}
-      />
     </SafeAreaView>
   );
 };

@@ -5,27 +5,17 @@ import { TAuthStackNavigationProps } from '../../navigation/authStack/types';
 import { Mail, ArrowLeft } from 'lucide-react-native';
 import CustomText from '../../components/CustomText';
 import { sendPasswordResetEmail } from '../../firebase/auth';
-import AlertModal from '../../components/AlertModal';
+import { showSuccessToast, showErrorToast } from '../../utils/toast';
 
 const ForgotPasswordScreen: React.FC<TAuthStackNavigationProps<'ForgotPassword'>> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [alertModal, setAlertModal] = useState({
-    visible: false,
-    type: 'info' as 'success' | 'error' | 'warning' | 'info',
-    title: '',
-    message: '',
-  });
-
-  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
-    setAlertModal({ visible: true, type, title, message });
-  };
 
   const handleResetPassword = async () => {
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      showAlert('error', 'Invalid Email', 'Please enter a valid email address.');
+      showErrorToast('Please enter a valid email address.', 'Invalid Email');
       return;
     }
 
@@ -33,14 +23,13 @@ const ForgotPasswordScreen: React.FC<TAuthStackNavigationProps<'ForgotPassword'>
 
     try {
       await sendPasswordResetEmail(email);
-      showAlert(
-        'success',
-        'Email Sent',
-        'We\'ve sent a password reset link to your email. Please check your inbox and follow the instructions.'
+      showSuccessToast(
+        'We\'ve sent a password reset link to your email. Please check your inbox and follow the instructions.',
+        'Email Sent'
       );
       setEmail('');
     } catch (error: any) {
-      showAlert('error', 'Error', error.message);
+      showErrorToast(error.message, 'Error');
     } finally {
       setIsLoading(false);
     }
@@ -119,21 +108,13 @@ const ForgotPasswordScreen: React.FC<TAuthStackNavigationProps<'ForgotPassword'>
             <CustomText weight={400} className="text-sm text-gray-600">
               Remember your password?
             </CustomText>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity onPress={() => navigation.navigate('Login', {})}>
               <CustomText weight={500} className="text-sm text-[#4A90E2] font-medium"> Sign In</CustomText>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
       
-      {/* Alert Modal */}
-      <AlertModal
-        visible={alertModal.visible}
-        type={alertModal.type}
-        title={alertModal.title}
-        message={alertModal.message}
-        onClose={() => setAlertModal({ ...alertModal, visible: false })}
-      />
     </SafeAreaView>
   );
 };

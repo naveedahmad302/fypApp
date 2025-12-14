@@ -2,51 +2,27 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { User, Eye, Search, HelpCircle, Bell, Shield,SquarePen, Settings, ChevronRight, Wifi } from 'lucide-react-native';
 import { TProfileStackNavigationProps } from '../../../navigation/userStack/types';
-import AlertModal from '../../../components/AlertModal';
 import { checkFirebaseConnection, ConnectionStatus } from '../../../firebase';
 import { signOutUser } from '../../../firebase/auth';
 import { useAuth } from '../../../context/AuthContext';
+import { showSuccessToast, showErrorToast } from '../../../utils/toast';
 
 const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({ navigation }) => {
     const { setAuthenticated, setUser } = useAuth();
-    const [alertModal, setAlertModal] = useState({
-        visible: false,
-        type: 'info' as 'success' | 'error' | 'warning' | 'info',
-        title: '',
-        message: '',
-    });
-
     const handleEditProfile = () => {
         navigation.navigate('EditProfile' as any);
     };
 
     const handleLogout = async () => {
-      setAuthenticated(false);
-      setUser(null);
         try {
             await signOutUser();
-            
-            setAlertModal({
-                visible: true,
-                type: 'success',
-                title: 'Logged Out',
-                message: 'You have been successfully logged out.',
-            });
-            
-            setTimeout(() => {
-                setAlertModal(prev => ({ ...prev, visible: false }));
-            }, 2000);
+            showSuccessToast('You have been successfully logged out.', 'Logged Out');
+            setAuthenticated(false);
+            setUser(null);
         } catch (error: any) {
-            setAlertModal({
-                visible: true,
-                type: 'error',
-                title: 'Logout Failed',
-                message: `Failed to log out: ${error.message}`,
-            });
+            showErrorToast(`Failed to log out: ${error.message}`, 'Logout Failed');
         }
     };
-
-   
 
   return (
     <ScrollView className="flex-1 bg-[#F9FAFB] px-7" showsVerticalScrollIndicator={false}>
@@ -140,13 +116,6 @@ const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({ navi
         <View className="py-3 justify-center ">
             <Text className="text-center font-radio-canada font-thin text-gray-400">SpectrumCare v1.0.0</Text>
         </View>
-        <AlertModal
-            visible={alertModal.visible}
-            type={alertModal.type}
-            title={alertModal.title}
-            message={alertModal.message}
-            onClose={() => setAlertModal(prev => ({ ...prev, visible: false }))}
-        />
     </ScrollView>
   );
 };

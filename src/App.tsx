@@ -4,8 +4,10 @@
  *
  * @format
  */
+
 import '../global.css'; 
 import { StatusBar, StyleSheet, useColorScheme, View, Text } from 'react-native';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 import {
   SafeAreaProvider,
   SafeAreaView,
@@ -28,6 +30,7 @@ function App() {
       <SafeAreaView style={styles.container} className="">
         {/* <GestureHandlerRootView> */}
           <Navigation navigationRef={navigationRef as any} routeNameRef={routeNameRef} />
+          <Toast />
         {/* </GestureHandlerRootView> */}
       </SafeAreaView>
     </SafeAreaProvider>
