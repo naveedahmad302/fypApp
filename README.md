@@ -43,5 +43,5 @@ A comprehensive mobile application designed to assist in autism assessment throu
 
 1. Clone the repository:
    ```bash
-   git clone [your-repository-url]
+   git clone https://github.com/naveedahmad302/fypApp.git
    cd fypApp
