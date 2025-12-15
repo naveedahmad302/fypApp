@@ -101,7 +101,7 @@ export const SocialLogin = () => {
               className="w-7 h-7 mr-2"
               resizeMode="contain"
             />
-            <Text className="text-gray-800 font-medium">
+            <Text className="text-gray-800">
               Google
             </Text>
           </>

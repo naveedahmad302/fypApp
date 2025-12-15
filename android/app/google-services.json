@@ -14,11 +14,27 @@
       },
       "oauth_client": [
         {
+          "client_id": "996258236172-9trrqmnepam2r7q7ob3lip4s6g3fvt5m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fypapp",
+            "certificate_hash": "6de515460bb3f752cd1705c5e7d2d4fe0e91b476"
+          }
+        },
+        {
           "client_id": "996258236172-s5r9tr0ejbta9b0vcm7fobcc67jp400j.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.fypapp",
             "certificate_hash": "0dc0ea25a138b60470a164ecee8d3eb03a539dd3"
+          }
+        },
+        {
+          "client_id": "996258236172-vtc4dkbaik0q10abscqhtrta130nicu6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fypapp",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
           }
         },
         {

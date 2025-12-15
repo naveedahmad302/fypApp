@@ -28,7 +28,7 @@ const WelcomeScreen: React.FC<TAuthStackNavigationProps<'Welcome'>> = ({ navigat
         {/* Feature Cards */}
         <View className="space-y-4 mb-12">
           {/* Safe & Private Card */}
-          <View className="bg-white rounded-2xl p-5 flex-row items-start shadow-sm border border-gray-100">
+          <View className="bg-white rounded-2xl p-5 mb-3 flex-row items-start shadow-sm border border-gray-100">
             <View className="w-12 h-12 bg-[#DBEAFE] rounded-full items-center justify-center mr-4 flex-shrink-0">
               <Shield size={24} color="#4A90E2" />
             </View>

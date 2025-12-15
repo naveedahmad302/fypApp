@@ -63,7 +63,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
         {title}
       </Text>
       
-      {showActionButtons && onSave && (
+      {/* {showActionButtons && onSave && (
         <TouchableOpacity 
           style={styles.saveButton} 
           onPress={onSave}
@@ -71,7 +71,7 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({
           <Save size={20} color="#3b82f6" />
           <Text style={styles.saveButtonText}>Save</Text>
         </TouchableOpacity>
-      )}
+      )} */}
     </View>
   );
 };
