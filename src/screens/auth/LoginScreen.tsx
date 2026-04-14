@@ -7,9 +7,10 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import CustomText from '../../components/CustomText';
 import AlertModal from '../../components/AlertModal';
 import { signIn, signInWithGoogle } from '../../firebase/auth';
-import { getUserFromFirestore } from '../../firebase/firestore';
+import { getUserFromFirestore, createFirestoreDocumentForAuthUser } from '../../firebase/firestore';
 import { SocialLogin } from '../../components/SocialLogin';
 import { showSuccessToast, showErrorToast, showInfoToast } from '../../utils/toast';
+import { debugAuthStatus, listAllFirestoreUsers } from '../../utils/debugAuth';
 
 const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -35,12 +36,23 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
   setIsLoading(true);
 
   try {
+    console.log('Attempting login with email:', email);
     const user = await signIn(email, password);
+    console.log('Firebase auth successful, user UID:', user.uid);
     
     // Fetch user data from Firestore
-    const userData = await getUserFromFirestore(user.uid);
+    let userData = await getUserFromFirestore(user.uid);
+    console.log('Firestore user data:', userData);
     
-    showSuccessToast(`Welcome back, ${userData?.fullName || user.email}`, 'Login Successful');
+    // If user doesn't have Firestore document, create one
+    if (!userData) {
+      console.log('Creating Firestore document for existing Auth user...');
+      userData = await createFirestoreDocumentForAuthUser(user.uid, user.email || '', user.displayName || undefined);
+      console.log('Created user data:', userData);
+      showSuccessToast(`Welcome back! Your profile has been created.`, 'Login Successful');
+    } else {
+      showSuccessToast(`Welcome back, ${userData?.fullName || user.email}`, 'Login Successful');
+    }
     
     setTimeout(() => {
       setAuthenticated(true);
@@ -53,7 +65,24 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
       }
     }, 1500);
   } catch (error: any) {
-    showErrorToast('Incorrect credentials. Please try again.', 'Login Failed');
+    console.log('Login error:', error.code, error.message);
+    
+    // Handle specific Firebase Auth errors
+    if (error.code === 'auth/user-not-found') {
+      showErrorToast('No account found with this email. Please sign up.', 'User Not Found');
+    } else if (error.code === 'auth/wrong-password') {
+      showErrorToast('Incorrect password. Please try again.', 'Wrong Password');
+    } else if (error.code === 'auth/invalid-email') {
+      showErrorToast('Invalid email address format.', 'Invalid Email');
+    } else if (error.code === 'auth/user-disabled') {
+      showErrorToast('This account has been disabled. Contact support.', 'Account Disabled');
+    } else if (error.code === 'auth/too-many-requests') {
+      showErrorToast('Too many failed attempts. Please try again later.', 'Too Many Requests');
+    } else if (error.message && error.message.includes('User document does not exist')) {
+      showErrorToast('User profile not found. Please complete your registration.', 'Profile Missing');
+    } else {
+      showErrorToast(`Login failed: ${error.message || 'Unknown error'}`, 'Login Error');
+    }
   } finally {
     setIsLoading(false);
   }
@@ -208,6 +237,7 @@ const handleGoogleSignIn = async () => {
             <View className="flex-1 h-px bg-gray-200" />
           </View>
 
+          
           {/* Google Button */}
           {/* <TouchableOpacity 
             className="w-48 h-14 flex-row items-center justify-center border border-gray-200 rounded-xl py-3 bg-white mx-auto"

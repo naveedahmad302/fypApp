@@ -9,8 +9,18 @@ GoogleSignin.configure({
 
 // Sign in
 export const signIn = async (email: string, password: string) => {
-  const userCredential = await auth().signInWithEmailAndPassword(email, password);
-  return userCredential.user;
+  try {
+    console.log('Attempting Firebase sign-in for email:', email);
+    const userCredential = await auth().signInWithEmailAndPassword(email, password);
+    console.log('Firebase sign-in successful, UID:', userCredential.user.uid);
+    return userCredential.user;
+  } catch (error: any) {
+    console.error('Firebase auth error:', error.code, error.message);
+    // Preserve the original error code and message
+    const customError = new Error(error.message);
+    (customError as any).code = error.code;
+    throw customError;
+  }
 };
 
 // Sign up with email & password
