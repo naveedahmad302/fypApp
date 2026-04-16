@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "asd-detection-backend"
+version = "1.0.0"
+description = "AI-powered ASD detection backend with eye tracking, speech analysis, and MCQ assessment"
+authors = ["Devin AI <158243242+devin-ai-integration[bot]@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["standard"], version = "^0.135.3"}
+numpy = "^2.2"
+scikit-learn = "^1.6"
+librosa = "^0.10"
+mediapipe = "^0.10"
+opencv-python-headless = "^4.10"
+pydantic = "^2.10"
+python-multipart = "^0.0"
+aiofiles = "^24.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.15.10"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
