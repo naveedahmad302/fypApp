@@ -83,17 +83,22 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
         });
       }, TRACKING_DURATION_MS / 100);
 
-      // Capture frames periodically
-      captureInterval.current = setInterval(() => {
-        captureFrame();
-      }, CAPTURE_INTERVAL_MS);
+      // Capture frames sequentially — wait for each capture to finish
+      // before scheduling the next to avoid overlapping async camera calls.
+      const scheduleCapture = async () => {
+        await captureFrame();
+        if (captureInterval.current !== null) {
+          captureInterval.current = setTimeout(scheduleCapture, CAPTURE_INTERVAL_MS);
+        }
+      };
+      captureInterval.current = setTimeout(scheduleCapture, CAPTURE_INTERVAL_MS);
     } else {
       if (progressInterval.current) {
         clearInterval(progressInterval.current);
         progressInterval.current = null;
       }
       if (captureInterval.current) {
-        clearInterval(captureInterval.current);
+        clearTimeout(captureInterval.current);
         captureInterval.current = null;
       }
       setTrackingProgress(0);
@@ -104,7 +109,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
         clearInterval(progressInterval.current);
       }
       if (captureInterval.current) {
-        clearInterval(captureInterval.current);
+        clearTimeout(captureInterval.current);
       }
     };
   }, [isTracking]);

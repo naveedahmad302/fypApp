@@ -24,6 +24,7 @@ interface AssessmentContextType extends AssessmentState {
   setEyeTrackingResult: (assessmentId: string, score: number) => void;
   setSpeechResult: (assessmentId: string, score: number) => void;
   setMcqResult: (assessmentId: string, score: number) => void;
+  markSpeechSkipped: () => void;
   setReportGenerated: (value: boolean) => void;
   resetAssessment: () => void;
   completedCount: number;
@@ -77,6 +78,14 @@ export const AssessmentProvider: React.FC<AssessmentProviderProps> = ({ children
     }));
   };
 
+  const markSpeechSkipped = () => {
+    setState(prev => ({
+      ...prev,
+      speechComplete: true,
+      // Leave speechAssessmentId as null so it becomes undefined in report request
+    }));
+  };
+
   const setMcqResult = (assessmentId: string, score: number) => {
     setState(prev => ({
       ...prev,
@@ -106,6 +115,7 @@ export const AssessmentProvider: React.FC<AssessmentProviderProps> = ({ children
         setEyeTrackingResult,
         setSpeechResult,
         setMcqResult,
+        markSpeechSkipped,
         setReportGenerated,
         resetAssessment,
         completedCount,

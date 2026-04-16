@@ -14,7 +14,7 @@ interface RecordingScreenProps {
 const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }) => {
     const navigation = useNavigation();
     const { user } = useAuth();
-    const { setSpeechResult } = useAssessment();
+    const { setSpeechResult, markSpeechSkipped } = useAssessment();
 
     const [isRecording, setIsRecording] = useState(false);
     const [hasRecorded, setHasRecorded] = useState(false);
@@ -121,10 +121,11 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                 setIsSubmitting(false);
             }
         } else {
-            // No real audio recording yet — mark speech as completed with placeholder
-            // so the assessment flow can continue (completedCount reaches 3).
+            // No real audio recording yet — mark speech as skipped so the
+            // assessment flow can continue (completedCount reaches 3).
+            // speechAssessmentId stays null → omitted from report request via ?? undefined.
             // TODO: Integrate react-native-audio-recorder-player to capture real audio
-            setSpeechResult('pending-audio-integration', 0);
+            markSpeechSkipped();
             const nav = navProp || navigation;
             nav.navigate('MCQAssessmentScreen' as never);
         }
