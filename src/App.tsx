@@ -17,6 +17,7 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import { useRef } from 'react';
 import { TRouteNameRef, TRootParamsList } from './navigation/types';
 import { FONTS } from './theme/fonts';
+import { AssessmentProvider } from './context/AssessmentContext';
 // import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function App() {
@@ -25,15 +26,17 @@ function App() {
   const routeNameRef = useRef<keyof TRouteNameRef>('BottomTabsStack');
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <SafeAreaView style={styles.container} className="">
-        {/* <GestureHandlerRootView> */}
-          <Navigation navigationRef={navigationRef as any} routeNameRef={routeNameRef} />
-          <Toast />
-        {/* </GestureHandlerRootView> */}
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <AssessmentProvider>
+      <SafeAreaProvider>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <SafeAreaView style={styles.container} className="">
+          {/* <GestureHandlerRootView> */}
+            <Navigation navigationRef={navigationRef as any} routeNameRef={routeNameRef} />
+            <Toast />
+          {/* </GestureHandlerRootView> */}
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </AssessmentProvider>
   );
 }
 

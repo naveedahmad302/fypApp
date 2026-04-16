@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { Volume2, Clock, Eye, Mic, Users, CheckCircle, Check, ArrowRight, ChevronRight,CircleCheckBig } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Volume2, Clock, Eye, Mic, Users, ArrowRight, CircleCheckBig } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import CustomText from '../../../components/CustomText';
+import { useAssessment } from '../../../context/AssessmentContext';
 
 // Define types for AssessmentItem props
 interface AssessmentItemProps {
@@ -111,6 +111,7 @@ interface SpeechProgressScreenProps {
 
 const SpeechProgressScreen: React.FC<SpeechProgressScreenProps> = ({ navigation: navProp }) => {
   const navigation = useNavigation();
+  const { completedCount } = useAssessment();
 
   const navigateToAssessment = (screenName: string) => {
     const nav = navProp || navigation;
@@ -131,17 +132,17 @@ const SpeechProgressScreen: React.FC<SpeechProgressScreenProps> = ({ navigation:
             <View className="flex-row items-center justify-between mb-4">
               <CustomText weight={600} className="text-lg font-semibold text-gray-800">Assessment Progress</CustomText>
               <View className="bg-[#DBEAFE] px-3 py-1 rounded-full">
-                <CustomText weight={500} className="text-[#4A90E2] text-xs font-medium">Step 2 of 3</CustomText>
+                <CustomText weight={500} className="text-[#4A90E2] text-xs font-medium">Step {completedCount + 1} of 3</CustomText>
               </View>
             </View>
             <View className="mb-3">
               <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
-                <View className="bg-[#4A90E2] h-full rounded-full" style={{ width: '25%' }} />
+                <View className="bg-[#4A90E2] h-full rounded-full" style={{ width: `${Math.round((completedCount / 3) * 100)}%` }} />
               </View>
             </View>
             <View className="flex-row justify-between">
-              <CustomText weight={400} className="text-[#6B7280] text-sm">1 of 3 completed</CustomText>
-              <CustomText weight={500} className="text-[#6B7280] text-sm font-medium">25% Complete</CustomText>
+              <CustomText weight={400} className="text-[#6B7280] text-sm">{completedCount} of 3 completed</CustomText>
+              <CustomText weight={500} className="text-[#6B7280] text-sm font-medium">{Math.round((completedCount / 3) * 100)}% Complete</CustomText>
             </View>
           </View>
 
