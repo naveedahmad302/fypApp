@@ -58,9 +58,9 @@ export const sendPasswordResetEmail = async (email: string) => {
     } else if (error.code === 'auth/too-many-requests') {
       throw new Error('Too many requests. Please try again later.');
     }
-    // For 'auth/user-not-found' and other errors, return a generic message
-    // so attackers cannot enumerate valid email addresses.
-    throw new Error('If an account exists with this email, a reset link has been sent.');
+    // For 'auth/user-not-found' and other errors, return success so the
+    // caller shows the same green toast — attackers cannot enumerate emails.
+    return { success: true };
   }
 };
 
