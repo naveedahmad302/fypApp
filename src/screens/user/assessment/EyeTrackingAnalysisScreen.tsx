@@ -107,9 +107,11 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     return () => {
       if (progressInterval.current) {
         clearInterval(progressInterval.current);
+        progressInterval.current = null;
       }
       if (captureInterval.current) {
         clearTimeout(captureInterval.current);
+        captureInterval.current = null;
       }
     };
   }, [isTracking]);
