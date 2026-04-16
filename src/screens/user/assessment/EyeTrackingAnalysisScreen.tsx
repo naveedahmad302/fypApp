@@ -1,47 +1,105 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, ScrollView, SafeAreaView, TouchableOpacity, Text } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { View, ScrollView, SafeAreaView, ActivityIndicator, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-// import { ChevronLeft } from 'lucide-react-native';
-import { Camera, useCameraDevices } from 'react-native-vision-camera';
-// import TrackingStatusCard from './components/TrackingStatusCard';
+import { Camera, useCameraDevices, PhotoFile } from 'react-native-vision-camera';
 import GazeVisualizationCard from './components/GazeVisualizationCard';
 import StartTrackingButton from './components/StartTrackingButton';
+import { useAuth } from '../../../context/AuthContext';
+import { useAssessment } from '../../../context/AssessmentContext';
+import { submitEyeTracking } from '../../../services/assessmentService';
+
+const CAPTURE_INTERVAL_MS = 500;
+const TRACKING_DURATION_MS = 5000;
 
 const EyeTrackingAnalysisScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { user } = useAuth();
+  const { setEyeTrackingResult } = useAssessment();
+
   const [isTracking, setIsTracking] = useState(false);
   const [trackingProgress, setTrackingProgress] = useState(0);
   const [hasPermission, setHasPermission] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const devices = useCameraDevices();
   const device = devices.front;
   const camera = useRef<Camera>(null);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
+  const captureInterval = useRef<NodeJS.Timeout | null>(null);
+  const framesRef = useRef<string[]>([]);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     (async () => {
       const status = await Camera.requestCameraPermission();
-      setHasPermission(status === 'authorized');
+      setHasPermission(status === 'granted');
     })();
+  }, []);
+
+  const captureFrame = useCallback(async () => {
+    if (!camera.current) {
+      return;
+    }
+    try {
+      const photo: PhotoFile = await camera.current.takePhoto({
+        qualityPrioritization: 'speed',
+      });
+
+      // Read photo as base64 using fetch on the file URI
+      const response = await fetch(`file://${photo.path}`);
+      const blob = await response.blob();
+      const base64 = await new Promise<string | null>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = (reader.result as string).split(',')[1];
+          resolve(result || null);
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+      if (base64) {
+        framesRef.current.push(base64);
+      }
+    } catch (err) {
+      console.warn('Frame capture failed:', err);
+    }
   }, []);
 
   useEffect(() => {
     if (isTracking) {
-      // Start progress simulation
+      framesRef.current = [];
+      setError(null);
+
+      completedRef.current = false;
+
+      // Progress animation
       progressInterval.current = setInterval(() => {
         setTrackingProgress(prev => {
           if (prev >= 100) {
-            handleTrackingComplete();
             return 100;
           }
-          // Even smaller increments for ultra-smooth progress
           return prev + 1;
         });
-      }, 50); // Very fast updates for ultra-smooth animation
+      }, TRACKING_DURATION_MS / 100);
+
+      // Capture frames sequentially — wait for each capture to finish
+      // before scheduling the next to avoid overlapping async camera calls.
+      const scheduleCapture = async () => {
+        await captureFrame();
+        if (captureInterval.current !== null) {
+          captureInterval.current = setTimeout(scheduleCapture, CAPTURE_INTERVAL_MS);
+        }
+      };
+      captureInterval.current = setTimeout(scheduleCapture, CAPTURE_INTERVAL_MS);
     } else {
-      // Stop progress simulation
       if (progressInterval.current) {
         clearInterval(progressInterval.current);
         progressInterval.current = null;
+      }
+      if (captureInterval.current) {
+        clearTimeout(captureInterval.current);
+        captureInterval.current = null;
       }
       setTrackingProgress(0);
     }
@@ -49,16 +107,23 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     return () => {
       if (progressInterval.current) {
         clearInterval(progressInterval.current);
+        progressInterval.current = null;
+      }
+      if (captureInterval.current) {
+        clearTimeout(captureInterval.current);
+        captureInterval.current = null;
       }
     };
   }, [isTracking]);
 
-  const handleBackPress = () => {
-    if (isTracking) {
-      setIsTracking(false);
+  // Trigger completion when progress reaches 100
+  useEffect(() => {
+    if (trackingProgress >= 100 && isTracking && !completedRef.current) {
+      completedRef.current = true;
+      handleTrackingComplete();
     }
-    navigation.goBack();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trackingProgress]);
 
   const handleStartTracking = () => {
     setIsTracking(true);
@@ -68,13 +133,43 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     setIsTracking(false);
   };
 
-  const handleTrackingComplete = () => {
+  const handleTrackingComplete = async () => {
     setIsTracking(false);
-    // Navigate to the final screen after a short delay
-    setTimeout(() => {
-      navigation.navigate('TrackingStatusScreen');
-    }, 100);
+
+    const frames = framesRef.current;
+    if (frames.length === 0) {
+      // No frames captured — still navigate but without backend call
+      navigation.navigate('TrackingStatusScreen' as never);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const result = await submitEyeTracking({
+        user_id: user?.uid ?? 'anonymous',
+        frames_base64: frames,
+      });
+
+      setEyeTrackingResult(result.assessment_id, result.asd_risk_score);
+      navigation.navigate('TrackingStatusScreen' as never);
+    } catch (err) {
+      console.error('Eye tracking submission failed:', err);
+      setError('Failed to analyze eye tracking data. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (isSubmitting) {
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50">
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#4A90E2" />
+          <Text className="text-gray-600 mt-4">Analyzing eye tracking data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -92,13 +187,20 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
                   style={{ flex: 1, width: '100%' }}
                   device={device}
                   isActive={isTracking}
-                  video={true}
+                  photo={true}
+                  video={false}
                   audio={false}
                   enableZoomGesture={false}
                 />
               )}
             </GazeVisualizationCard>
           </View>
+
+          {error && (
+            <View className="mx-7 mb-4 bg-red-50 p-3 rounded-lg">
+              <Text className="text-red-600 text-sm text-center">{error}</Text>
+            </View>
+          )}
           
           {/* Start Button */}
           <View className="px-7">

@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -9,6 +8,7 @@ import {
   TBottomTabsStackParamsList 
 } from '../../../navigation/userStack/bottomTabsStack/types';
 import { Users, ArrowRight} from 'lucide-react-native';
+import { useAssessment } from '../../../context/AssessmentContext';
 
 type HomeScreenNavigationProp = CompositeScreenProps<
   NativeStackScreenProps<THomeTabStackParamsList, 'Hello'>,
@@ -17,23 +17,26 @@ type HomeScreenNavigationProp = CompositeScreenProps<
 
 type Props = HomeScreenNavigationProp;
 
-const styles = StyleSheet.create({
-  rotate45: {
-    transform: [{ rotate: '45deg' }]
-  },
-  rotateMinus45: {
-    transform: [{ rotate: '-45deg' }]
-  }
-});
-
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
+  const { completedCount, eyeTrackingComplete, speechComplete, mcqComplete } = useAssessment();
+  const progressPercent = Math.round((completedCount / 3) * 100);
+
+  const getNextStep = () => {
+    if (!eyeTrackingComplete) return { step: 1, name: 'Eye Assessment', desc: 'Analyse gaze patterns and visual attention', time: '3-4 min' };
+    if (!speechComplete) return { step: 2, name: 'Speech Analysis', desc: 'Record and analyse speech patterns', time: '3-5 min' };
+    if (!mcqComplete) return { step: 3, name: 'MCQ Assessment', desc: 'Complete comprehensive questionnaire', time: '15-20 min' };
+    return { step: 3, name: 'All Complete', desc: 'View your assessment report', time: '' };
+  };
+
+  const nextStep = getNextStep();
+
   return (
     // <SafeAreaView className="flex-1 bg-[#F5F7FA]">
       <ScrollView className="flex-1  bg-[#F5F7FA] py-7 px-7" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className=" shadow-sm justify-center items-center pb-7">
           <Text className="text-black font-radio-canada text-lg font-semibold mb-1">Your Assessment Journey</Text>
-          <Text className="text-gray-500 text-sm">Step 0 of 3 • Continue where you left off</Text>
+          <Text className="text-gray-500 text-sm">Step {completedCount} of 3 • {completedCount === 3 ? 'All assessments complete!' : 'Continue where you left off'}</Text>
         </View>
 
         {/* Progress Section */}
@@ -42,7 +45,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           <View className="items-center mb-6">
             <View className="relative mb-6">
               <View className="w-36 h-36 rounded-full border-8 shadow-sm items-center justify-center">
-                <Text className="text-3xl font-bold font-radio-canada text-blue-500">0</Text>
+                <Text className="text-3xl font-bold font-radio-canada text-blue-500">{completedCount}</Text>
                 <Text className="text-sm font-normal text-[#6B7280]">of 3</Text>
               </View>
               <View className="absolute inset-0 w-36 h-36">
@@ -73,7 +76,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             {/* Progress Text */}
             <View className="flex-row items-center">
               <Text className="text-yellow-500 text-lg mr-2">⭐</Text>
-              <Text className="text-gray-700 font-medium">0% Complete</Text>
+              <Text className="text-gray-700 font-medium">{progressPercent}% Complete</Text>
             </View>
           </View>
 
@@ -87,7 +90,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
             shadowRadius: 4,
           }}>
             <View className="items-center mb-3">
-              <Text className="text-[#4A90E2] text-sm px-3 py-1 rounded-2xl bg-[#DBEAFE] self-center">Next: Step 1 of 3</Text>
+              <Text className="text-[#4A90E2] text-sm px-3 py-1 rounded-2xl bg-[#DBEAFE] self-center">{completedCount === 3 ? 'Assessment Complete' : `Next: Step ${nextStep.step} of 3`}</Text>
             </View>
 
             {/* User Icon */}
@@ -103,19 +106,23 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             </View>
             {/* Assessment Info */}
-            <Text className="text-xl font-bold text-center mb-2">Eye Assessment</Text>
-            <Text className="text-gray-600 text-center mb-1 text-sm">Analyse gaze patterns and visual attention</Text>
-            <Text className="text-[#6B7280] text-center rounded-xl text-sm mb-6 px-3 py-1 mt-2 bg-[#F3F4F6] self-center">3-4 min</Text>
+            <Text className="text-xl font-bold text-center mb-2">{nextStep.name}</Text>
+            <Text className="text-gray-600 text-center mb-1 text-sm">{nextStep.desc}</Text>
+            {nextStep.time ? <Text className="text-[#6B7280] text-center rounded-xl text-sm mb-6 px-3 py-1 mt-2 bg-[#F3F4F6] self-center">{nextStep.time}</Text> : <View className="mb-6" />}
 
             {/* Continue Button */}
             <TouchableOpacity
               className="bg-[#4A90E2] rounded-2xl py-4 flex-row items-center justify-center"
               onPress={() => {
                 // @ts-ignore - We know this navigation is valid
-                navigation.getParent()?.navigate('AssessmentTab', { screen: 'Assessment' });
+                if (completedCount === 3) {
+                  navigation.getParent()?.navigate('ReportTab' as never, { screen: 'Report' } as never);
+                } else {
+                  navigation.getParent()?.navigate('AssessmentTab' as never, { screen: 'Assessment' } as never);
+                }
               }}
             >
-              <Text className="text-white font-radio-canada-bold font-semibold text-lg mr-2">Start Assessment</Text>
+              <Text className="text-white font-radio-canada-bold font-semibold text-lg mr-2">{completedCount === 3 ? 'View Report' : completedCount > 0 ? 'Continue Assessment' : 'Start Assessment'}</Text>
              <ArrowRight size={18} color="#ffffff" strokeWidth={1.75} absoluteStrokeWidth />
             </TouchableOpacity>
 

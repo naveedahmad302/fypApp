@@ -1,171 +1,214 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { Eye, Mic, HelpCircle, Users, Share2, Download } from 'lucide-react-native';
-import { TReportTabStackNavigationProps } from '../../../navigation/userStack/types';
+import React, { useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Eye, Mic, FileText, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../../context/AuthContext';
+import { fetchReport, ReportResponse } from '../../../services/assessmentService';
 
-const ReportScreen: React.FC<TReportTabStackNavigationProps<'Report'>> = ({ navigation }) => {
-    const renderAssessmentItem = (
-        iconName: string,
-        title: string,
-        status: string,
-        score: string,
-        progress: string,
-        color: string,
-        insights: string[]
-    ) => (
-        <View className="mb-6" key={title}>
-            <View className="flex-row items-center justify-between mb-2">
-                <View className="flex-row items-center">
-                    <View
-                        className="w-10 h-10 rounded-full items-center justify-center"
-                        style={{ backgroundColor: `${color}20` }}
-                    >
-                        {iconName === 'eye-outline' && <Eye size={20} color={color} />}
-                        {iconName === 'chatbubble-outline' && <Mic size={20} color={color} />}
-                        {iconName === 'help-circle-outline' && <Users size={20} color={color} />}
-                    </View>
-                    <View className="ml-3">
-                        <Text className="font-radio-canada font-bold text-gray-900">{title}</Text>
-                        <Text className="text-green-500 text-sm font-radio-canada">{status}</Text>
-                    </View>
-                </View>
-                <View className="flex-row items-center ">
-                    <Text className="text-xl font-radio-canada font-bold text-gray-900">{score.split(' ')[0]}</Text>
-                    <Text className="text-sm text-gray-500 ml-1 font-radio-canada">Score</Text>
-                </View>
-            </View>
-            <View className="h-2 rounded-full bg-gray-200">
-                <View
-                    className="h-2 rounded-full"
-                    style={{
-                        width: progress,
-                        backgroundColor: color
-                    }}
-                />
-            </View>
-            <Text className="text-gray-600 text-sm font-radio-canada mb-2 mt-4 ml-10 font-bold">Key Insights:</Text>
-            {insights.map((insight, index) => (
-                <Text key={index} className="text-gray-500 text-sm font-radio-canada ml-12 mb-1">{insight}</Text>
-            ))}
-        </View>
-    );
+const ReportScreen: React.FC = () => {
+  const { user } = useAuth();
 
+  const [report, setReport] = useState<ReportResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadReport();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.uid])
+  );
+
+  const loadReport = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchReport(user?.uid ?? 'anonymous');
+      setReport(data);
+    } catch (err) {
+      console.error('Failed to load report:', err);
+      setError('No report available yet. Complete an assessment first.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getRiskColor = (level: string): string => {
+    switch (level.toLowerCase()) {
+      case 'low': return '#22C55E';
+      case 'moderate': return '#F59E0B';
+      case 'high': return '#EF4444';
+      default: return '#6B7280';
+    }
+  };
+
+  const getRiskBgColor = (level: string): string => {
+    switch (level.toLowerCase()) {
+      case 'low': return 'bg-green-100';
+      case 'moderate': return 'bg-yellow-100';
+      case 'high': return 'bg-red-100';
+      default: return 'bg-gray-100';
+    }
+  };
+
+  const getRiskTextColor = (level: string): string => {
+    switch (level.toLowerCase()) {
+      case 'low': return 'text-green-700';
+      case 'moderate': return 'text-yellow-700';
+      case 'high': return 'text-red-700';
+      default: return 'text-gray-700';
+    }
+  };
+
+  const toggleModule = (moduleName: string) => {
+    setExpandedModule(expandedModule === moduleName ? null : moduleName);
+  };
+
+  if (loading) {
     return (
-        <ScrollView className="flex-1 bg-[#F9FAFB]" >
-            <View className="items-center py-8 ">
-                <View className="relative mb-6">
-                    <View className="w-36 h-36 rounded-full border-8 border-blue-200 items-center justify-center">
-                        <Text className="text-3xl font-radio-canada font-normal text-blue-500">66</Text>
-                        <Text className="text-sm font-radio-canada font-normal text-[#6B7280]">Overall Score</Text>
-                    </View>
-                    <View className="absolute inset-0 w-36 h-36">
-                        <View
-                            className="w-full h-full rounded-full border-8 border-blue-500"
-                            style={{
-                                borderTopColor: '#3b82f6',
-                                borderRightColor: '#3b82f6',
-                                borderBottomColor: '#e5e7eb',
-                                borderLeftColor: '#e5e7eb',
-                                transform: [{ rotate: '45deg' }]
-                            }}
-                        />
-                    </View>
-                </View>
-                <Text className="text-xl font-radio-canada font-bold mb-2 text-gray-900">Assessment Report</Text>
-                <Text className="text-gray-600 text-center font-radio-canada px-6">
-                    All assessment modules have been
-                    completed successfully.
-                </Text>
-            </View>
-
-            <View className=" mx-3 mt-4 rounded-lg p-4">
-                <Text className="text-lg font-radio-canada font-semibold mb-4 text-gray-900">Assessment Results</Text>
-
-                {/* Eye Tracking Assessment */}
-                <View className="bg-white rounded-xl  p-4 mb-4" style={{
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 3,
-                }}>
-                    {renderAssessmentItem(
-                        'eye-outline',
-                        'Eye Tracking',
-                        'Complete',
-                        '72 Score',
-                        '72%',
-                        '#3b82f6',
-                        [
-                            '• Good attention span',
-                            '• Consistent gaze patterns'
-                        ]
-                    )}
-                </View>
-
-                {/* Speech Analysis Assessment */}
-                <View className="bg-white rounded-xl p-4 mb-4" style={{
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 3,
-                }}>
-                    {renderAssessmentItem(
-                        'chatbubble-outline',
-                        'Speech Analysis',
-                        'Complete',
-                        '58 Score',
-                        '58%',
-                        '#10b981',
-                        [
-                            '• Clear articulation',
-                            '• Moderate pace'
-                        ]
-                    )}
-                </View>
-
-                {/* MCQ Assessment */}
-                <View className="bg-white rounded-xl p-4 mb-4" style={{
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 3,
-                }}>
-                    {renderAssessmentItem(
-                        'help-circle-outline',
-                        'MCQ Assessment',
-                        'Complete',
-                        '65 Score',
-                        '65%',
-                        '#8b5cf6',
-                        [
-                            '• Comprehensive responses',
-                            '• Thoughtful answers'
-                        ]
-                    )}
-                </View>
-            </View>
-
-            <View className="flex-row mx-8 mb-6" style={{ gap: 10 }}>
-                <TouchableOpacity
-                    className="flex-1 bg-white border border-blue-500 py-4 rounded-xl flex-row items-center justify-center"
-                    onPress={() => console.log('Share Report')}
-                >
-                    <Share2 size={20} color="#3b82f6" />
-                    <Text className="text-blue-500 text-center font-radio-canada font-medium ml-2">Share Report</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    className="flex-1 bg-blue-500 py-4 rounded-xl flex-row items-center justify-center"
-                    onPress={() => console.log('Download PDF')}
-                >
-                    <Download size={20} color="#ffffff" />
-                    <Text className="text-white text-center font-radio-canada font-medium ml-2">Download PDF</Text>
-                </TouchableOpacity>
-            </View>
-        </ScrollView>
+      <SafeAreaView edges={[]} className="flex-1 bg-[#F5F7FA]">
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#4A90E2" />
+          <Text className="text-gray-600 mt-4">Loading report...</Text>
+        </View>
+      </SafeAreaView>
     );
+  }
+
+  if (error || !report) {
+    return (
+      <SafeAreaView edges={[]} className="flex-1 bg-[#F5F7FA]">
+        <View className="flex-1 items-center justify-center px-6">
+          <AlertTriangle size={48} color="#F59E0B" />
+          <Text className="text-gray-700 text-lg font-semibold mt-4 mb-2">No Report Available</Text>
+          <Text className="text-gray-500 text-center mb-6">{error || 'Complete an assessment to see your report.'}</Text>
+          <TouchableOpacity
+            onPress={loadReport}
+            className="bg-[#4A90E2] px-6 py-3 rounded-lg"
+          >
+            <Text className="text-white font-medium">Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const overallScore = Math.round(report.overall_score);
+  const riskColor = getRiskColor(report.risk_level);
+
+  const modules = [
+    {
+      name: 'Eye Tracking',
+      icon: Eye,
+      data: report.eye_tracking,
+      color: '#3B82F6',
+    },
+    {
+      name: 'Speech Analysis',
+      icon: Mic,
+      data: report.speech_analysis,
+      color: '#8B5CF6',
+    },
+    {
+      name: 'MCQ Assessment',
+      icon: FileText,
+      data: report.mcq_assessment,
+      color: '#F59E0B',
+    },
+  ];
+
+  return (
+    <SafeAreaView edges={[]} className="flex-1 bg-[#F5F7FA]">
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <View className="px-6 py-5">
+          {/* Overall Score */}
+          <View className="items-center mb-6">
+            <View className="relative mb-4">
+              <View className="w-36 h-36 rounded-full border-8 items-center justify-center" style={{ borderColor: riskColor + '40' }}>
+                <Text className="text-3xl font-bold" style={{ color: riskColor }}>{overallScore}</Text>
+                <Text className="text-sm text-[#6B7280]">Overall Score</Text>
+              </View>
+            </View>
+            <View className={getRiskBgColor(report.risk_level) + ' px-4 py-1 rounded-full'}>
+              <Text className={getRiskTextColor(report.risk_level) + ' font-semibold text-sm'}>
+                {report.risk_level.charAt(0).toUpperCase() + report.risk_level.slice(1)} Risk
+              </Text>
+            </View>
+          </View>
+
+          {/* Module Results */}
+          <Text className="text-lg font-bold text-gray-800 mb-3">Assessment Results</Text>
+
+          {modules.map((mod) => (
+            <TouchableOpacity
+              key={mod.name}
+              className="bg-white rounded-2xl p-4 mb-3 shadow-sm"
+              onPress={() => toggleModule(mod.name)}
+              activeOpacity={0.7}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1">
+                  <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: mod.color + '20' }}>
+                    <mod.icon size={20} color={mod.color} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-gray-800 font-semibold">{mod.name}</Text>
+                    <Text className="text-gray-500 text-xs">
+                      {mod.data.status === 'completed' ? 'Completed' : 'Not completed'}
+                    </Text>
+                  </View>
+                </View>
+                <View className="flex-row items-center">
+                  <Text className="text-lg font-bold mr-2" style={{ color: mod.color }}>
+                    {Math.round(mod.data.score)}
+                  </Text>
+                  {expandedModule === mod.name ? (
+                    <ChevronUp size={16} color="#9CA3AF" />
+                  ) : (
+                    <ChevronDown size={16} color="#9CA3AF" />
+                  )}
+                </View>
+              </View>
+
+              {/* Expanded insights */}
+              {expandedModule === mod.name && mod.data.insights.length > 0 && (
+                <View className="mt-3 pt-3 border-t border-gray-100">
+                  {mod.data.insights.map((insight, idx) => (
+                    <Text key={idx} className="text-gray-600 text-sm mb-1 leading-relaxed">
+                      {insight}
+                    </Text>
+                  ))}
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
+
+          {/* Recommendations */}
+          {report.recommendations.length > 0 && (
+            <View className="bg-white rounded-2xl p-5 mt-3 mb-6 shadow-sm">
+              <Text className="text-lg font-bold text-gray-800 mb-3">Recommendations</Text>
+              {report.recommendations.map((rec, idx) => (
+                <View key={idx} className="flex-row mb-2">
+                  <Text className="text-[#4A90E2] mr-2 font-bold">{idx + 1}.</Text>
+                  <Text className="text-gray-600 text-sm flex-1 leading-relaxed">{rec}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Disclaimer */}
+          <View className="bg-yellow-50 p-4 rounded-xl mb-6 border border-yellow-200">
+            <Text className="text-yellow-800 text-xs leading-relaxed text-center">
+              This is a screening tool and not a diagnostic instrument. Please consult
+              a healthcare professional for a comprehensive evaluation.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 };
 
 export default ReportScreen;

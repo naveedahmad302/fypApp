@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { RefreshCw, Check } from 'lucide-react-native';
+import { useAssessment } from '../../../context/AssessmentContext';
 
 interface SpeechAnalysisResultScreenProps {
   navigation?: any;
@@ -10,6 +11,7 @@ interface SpeechAnalysisResultScreenProps {
 
 const SpeechAnalysisResultScreen: React.FC<SpeechAnalysisResultScreenProps> = ({ navigation: navProp }) => {
   const navigation = useNavigation();
+  const { speechScore } = useAssessment();
 
   const handleTryAnother = () => {
     // Navigate back to recording screen to try again
@@ -52,8 +54,8 @@ const SpeechAnalysisResultScreen: React.FC<SpeechAnalysisResultScreenProps> = ({
           {/* Metrics Section */}
           <View className="flex-row justify-around mb-8">
             <View className="items-center">
-              <Text className="text-4xl font-bold text-gray-800 mb-2">142</Text>
-              <Text className="text-gray-500 text-sm">Words/min</Text>
+              <Text className="text-4xl font-bold text-gray-800 mb-2">{speechScore !== null ? Math.round(speechScore) : '—'}</Text>
+              <Text className="text-gray-500 text-sm">ASD Risk Score</Text>
             </View>
             <View className="items-center">
               <Text className="text-4xl font-bold text-gray-800 mb-2">0.8s</Text>

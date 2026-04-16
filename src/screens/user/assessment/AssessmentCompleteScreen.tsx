@@ -1,148 +1,143 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { CheckCircle, Award, TrendingUp, Target, Brain, Eye } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { CheckCircle, ArrowRight, RotateCcw } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../../context/AuthContext';
+import { useAssessment } from '../../../context/AssessmentContext';
+import { generateReport } from '../../../services/assessmentService';
 
 interface AssessmentCompleteScreenProps {
-    navigation?: any;
+  navigation?: any;
 }
 
 const AssessmentCompleteScreen: React.FC<AssessmentCompleteScreenProps> = ({ navigation: navProp }) => {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
+  const { user } = useAuth();
+  const {
+    eyeTrackingAssessmentId,
+    speechAssessmentId,
+    mcqAssessmentId,
+    eyeTrackingComplete,
+    speechComplete,
+    mcqComplete,
+    completedCount,
+    setReportGenerated,
+    resetAssessment,
+  } = useAssessment();
 
-    const handleViewResults = () => {
-        const nav = navProp || navigation;
-        nav.getParent()?.navigate('ReportTab', { screen: 'Report' });
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-        // nav.navigate('ReportScreen');
-    };
+  const handleGenerateReport = async () => {
+    try {
+      setIsGenerating(true);
+      setError(null);
 
-    const handleBackToHome = () => {
-        const nav = navProp || navigation;
-        nav.navigate('Home');
-    };
+      await generateReport({
+        user_id: user?.uid ?? 'anonymous',
+        eye_tracking_assessment_id: eyeTrackingAssessmentId ?? undefined,
+        speech_assessment_id: speechAssessmentId ?? undefined,
+        mcq_assessment_id: mcqAssessmentId ?? undefined,
+      });
 
-    return (
-        <SafeAreaView className="flex-1 bg-[#F5F7FA]">
-            <ScrollView className="flex-1 px-6 py-8">
-                {/* Success Header */}
-                <View className="items-center mb-8">
-                    <View className="w-20 h-20 bg-green-100 rounded-full items-center justify-center mb-4 shadow-lg shadow-gray-200" style={{
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 4,
-                        elevation: 3,
-                    }}>
-                        <CheckCircle size={40} color="#10B981" />
-                    </View>
-                    <Text className="text-2xl font-bold text-gray-800 mb-2">Assessment Complete!</Text>
-                    <Text className="text-gray-600 text-center">
-                        You've answered all 5 questions
-                    </Text>
-                </View>
+      setReportGenerated(true);
 
-                {/* Completion Stats */}
-                <View className="bg-white rounded-2xl p-6 mb-6 shadow-lg shadow-gray-200" style={{
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 3,
-                }}>
-                    <Text className="text-lg font-semibold text-gray-800 mb-4">Summary</Text>
+      // Navigate to the Report tab
+      const nav = navProp || navigation;
+      // @ts-ignore - cross-tab navigation
+      nav.getParent()?.navigate('ReportTab', { screen: 'Report' });
+    } catch (err) {
+      console.error('Report generation failed:', err);
+      setError('Failed to generate report. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
-                    <View className="space-y-16">
-                        <View className="flex-row items-center pb-2">
+  const handleStartOver = () => {
+    resetAssessment();
+    const nav = navProp || navigation;
+    nav.navigate('Assessment' as never);
+  };
 
-                            <View className="flex-1">
-                                <Text className="text-gray-500 text-sm">Questions Answered</Text>
-                            </View>
-                            <Text className='font-medium'>5</Text>
-                        </View>
+  return (
+    <SafeAreaView edges={[]} className="flex-1 bg-[#F5F7FA]">
+      <View className="flex-1 justify-center px-6">
+        {/* Success Icon */}
+        <View className="items-center mb-8">
+          <View className="w-24 h-24 bg-green-100 rounded-full items-center justify-center mb-4">
+            <CheckCircle size={48} color="#22C55E" />
+          </View>
+          <Text className="text-2xl font-bold text-gray-800 mb-2">Assessment Complete!</Text>
+          <Text className="text-gray-500 text-center">
+            You have completed {completedCount} of 3 assessments.
+          </Text>
+        </View>
 
-                        <View className="flex-row items-center  pb-2">
+        {/* Module Status */}
+        <View className="bg-white rounded-2xl p-5 mb-6 shadow-sm">
+          <Text className="text-lg font-semibold text-gray-800 mb-4">Assessment Summary</Text>
 
-                            <View className="flex-1">
-                                <Text className="text-gray-500 text-sm">Time Taken</Text>
-                            </View>
-                            <Text className='font-medium'>~5 minutes</Text>
+          <View className="flex-row items-center mb-3">
+            <View className={`w-3 h-3 rounded-full mr-3 ${eyeTrackingComplete ? 'bg-green-500' : 'bg-gray-300'}`} />
+            <Text className="text-gray-700 flex-1">Eye Tracking Analysis</Text>
+            <Text className={eyeTrackingComplete ? 'text-green-600 font-medium' : 'text-gray-400'}>
+              {eyeTrackingComplete ? 'Done' : 'Skipped'}
+            </Text>
+          </View>
 
-                        </View>
+          <View className="flex-row items-center mb-3">
+            <View className={`w-3 h-3 rounded-full mr-3 ${speechComplete ? 'bg-green-500' : 'bg-gray-300'}`} />
+            <Text className="text-gray-700 flex-1">Speech Analysis</Text>
+            <Text className={speechComplete ? 'text-green-600 font-medium' : 'text-gray-400'}>
+              {speechComplete ? 'Done' : 'Skipped'}
+            </Text>
+          </View>
 
-                        <View className="flex-row items-center">
+          <View className="flex-row items-center">
+            <View className={`w-3 h-3 rounded-full mr-3 ${mcqComplete ? 'bg-green-500' : 'bg-gray-300'}`} />
+            <Text className="text-gray-700 flex-1">MCQ Assessment</Text>
+            <Text className={mcqComplete ? 'text-green-600 font-medium' : 'text-gray-400'}>
+              {mcqComplete ? 'Done' : 'Skipped'}
+            </Text>
+          </View>
+        </View>
 
-                            <View className="flex-1">
-                                <Text className="text-gray-500 text-sm">Status</Text>
-                            </View>
-                            <Text className='font-medium text-green-500'>Completed</Text>
-                        </View>
-                    </View>
-                </View>
+        {/* Error banner */}
+        {error && (
+          <View className="bg-red-50 p-3 rounded-lg mb-4">
+            <Text className="text-red-600 text-sm text-center">{error}</Text>
+          </View>
+        )}
 
-                {/* Achievement Badge */}
-                {/* <View className="bg-gradient-to-r from-[#4A90E2] to-[#6366F1] rounded-2xl p-6 mb-6">
-                    <View className="flex-row items-center">
-                        <View className="w-16 h-16 bg-white/20 rounded-full items-center justify-center mr-4">
-                            <Award size={32} color="white" />
-                        </View>
-                        <View className="flex-1">
-                            <Text className="text-white font-semibold text-lg mb-1">Achievement Unlocked!</Text>
-                            <Text className="text-white/80 text-sm">
-                                Comprehensive Assessment Completed
-                            </Text>
-                        </View>
-                    </View>
-                </View> */}
+        {/* Action Buttons */}
+        <TouchableOpacity
+          className="bg-[#4A90E2] py-4 rounded-2xl flex-row items-center justify-center mb-3"
+          onPress={handleGenerateReport}
+          disabled={isGenerating}
+        >
+          {isGenerating ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <>
+              <Text className="text-white font-semibold text-lg mr-2">Generate Report</Text>
+              <ArrowRight size={20} color="white" />
+            </>
+          )}
+        </TouchableOpacity>
 
-                {/* Next Steps */}
-                {/* <View className="bg-white rounded-2xl p-6 mb-6">
-                    <Text className="text-lg font-semibold text-gray-800 mb-3">What's Next?</Text>
-
-                    <View className="space-y-3">
-                        <View className="flex-row items-start">
-                            <TrendingUp size={20} color="#4A90E2" className="mr-3 mt-0.5" />
-                            <Text className="text-gray-600 text-sm flex-1">
-                                View your detailed assessment results and insights
-                            </Text>
-                        </View>
-                        <View className="flex-row items-start">
-                            <Target size={20} color="#4A90E2" className="mr-3 mt-0.5" />
-                            <Text className="text-gray-600 text-sm flex-1">
-                                Track your progress over time
-                            </Text>
-                        </View>
-                        <View className="flex-row items-start">
-                            <Brain size={20} color="#4A90E2" className="mr-3 mt-0.5" />
-                            <Text className="text-gray-600 text-sm flex-1">
-                                Get personalized recommendations
-                            </Text>
-                        </View>
-                    </View>
-                </View> */}
-
-                {/* Action Buttons */}
-                <View className="space-y-3 mb-8">
-                    <TouchableOpacity
-                        onPress={handleViewResults}
-                        className="bg-[#4A90E2] py-4 rounded-2xl flex-row items-center justify-center shadow-lg shadow-gray-200" style={{
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 4,
-                            elevation: 5,
-                        }}
-                    >
-                        <Text className="text-white font-medium text-lg mr-2">View Your Assessment Report</Text>
-                        {/* <TrendingUp size={20} color="white" /> */}
-                    </TouchableOpacity>
-
-                   
-                </View>
-            </ScrollView>
-        </SafeAreaView>
-    );
+        <TouchableOpacity
+          className="border border-gray-300 py-4 rounded-2xl flex-row items-center justify-center"
+          onPress={handleStartOver}
+          disabled={isGenerating}
+        >
+          <RotateCcw size={18} color="#6B7280" />
+          <Text className="text-gray-600 font-medium text-base ml-2">Start Over</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
 };
 
 export default AssessmentCompleteScreen;

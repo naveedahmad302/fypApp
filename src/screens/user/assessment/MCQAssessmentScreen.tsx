@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { Users, Clock, Eye, Mic, CheckCircle, ArrowRight, ChevronRight, FileText, Check, Lock,CircleCheckBig } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Users, Clock, Eye, Mic, ArrowRight, CircleCheckBig } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LucideIcon } from 'lucide-react-native';
+import { useAssessment } from '../../../context/AssessmentContext';
 
 interface MCQAssessmentScreenProps {
   navigation?: any;
@@ -72,6 +72,7 @@ const AssessmentItem = ({ icon: Icon, title, duration, status = 'locked' }: Asse
 
 const MCQAssessmentScreen: React.FC<MCQAssessmentScreenProps> = ({ navigation: navProp }) => {
   const navigation = useNavigation();
+  const { completedCount } = useAssessment();
 
   const navigateToAssessment = (screenName: string) => {
     const nav = navProp || navigation;
@@ -93,17 +94,17 @@ const MCQAssessmentScreen: React.FC<MCQAssessmentScreenProps> = ({ navigation: n
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-gray-900 text-lg font-semibold">Assessment Progress</Text>
               <View className="bg-blue-100 px-3 py-1 rounded-full">
-                <Text className="text-[#4A90E2] text-xs font-medium">Step 3 of 3</Text>
+                <Text className="text-[#4A90E2] text-xs font-medium">Step {Math.min(completedCount + 1, 3)} of 3</Text>
               </View>
             </View>
             <View className="mb-3">
               <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
-                <View className="bg-[#4A90E2] h-full rounded-full" style={{ width: '66%' }} />
+                <View className="bg-[#4A90E2] h-full rounded-full" style={{ width: `${Math.round((completedCount / 3) * 100)}%` }} />
               </View>
             </View>
             <View className="flex-row justify-between">
-              <Text className="text-[#6B7280] text-sm">2 of 3 completed</Text>
-              <Text className="text-[#6B7280] text-sm font-medium">66% Complete</Text>
+              <Text className="text-[#6B7280] text-sm">{completedCount} of 3 completed</Text>
+              <Text className="text-[#6B7280] text-sm font-medium">{Math.round((completedCount / 3) * 100)}% Complete</Text>
             </View>
           </View>
         </View>
