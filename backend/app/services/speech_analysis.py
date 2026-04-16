@@ -22,8 +22,9 @@ from ..schemas.assessment import (
 )
 
 
-def _decode_audio(audio_base64: str, audio_format: str = "wav") -> np.ndarray | None:
+def _decode_audio(audio_base64: str, audio_format: str = "wav") -> tuple[np.ndarray, int] | tuple[None, None]:
     """Decode base64 audio to numpy array using librosa."""
+    tmp_path = None
     try:
         audio_bytes = base64.b64decode(audio_base64)
 
@@ -36,12 +37,13 @@ def _decode_audio(audio_base64: str, audio_format: str = "wav") -> np.ndarray | 
         # Load audio with librosa (resamples to 22050 Hz by default)
         y, sr = librosa.load(tmp_path, sr=22050, mono=True)
 
-        # Clean up temp file
-        Path(tmp_path).unlink(missing_ok=True)
-
         return y, sr
     except Exception:
         return None, None
+    finally:
+        # Clean up temp file
+        if tmp_path is not None:
+            Path(tmp_path).unlink(missing_ok=True)
 
 
 def _extract_pitch_features(y: np.ndarray, sr: int) -> dict:

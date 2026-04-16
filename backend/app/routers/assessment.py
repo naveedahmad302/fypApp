@@ -26,7 +26,7 @@ router = APIRouter(prefix="/api/assessment", tags=["Assessment"])
 
 
 @router.post("/eye-tracking", response_model=EyeTrackingResponse)
-async def eye_tracking_analysis(request: EyeTrackingRequest) -> EyeTrackingResponse:
+def eye_tracking_analysis(request: EyeTrackingRequest) -> EyeTrackingResponse:
     """Analyze eye tracking data from camera frames.
 
     Accepts base64-encoded image frames captured from the front camera
@@ -52,7 +52,7 @@ async def eye_tracking_analysis(request: EyeTrackingRequest) -> EyeTrackingRespo
 
 
 @router.post("/speech", response_model=SpeechAnalysisResponse)
-async def speech_analysis(request: SpeechAnalysisRequest) -> SpeechAnalysisResponse:
+def speech_analysis(request: SpeechAnalysisRequest) -> SpeechAnalysisResponse:
     """Analyze speech patterns from audio recording.
 
     Accepts a base64-encoded audio file (WAV or MP3) recorded during
@@ -79,7 +79,7 @@ async def speech_analysis(request: SpeechAnalysisRequest) -> SpeechAnalysisRespo
 
 
 @router.post("/mcq", response_model=MCQAssessmentResponse)
-async def mcq_assessment(request: MCQAssessmentRequest) -> MCQAssessmentResponse:
+def mcq_assessment(request: MCQAssessmentRequest) -> MCQAssessmentResponse:
     """Score MCQ behavioral questionnaire responses.
 
     Accepts answers to the behavioral questionnaire. Each answer is
@@ -106,7 +106,7 @@ async def mcq_assessment(request: MCQAssessmentRequest) -> MCQAssessmentResponse
 
 
 @router.post("/report/generate", response_model=ReportResponse)
-async def generate_assessment_report(
+def generate_assessment_report(
     request: GenerateReportRequest,
 ) -> ReportResponse:
     """Generate a combined ASD assessment report.
@@ -138,7 +138,7 @@ async def generate_assessment_report(
 
 
 @router.get("/report/{user_id}", response_model=ReportResponse)
-async def get_report(user_id: str) -> ReportResponse:
+def get_report(user_id: str) -> ReportResponse:
     """Get the latest assessment report for a user.
 
     Returns the most recent combined assessment report including
@@ -154,7 +154,7 @@ async def get_report(user_id: str) -> ReportResponse:
 
 
 @router.get("/history/{user_id}", response_model=UserAssessmentHistory)
-async def get_assessment_history(user_id: str) -> UserAssessmentHistory:
+def get_assessment_history(user_id: str) -> UserAssessmentHistory:
     """Get assessment history for a user.
 
     Returns a list of all assessments (eye tracking, speech, MCQ)
@@ -184,7 +184,7 @@ async def get_assessment_history(user_id: str) -> UserAssessmentHistory:
 
 
 @router.get("/questions")
-async def get_mcq_questions() -> dict:
+def get_mcq_questions() -> dict:
     """Get the list of MCQ questions for the assessment.
 
     Returns all available questions with their options.
