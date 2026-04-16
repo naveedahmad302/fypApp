@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Eye, Mic, FileText, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../../context/AuthContext';
 import { fetchReport, ReportResponse } from '../../../services/assessmentService';
 
@@ -13,10 +14,12 @@ const ReportScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadReport();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadReport();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.uid])
+  );
 
   const loadReport = async () => {
     try {
