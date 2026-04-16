@@ -94,7 +94,7 @@ const MCQAssessmentScreen: React.FC<MCQAssessmentScreenProps> = ({ navigation: n
             <View className="flex-row items-center justify-between mb-4">
               <Text className="text-gray-900 text-lg font-semibold">Assessment Progress</Text>
               <View className="bg-blue-100 px-3 py-1 rounded-full">
-                <Text className="text-[#4A90E2] text-xs font-medium">Step {completedCount + 1} of 3</Text>
+                <Text className="text-[#4A90E2] text-xs font-medium">Step {Math.min(completedCount + 1, 3)} of 3</Text>
               </View>
             </View>
             <View className="mb-3">

@@ -49,14 +49,18 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
       // Read photo as base64 using fetch on the file URI
       const response = await fetch(`file://${photo.path}`);
       const blob = await response.blob();
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = (reader.result as string).split(',')[1];
-        if (base64) {
-          framesRef.current.push(base64);
-        }
-      };
-      reader.readAsDataURL(blob);
+      const base64 = await new Promise<string | null>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = (reader.result as string).split(',')[1];
+          resolve(result || null);
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+      if (base64) {
+        framesRef.current.push(base64);
+      }
     } catch (err) {
       console.warn('Frame capture failed:', err);
     }

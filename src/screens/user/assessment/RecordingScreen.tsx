@@ -97,7 +97,8 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
     };
 
     const handleComplete = async () => {
-        if (audioBase64) {
+        if (audioBase64 && audioBase64 !== 'recorded') {
+            // Real audio data available — submit to backend
             try {
                 setIsSubmitting(true);
                 setError(null);
@@ -113,13 +114,15 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                 nav.navigate('MCQAssessmentScreen' as never);
             } catch (err) {
                 console.error('Speech analysis failed:', err);
-                setError('Failed to analyze speech. Proceeding to next step.');
-                const nav = navProp || navigation;
-                nav.navigate('MCQAssessmentScreen' as never);
+                setError('Failed to analyze speech. Please try again or tap "Try Another" to re-record.');
+                setIsSubmitting(false);
+                return;
             } finally {
                 setIsSubmitting(false);
             }
         } else {
+            // No real audio recording yet — skip speech analysis and proceed
+            // TODO: Integrate react-native-audio-recorder-player to capture real audio
             const nav = navProp || navigation;
             nav.navigate('MCQAssessmentScreen' as never);
         }

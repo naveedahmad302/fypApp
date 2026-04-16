@@ -132,7 +132,7 @@ const SpeechProgressScreen: React.FC<SpeechProgressScreenProps> = ({ navigation:
             <View className="flex-row items-center justify-between mb-4">
               <CustomText weight={600} className="text-lg font-semibold text-gray-800">Assessment Progress</CustomText>
               <View className="bg-[#DBEAFE] px-3 py-1 rounded-full">
-                <CustomText weight={500} className="text-[#4A90E2] text-xs font-medium">Step {completedCount + 1} of 3</CustomText>
+                <CustomText weight={500} className="text-[#4A90E2] text-xs font-medium">Step {Math.min(completedCount + 1, 3)} of 3</CustomText>
               </View>
             </View>
             <View className="mb-3">
