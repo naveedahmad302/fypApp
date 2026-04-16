@@ -22,7 +22,9 @@ export const checkFirebaseConnection = async (): Promise<ConnectionStatus> => {
       const currentUser = auth().currentUser;
       status.auth = true;
     } catch (authError: any) {
-      console.error('Auth connection error:', authError);
+      if (__DEV__) {
+        console.error('Auth connection error:', authError);
+      }
       status.auth = false;
     }
 
@@ -32,7 +34,9 @@ export const checkFirebaseConnection = async (): Promise<ConnectionStatus> => {
       await firestore().collection('connection_test').limit(1).get();
       status.firestore = true;
     } catch (firestoreError: any) {
-      console.error('Firestore connection error:', firestoreError);
+      if (__DEV__) {
+        console.error('Firestore connection error:', firestoreError);
+      }
       status.firestore = false;
     }
 
@@ -41,7 +45,9 @@ export const checkFirebaseConnection = async (): Promise<ConnectionStatus> => {
 
     return status;
   } catch (error: any) {
-    console.error('Firebase connection check failed:', error);
+    if (__DEV__) {
+      console.error('Firebase connection check failed:', error);
+    }
     status.error = error.message;
     return status;
   }
@@ -61,7 +67,9 @@ export const testFirebaseWrite = async (): Promise<boolean> => {
     
     return true;
   } catch (error: any) {
-    console.error('Firebase write test failed:', error);
+    if (__DEV__) {
+      console.error('Firebase write test failed:', error);
+    }
     return false;
   }
 };

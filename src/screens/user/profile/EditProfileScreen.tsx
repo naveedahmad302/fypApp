@@ -53,9 +53,26 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
+  const MAX_FIELD_LENGTH = 200;
+  const PHONE_REGEX = /^[+]?[\d\s()-]{0,20}$/;
+
   const handleSave = async () => {
     if (!user?.uid) {
       showErrorToast('User not authenticated', 'Error');
+      return;
+    }
+
+    // Validate field lengths
+    if (userData.fullName && userData.fullName.length > MAX_FIELD_LENGTH) {
+      showErrorToast('Full name is too long (max 200 characters)', 'Validation Error');
+      return;
+    }
+    if (userData.location && userData.location.length > MAX_FIELD_LENGTH) {
+      showErrorToast('Location is too long (max 200 characters)', 'Validation Error');
+      return;
+    }
+    if (userData.phoneNumber && !PHONE_REGEX.test(userData.phoneNumber)) {
+      showErrorToast('Please enter a valid phone number', 'Validation Error');
       return;
     }
     
@@ -65,8 +82,6 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       const updateData = Object.fromEntries(
         Object.entries(userData).filter(([_, value]) => value !== undefined && value !== '')
       );
-      
-      console.log('Updating user data:', updateData);
       await updateUserInFirestore(user.uid, updateData);
       showSuccessToast('Profile updated successfully!', 'Success');
       
@@ -75,7 +90,9 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         navigation.goBack();
       }
     } catch (error: any) {
-      console.error('Profile update error:', error);
+      if (__DEV__) {
+        console.error('Profile update error:', error);
+      }
       showErrorToast(`Failed to update profile: ${error.message}`, 'Error');
     } finally {
       setIsSaving(false);

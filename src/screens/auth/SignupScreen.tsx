@@ -40,8 +40,13 @@ const SignupScreen: React.FC<TAuthStackNavigationProps<'Signup'>> = ({ navigatio
       return;
     }   
     
-    if (password.length < 6) {
-      showErrorToast('Password must be at least 6 characters', 'Weak Password');
+    if (password.length < 8) {
+      showErrorToast('Password must be at least 8 characters', 'Weak Password');
+      return;
+    }
+    
+    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+      showErrorToast('Password must contain at least one uppercase letter and one number', 'Weak Password');
       return;
     }
     

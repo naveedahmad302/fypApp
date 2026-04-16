@@ -43,8 +43,12 @@ const GroupChatScreen = ({ route }: { route: GroupChatScreenRouteProp }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   
-  // Collection name based on group
-  const collectionName = groupName.toLowerCase().replace(/\s+/g, '_');
+  // Whitelist of allowed collection names to prevent injection
+  const ALLOWED_COLLECTIONS: Record<string, string> = {
+    'parents support circle': 'parents_support_circle',
+    'weekly check ins': 'weekly_check_ins',
+  };
+  const collectionName = ALLOWED_COLLECTIONS[groupName.toLowerCase()] || 'parents_support_circle';
 
   // Real-time messages listener
   useEffect(() => {
@@ -72,15 +76,19 @@ const GroupChatScreen = ({ route }: { route: GroupChatScreenRouteProp }) => {
     return () => unsubscribe();
   }, [collectionName]);
 
+  const MAX_MESSAGE_LENGTH = 2000;
+
   const handleSend = async () => {
-    if (inputText.trim() === '') return;
+    const trimmedText = inputText.trim();
+    if (trimmedText === '') return;
+    if (trimmedText.length > MAX_MESSAGE_LENGTH) return;
     
     const currentUser = auth().currentUser;
     if (!currentUser) return;
     
     try {
       await firestore().collection(collectionName).add({
-        text: inputText,
+        text: trimmedText,
         userUid: currentUser.uid,
         userName: currentUser.email?.split('@')[0] || 'User',
         createdAt: firestore.FieldValue.serverTimestamp(),
