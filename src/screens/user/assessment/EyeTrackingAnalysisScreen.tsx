@@ -28,6 +28,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
   const captureInterval = useRef<NodeJS.Timeout | null>(null);
   const framesRef = useRef<string[]>([]);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     (async () => {
@@ -66,11 +67,12 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
       framesRef.current = [];
       setError(null);
 
+      completedRef.current = false;
+
       // Progress animation
       progressInterval.current = setInterval(() => {
         setTrackingProgress(prev => {
           if (prev >= 100) {
-            handleTrackingComplete();
             return 100;
           }
           return prev + 1;
@@ -102,6 +104,15 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
       }
     };
   }, [isTracking]);
+
+  // Trigger completion when progress reaches 100
+  useEffect(() => {
+    if (trackingProgress >= 100 && isTracking && !completedRef.current) {
+      completedRef.current = true;
+      handleTrackingComplete();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trackingProgress]);
 
   const handleStartTracking = () => {
     setIsTracking(true);
