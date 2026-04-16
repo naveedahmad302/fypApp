@@ -121,8 +121,10 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                 setIsSubmitting(false);
             }
         } else {
-            // No real audio recording yet — skip speech analysis and proceed
+            // No real audio recording yet — mark speech as completed with placeholder
+            // so the assessment flow can continue (completedCount reaches 3).
             // TODO: Integrate react-native-audio-recorder-player to capture real audio
+            setSpeechResult('pending-audio-integration', 0);
             const nav = navProp || navigation;
             nav.navigate('MCQAssessmentScreen' as never);
         }

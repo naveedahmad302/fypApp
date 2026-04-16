@@ -33,7 +33,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
   useEffect(() => {
     (async () => {
       const status = await Camera.requestCameraPermission();
-      setHasPermission(status === 'authorized');
+      setHasPermission(status === 'granted');
     })();
   }, []);
 
