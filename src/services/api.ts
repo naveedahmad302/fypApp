@@ -16,9 +16,11 @@
 // For a real device on the same network, use the machine's LAN IP.
 import { Platform } from 'react-native';
 
-const LOCAL_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+// NOTE: Using LAN IP for real device testing (emulator uses 10.0.2.2 / localhost)
+// Change back to Platform.OS check when switching between emulator and real device
+const DEV_HOST = '192.168.1.9';
 
-export const API_BASE_URL = `http://${LOCAL_HOST}:8000`;
+export const API_BASE_URL = `http://${DEV_HOST}:8000`;
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
