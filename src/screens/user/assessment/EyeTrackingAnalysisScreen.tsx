@@ -212,17 +212,6 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     }
   };
 
-  if (isSubmitting) {
-    return (
-      <SafeAreaView className="flex-1 bg-gray-50">
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#4A90E2" />
-          <Text className="text-gray-600 mt-4">Analyzing eye tracking data...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View className="flex-1">
@@ -265,6 +254,17 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
             />
           </View>
         </ScrollView>
+
+        {/* Submission overlay — rendered on top so Camera stays mounted */}
+        {isSubmitting && (
+          <View
+            className="absolute inset-0 items-center justify-center bg-gray-50"
+            style={{ opacity: 0.95 }}
+          >
+            <ActivityIndicator size="large" color="#4A90E2" />
+            <Text className="text-gray-600 mt-4">Analyzing eye tracking data...</Text>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
