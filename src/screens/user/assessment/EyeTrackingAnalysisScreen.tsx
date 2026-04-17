@@ -6,7 +6,8 @@ import GazeVisualizationCard from './components/GazeVisualizationCard';
 import StartTrackingButton from './components/StartTrackingButton';
 import { useAuth } from '../../../context/AuthContext';
 import { useAssessment } from '../../../context/AssessmentContext';
-import { submitEyeTracking } from '../../../services/assessmentService';
+import { submitEyeTracking, healthCheck } from '../../../services/assessmentService';
+import { API_BASE_URL } from '../../../services/api';
 
 const CAPTURE_INTERVAL_MS = 500;
 const TRACKING_DURATION_MS = 5000;
@@ -39,30 +40,39 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
 
   const captureFrame = useCallback(async () => {
     if (!camera.current) {
+      console.warn('[EyeTracking] captureFrame: camera ref is null');
       return;
     }
     try {
       const photo: PhotoFile = await camera.current.takePhoto({
         qualityPrioritization: 'speed',
       });
+      console.log('[EyeTracking] Photo taken:', photo.path);
 
       // Read photo as base64 using fetch on the file URI
       const response = await fetch(`file://${photo.path}`);
       const blob = await response.blob();
+      console.log('[EyeTracking] Blob size:', blob.size);
       const base64 = await new Promise<string | null>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const result = (reader.result as string).split(',')[1];
           resolve(result || null);
         };
-        reader.onerror = () => resolve(null);
+        reader.onerror = (e) => {
+          console.warn('[EyeTracking] FileReader error:', e);
+          resolve(null);
+        };
         reader.readAsDataURL(blob);
       });
       if (base64) {
         framesRef.current.push(base64);
+        console.log('[EyeTracking] Frame captured. Total frames:', framesRef.current.length);
+      } else {
+        console.warn('[EyeTracking] base64 conversion returned null');
       }
     } catch (err) {
-      console.warn('Frame capture failed:', err);
+      console.warn('[EyeTracking] Frame capture failed:', err);
     }
   }, []);
 
@@ -114,7 +124,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
         captureInterval.current = null;
       }
     };
-  }, [isTracking]);
+  }, [isTracking, captureFrame]);
 
   // Trigger completion when progress reaches 100
   useEffect(() => {
@@ -125,7 +135,21 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackingProgress]);
 
-  const handleStartTracking = () => {
+  const handleStartTracking = async () => {
+    // Verify backend is reachable before starting
+    setError(null);
+    try {
+      await healthCheck();
+      console.log('[EyeTracking] Backend reachable at', API_BASE_URL);
+    } catch (err) {
+      console.error('[EyeTracking] Backend unreachable:', err);
+      setError(
+        'Cannot reach backend server. Make sure:\n' +
+        '1. Backend is running (poetry run fastapi dev app/main.py)\n' +
+        '2. Run: adb reverse tcp:8000 tcp:8000',
+      );
+      return;
+    }
     setIsTracking(true);
   };
 
@@ -137,24 +161,34 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     setIsTracking(false);
 
     const frames = framesRef.current;
+    console.log('[EyeTracking] Tracking complete. Frames captured:', frames.length);
+
     if (frames.length === 0) {
-      // No frames captured — still navigate but without backend call
-      navigation.navigate('TrackingStatusScreen' as never);
+      setError(
+        'No camera frames were captured. Please ensure:\n' +
+        '1. Camera permission is granted\n' +
+        '2. The front camera is available',
+      );
       return;
     }
 
     try {
       setIsSubmitting(true);
+      console.log('[EyeTracking] Submitting', frames.length, 'frames to backend...');
       const result = await submitEyeTracking({
         user_id: user?.uid ?? 'anonymous',
         frames_base64: frames,
       });
 
+      console.log('[EyeTracking] Submission success. Score:', result.asd_risk_score);
       setEyeTrackingResult(result.assessment_id, result.asd_risk_score);
       navigation.navigate('TrackingStatusScreen' as never);
     } catch (err) {
-      console.error('Eye tracking submission failed:', err);
-      setError('Failed to analyze eye tracking data. Please try again.');
+      console.error('[EyeTracking] Submission failed:', err);
+      setError(
+        'Failed to analyze eye tracking data.\n' +
+        'Make sure the backend is running and reachable.',
+      );
     } finally {
       setIsSubmitting(false);
     }
