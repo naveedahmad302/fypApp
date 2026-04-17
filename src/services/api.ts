@@ -1,22 +1,20 @@
 /**
  * API configuration and fetch helpers for the ASD Detection Backend.
  *
- * The BASE_URL should point to wherever the FastAPI backend is running.
- * During local development this is typically http://10.0.2.2:8000 for
- * Android emulators (which maps to host localhost) or http://localhost:8000
- * for iOS simulators.
+ * For local development on Android (both emulator and real device):
+ *   1. Start the backend on your computer: poetry run fastapi dev app/main.py
+ *   2. Run: adb reverse tcp:8000 tcp:8000
+ *   3. The app will use localhost:8000 which forwards to the host machine.
  *
- * For production, replace with the deployed backend URL.
+ * For iOS simulator: localhost works directly (no extra steps).
+ *
+ * For production, replace API_BASE_URL with the deployed backend URL.
  */
 
-// Android emulator uses 10.0.2.2 to reach host machine's localhost.
-// iOS simulator can use localhost directly.
-// For a real device on the same network, use the machine's LAN IP.
-import { Platform } from 'react-native';
-
-const LOCAL_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-
-export const API_BASE_URL = `http://${LOCAL_HOST}:8000`;
+// localhost works on both Android emulator and real device when
+// `adb reverse tcp:8000 tcp:8000` is run on the host machine.
+// iOS simulator can reach the host's localhost directly.
+export const API_BASE_URL = 'http://localhost:8000';
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
