@@ -25,10 +25,10 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const devices = useCameraDevices();
-  const device = devices.front;
+  const device = devices[0]; // Use first available camera (usually front)
   const camera = useRef<Camera>(null);
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
-  const captureInterval = useRef<NodeJS.Timeout | null>(null);
+  const progressInterval = useRef<number | null>(null);
+  const captureInterval = useRef<number | null>(null);
   const framesRef = useRef<string[]>([]);
   const completedRef = useRef(false);
 
@@ -36,12 +36,14 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     (async () => {
       const status = await Camera.requestCameraPermission();
       console.log('[EyeTracking] Camera permission status:', status);
+      console.log('[EyeTracking] Device availability:', devices);
       setHasPermission(status === 'granted');
     })();
   }, []);
 
   const onCameraInitialized = useCallback(() => {
     console.log('[EyeTracking] Camera initialized and ready');
+    console.log('[EyeTracking] Device:', device);
     setIsCameraReady(true);
   }, []);
 
@@ -57,7 +59,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     try {
       const photo: PhotoFile = await camera.current.takePhoto({
         qualityPrioritization: 'speed',
-      });
+      } as any);
       console.log('[EyeTracking] Photo taken:', photo.path);
 
       // Read photo as base64 using fetch on the file URI
