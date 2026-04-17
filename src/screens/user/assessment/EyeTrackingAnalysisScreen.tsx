@@ -20,6 +20,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
   const [isTracking, setIsTracking] = useState(false);
   const [trackingProgress, setTrackingProgress] = useState(0);
   const [hasPermission, setHasPermission] = useState(false);
+  const [isCameraReady, setIsCameraReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,8 +35,18 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
   useEffect(() => {
     (async () => {
       const status = await Camera.requestCameraPermission();
+      console.log('[EyeTracking] Camera permission status:', status);
       setHasPermission(status === 'granted');
     })();
+  }, []);
+
+  const onCameraInitialized = useCallback(() => {
+    console.log('[EyeTracking] Camera initialized and ready');
+    setIsCameraReady(true);
+  }, []);
+
+  const onCameraError = useCallback((e: unknown) => {
+    console.error('[EyeTracking] Camera error:', e);
   }, []);
 
   const captureFrame = useCallback(async () => {
@@ -150,6 +161,13 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
       );
       return;
     }
+
+    if (!isCameraReady) {
+      console.warn('[EyeTracking] Camera not yet initialized, waiting...');
+      setError('Camera is still initializing. Please wait a moment and try again.');
+      return;
+    }
+
     setIsTracking(true);
   };
 
@@ -215,18 +233,20 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
               isTracking={isTracking} 
               trackingProgress={trackingProgress}
             >
-              {hasPermission && device && isTracking && (
+              {hasPermission && device ? (
                 <Camera
                   ref={camera}
                   style={{ flex: 1, width: '100%' }}
                   device={device}
-                  isActive={isTracking}
+                  isActive={true}
                   photo={true}
                   video={false}
                   audio={false}
                   enableZoomGesture={false}
+                  onInitialized={onCameraInitialized}
+                  onError={onCameraError}
                 />
-              )}
+              ) : null}
             </GazeVisualizationCard>
           </View>
 
