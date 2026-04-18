@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, ScrollView, SafeAreaView, ActivityIndicator, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Camera, useCameraDevices, PhotoFile } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, PhotoFile } from 'react-native-vision-camera';
 import GazeVisualizationCard from './components/GazeVisualizationCard';
 import StartTrackingButton from './components/StartTrackingButton';
 import { useAuth } from '../../../context/AuthContext';
@@ -24,8 +24,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const devices = useCameraDevices();
-  const device = devices[0]; // Use first available camera (usually front)
+  const device = useCameraDevice('front');
   const camera = useRef<Camera>(null);
   const progressInterval = useRef<number | null>(null);
   const captureInterval = useRef<number | null>(null);
@@ -36,10 +35,14 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     (async () => {
       const status = await Camera.requestCameraPermission();
       console.log('[EyeTracking] Camera permission status:', status);
-      console.log('[EyeTracking] Device availability:', devices);
+      console.log('[EyeTracking] Front camera device:', device ? device.id : 'not available');
       setHasPermission(status === 'granted');
     })();
   }, []);
+
+  useEffect(() => {
+    console.log('[EyeTracking] Front camera device:', device ? device.id : 'not available');
+  }, [device]);
 
   const onCameraInitialized = useCallback(() => {
     console.log('[EyeTracking] Camera initialized and ready');
