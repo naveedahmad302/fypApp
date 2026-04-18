@@ -30,17 +30,14 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
     const [error, setError] = useState<string | null>(null);
     const [audioBase64, setAudioBase64] = useState<string | null>(null);
 
-    const audioLevelRef = useRef<number | null>(null);
     const maxDurationTimerRef = useRef<number | null>(null);
     const recordedPathRef = useRef<string | null>(null);
 
     useEffect(() => {
-        const levelTimer = audioLevelRef.current;
-        const durationTimer = maxDurationTimerRef.current;
         return () => {
-            if (levelTimer) clearInterval(levelTimer);
-            if (durationTimer) clearTimeout(durationTimer);
+            if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
             audioRecorderPlayer.removeRecordBackListener();
+            audioRecorderPlayer.stopRecorder().catch(() => {});
         };
     }, []);
 
