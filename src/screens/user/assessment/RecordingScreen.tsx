@@ -32,6 +32,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
 
     const maxDurationTimerRef = useRef<number | null>(null);
     const recordedPathRef = useRef<string | null>(null);
+    const isStoppingRef = useRef(false);
 
     useEffect(() => {
         return () => {
@@ -102,14 +103,19 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
     };
 
     const stopRecording = async () => {
+        // Guard against double-stop race (user tap + auto-stop timer)
+        if (isStoppingRef.current) return;
+        isStoppingRef.current = true;
+
+        // Clear the auto-stop timer immediately, before any async work
+        if (maxDurationTimerRef.current) {
+            clearTimeout(maxDurationTimerRef.current);
+            maxDurationTimerRef.current = null;
+        }
+
         try {
             const resultPath = await audioRecorderPlayer.stopRecorder();
             audioRecorderPlayer.removeRecordBackListener();
-
-            if (maxDurationTimerRef.current) {
-                clearTimeout(maxDurationTimerRef.current);
-                maxDurationTimerRef.current = null;
-            }
 
             setIsRecording(false);
             setHasRecorded(true);
@@ -125,6 +131,8 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
             console.error('[Speech] Failed to stop recording:', err);
             setError('Failed to save recording. Please try again.');
             setIsRecording(false);
+        } finally {
+            isStoppingRef.current = false;
         }
     };
 
