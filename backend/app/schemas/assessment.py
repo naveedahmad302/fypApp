@@ -54,6 +54,7 @@ class EyeTrackingResponse(BaseModel):
     status: AssessmentStatus
     metrics: GazeMetrics
     asd_risk_score: float = Field(0.0, description="ASD risk score from eye tracking (0-100)")
+    confidence_score: float = Field(0.0, description="Confidence in the result (0-100, higher = more reliable)")
     insights: list[str] = Field(default_factory=list)
 
 
