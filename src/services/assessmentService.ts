@@ -34,6 +34,7 @@ export interface EyeTrackingResponse {
   status: string;
   metrics: GazeMetrics;
   asd_risk_score: number;
+  confidence_score: number;
   insights: string[];
 }
 

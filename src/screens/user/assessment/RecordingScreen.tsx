@@ -107,7 +107,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                     audio_base64: audioBase64,
                     audio_format: 'wav',
                 });
-                setSpeechResult(result.assessment_id, result.asd_risk_score);
+                setSpeechResult(result);
                 setSpeechMetrics(result.metrics);
                 setSpeechInsights(result.insights);
                 const nav = navProp || navigation;
