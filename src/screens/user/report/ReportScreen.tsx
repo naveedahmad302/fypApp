@@ -1,13 +1,27 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Eye, Mic, FileText, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { Eye, Mic, FileText, AlertTriangle, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../../context/AuthContext';
+import { useAssessment } from '../../../context/AssessmentContext';
 import { fetchReport, ReportResponse } from '../../../services/assessmentService';
+
+/** Small inline metric used in the expanded module panel. */
+const InlineMetric = ({ label, value }: { label: string; value: string | number }) => (
+  <View className="flex-row justify-between py-1.5">
+    <Text className="text-gray-500 text-xs">{label}</Text>
+    <Text className="text-gray-800 text-xs font-semibold">{value}</Text>
+  </View>
+);
 
 const ReportScreen: React.FC = () => {
   const { user } = useAuth();
+  const {
+    eyeTrackingMetrics,
+    eyeTrackingConfidence,
+    speechMetrics,
+  } = useAssessment();
 
   const [report, setReport] = useState<ReportResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -172,14 +186,57 @@ const ReportScreen: React.FC = () => {
                 </View>
               </View>
 
-              {/* Expanded insights */}
-              {expandedModule === mod.name && mod.data.insights.length > 0 && (
+              {/* Expanded detail panel */}
+              {expandedModule === mod.name && (
                 <View className="mt-3 pt-3 border-t border-gray-100">
-                  {mod.data.insights.map((insight, idx) => (
-                    <Text key={idx} className="text-gray-600 text-sm mb-1 leading-relaxed">
-                      {insight}
-                    </Text>
-                  ))}
+                  {/* Risk score */}
+                  <View className="flex-row justify-between py-1.5">
+                    <Text className="text-gray-500 text-xs">ASD Risk Score</Text>
+                    <Text className="text-gray-800 text-xs font-semibold">{Math.round(mod.data.risk_score)} / 100</Text>
+                  </View>
+
+                  {/* Eye Tracking detailed metrics (from context) */}
+                  {mod.name === 'Eye Tracking' && eyeTrackingMetrics && (
+                    <View className="mt-1">
+                      <InlineMetric label="Gaze Points" value={eyeTrackingMetrics.gaze_points_count} />
+                      <InlineMetric label="Avg Fixation" value={eyeTrackingMetrics.avg_fixation_duration.toFixed(2) + ' s'} />
+                      <InlineMetric label="Attention Score" value={Math.round(eyeTrackingMetrics.attention_score) + ' / 100'} />
+                      <InlineMetric label="Gaze Pattern" value={eyeTrackingMetrics.gaze_pattern_type} />
+                      <InlineMetric label="Saccade Freq" value={eyeTrackingMetrics.saccade_frequency.toFixed(1) + ' / min'} />
+                      <InlineMetric label="Blink Rate" value={eyeTrackingMetrics.blink_rate.toFixed(1) + ' / min'} />
+                      <InlineMetric label="Joint Attention" value={Math.round(eyeTrackingMetrics.joint_attention_score) + ' / 100'} />
+                      {eyeTrackingConfidence !== null && (
+                        <InlineMetric label="Confidence" value={Math.round(eyeTrackingConfidence) + '%'} />
+                      )}
+                    </View>
+                  )}
+
+                  {/* Speech detailed metrics (from context) */}
+                  {mod.name === 'Speech Analysis' && speechMetrics && (
+                    <View className="mt-1">
+                      <InlineMetric label="Words / Min" value={Math.round(speechMetrics.words_per_minute)} />
+                      <InlineMetric label="Avg Pause" value={speechMetrics.avg_pause_duration.toFixed(2) + ' s'} />
+                      <InlineMetric label="Clarity Score" value={Math.round(speechMetrics.clarity_score) + ' / 100'} />
+                      <InlineMetric label="Vocal Variation" value={Math.round(speechMetrics.vocal_variation_score) + ' / 100'} />
+                      <InlineMetric label="Pitch Mean" value={speechMetrics.pitch_mean.toFixed(1) + ' Hz'} />
+                      <InlineMetric label="Monotone Score" value={Math.round(speechMetrics.monotone_score) + ' / 100'} />
+                      <InlineMetric label="Prosody Score" value={Math.round(speechMetrics.prosody_score) + ' / 100'} />
+                    </View>
+                  )}
+
+                  {/* Insights */}
+                  {mod.data.insights.length > 0 && (
+                    <View className="mt-2 pt-2 border-t border-gray-50">
+                      {mod.data.insights.map((insight, idx) => (
+                        <View key={idx} className="flex-row mb-1.5">
+                          <AlertCircle size={12} color="#9CA3AF" style={{ marginTop: 2 }} />
+                          <Text className="text-gray-600 text-xs ml-1.5 flex-1 leading-relaxed">
+                            {insight}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
                 </View>
               )}
             </TouchableOpacity>
@@ -201,8 +258,8 @@ const ReportScreen: React.FC = () => {
           {/* Disclaimer */}
           <View className="bg-yellow-50 p-4 rounded-xl mb-6 border border-yellow-200">
             <Text className="text-yellow-800 text-xs leading-relaxed text-center">
-              This is a screening tool and not a diagnostic instrument. Please consult
-              a healthcare professional for a comprehensive evaluation.
+              This is an automated screening indicator only — NOT a diagnosis.
+              Please consult a qualified healthcare professional for a comprehensive evaluation.
             </Text>
           </View>
         </View>

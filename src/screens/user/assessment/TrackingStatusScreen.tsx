@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, TouchableOpacity, ScrollView } from 'react-native';
-import { RefreshCw, Check, Clock, Target } from 'lucide-react-native';
+import { RefreshCw, Check, Clock, Target, Eye, Activity, AlertCircle, TrendingUp, Zap, Focus } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import CustomText from '../../../components/CustomText';
@@ -10,15 +10,54 @@ interface TrackingStatusScreenProps {
   navigation?: any;
 }
 
+/** Map a 0-100 risk score to a colour and label. */
+const getRiskInfo = (score: number) => {
+  if (score < 30) return { color: '#22C55E', bg: 'bg-green-100', label: 'Low Risk' };
+  if (score < 60) return { color: '#F59E0B', bg: 'bg-yellow-100', label: 'Moderate Risk' };
+  return { color: '#EF4444', bg: 'bg-red-100', label: 'High Risk' };
+};
+
+/** Map a 0-100 confidence score to a colour and label. */
+const getConfidenceInfo = (score: number) => {
+  if (score >= 70) return { color: '#22C55E', label: 'High' };
+  if (score >= 40) return { color: '#F59E0B', label: 'Medium' };
+  return { color: '#EF4444', label: 'Low' };
+};
+
+/** A single metric row with icon, label and value. */
+const MetricRow = ({ icon: Icon, iconColor, label, value, unit }: {
+  icon: React.ElementType;
+  iconColor: string;
+  label: string;
+  value: string | number;
+  unit?: string;
+}) => (
+  <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+    <View className="flex-row items-center flex-1">
+      <Icon size={18} color={iconColor} />
+      <CustomText weight={500} className="text-gray-700 ml-2 text-sm">{label}</CustomText>
+    </View>
+    <CustomText weight={700} className="text-gray-900 text-sm">
+      {value}{unit ? ` ${unit}` : ''}
+    </CustomText>
+  </View>
+);
+
 const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation: navProp }) => {
   const navigation = useNavigation();
-  const { eyeTrackingComplete, eyeTrackingScore } = useAssessment();
-  const [progress] = useState(100);
-  const [isRecording] = useState(false);
+  const {
+    eyeTrackingScore,
+    eyeTrackingMetrics,
+    eyeTrackingConfidence,
+    eyeTrackingInsights,
+  } = useAssessment();
 
-  const gazePoints = eyeTrackingComplete ? 25 : 0;
-  const avgFixation = eyeTrackingComplete ? '1.8s' : '0.0s';
-  const riskScore = eyeTrackingScore !== null ? Math.round(eyeTrackingScore) : null;
+  const riskScore = eyeTrackingScore ?? 0;
+  const confidence = eyeTrackingConfidence ?? 0;
+  const metrics = eyeTrackingMetrics;
+  const insights = eyeTrackingInsights;
+  const riskInfo = getRiskInfo(riskScore);
+  const confInfo = getConfidenceInfo(confidence);
 
   const handleTryAgain = () => {
     const nav = navProp || navigation;
@@ -32,79 +71,107 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
 
   return (
     <SafeAreaView edges={[]} className="flex-1 bg-[#F7F8FA]">
-      <ScrollView contentContainerClassName="flex-grow justify-center p-5">
+      <ScrollView contentContainerClassName="flex-grow p-5">
         <View className="w-full max-w-md mx-auto">
-          {/* Progress Bar */}
-          <View className='bg-[#FFFFFF] p-5 rounded-2xl shadow-lg shadow-gray-200 mb-6' style={{
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
-            elevation: 1,
+
+          {/* ─── Header: ASD Risk Score ─── */}
+          <View className="bg-white p-5 rounded-2xl shadow-lg shadow-gray-200 mb-4" style={{
+            shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
           }}>
-            <View className="flex-row justify-between items-center mb-6">
-              <CustomText weight={700} className="text-lg font-bold text-gray-900">
-                Tracking Status
-              </CustomText>
-              <View className={`${isRecording ? 'bg-red-500' : 'bg-[#DBEAFE]'} px-3 py-1 rounded-full`}>
-                <CustomText weight={500} className="text-[#4A90E2] text-sm font-medium">
-                  {isRecording ? 'Tracking' : 'Complete'}
+            <CustomText weight={700} className="text-lg text-gray-900 mb-4">Eye Tracking Results</CustomText>
+
+            {/* Big score circle */}
+            <View className="items-center mb-4">
+              <View className="w-28 h-28 rounded-full border-[6px] items-center justify-center" style={{ borderColor: riskInfo.color + '40' }}>
+                <CustomText weight={700} className="text-3xl" style={{ color: riskInfo.color }}>
+                  {Math.round(riskScore)}
+                </CustomText>
+                <CustomText weight={400} className="text-xs text-gray-500">ASD Risk</CustomText>
+              </View>
+            </View>
+
+            {/* Risk label */}
+            <View className="items-center mb-3">
+              <View className={`${riskInfo.bg} px-4 py-1 rounded-full`}>
+                <CustomText weight={600} className="text-sm" style={{ color: riskInfo.color }}>
+                  {riskInfo.label}
                 </CustomText>
               </View>
             </View>
-            <View className="w-full h-2 bg-gray-200 rounded-full mb-3">
-              <View 
-                className={`h-full rounded-full transition-all duration-300 ${
-                  isRecording ? 'bg-[#4A90E2]' : 'bg-[#4A90E2]'
-                }`}
-                style={{ width: `${progress}%` }}
-              />
-            </View>
-            <CustomText weight={400} className="text-gray-600 text-sm">
-              {isRecording ? `Recording... ${progress}% complete` : 'Recording Complete'}
-            </CustomText>
-          </View>
 
-          {/* Gaze Visualization */}
-          <View className='bg-[#FFFFFF] p-5 rounded-2xl shadow-lg shadow-gray-200 mb-6' style={{
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
-            elevation: 1,
-          }}>
-            <CustomText weight={600} className="text-lg font-bold text-gray-800 mb-4">Gaze Visualization</CustomText>
-            <View className="bg-[#F3F4F6] p-8 rounded-2xl items-center justify-center" style={{ height: 200 }}>
-              <View className="relative">
-                <View className="w-20 h-24 border-2 border-gray-300 rounded-full relative">
-                  <View className="absolute top-6 left-3 w-3 h-2 bg-gray-300 rounded-full" />
-                  <View className="absolute top-6 right-3 w-3 h-2 bg-gray-300 rounded-full" />
-                  <View className="absolute bottom-6 left-1/2 w-4 h-1 bg-gray-300 rounded-full transform -translate-x-1/2" />
-                </View>
+            {/* Confidence bar */}
+            <View className="bg-gray-50 p-3 rounded-xl">
+              <View className="flex-row items-center justify-between mb-1">
+                <CustomText weight={500} className="text-gray-600 text-xs">Confidence</CustomText>
+                <CustomText weight={600} className="text-xs" style={{ color: confInfo.color }}>
+                  {Math.round(confidence)}% — {confInfo.label}
+                </CustomText>
+              </View>
+              <View className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <View className="h-full rounded-full" style={{ width: `${Math.min(confidence, 100)}%`, backgroundColor: confInfo.color }} />
               </View>
             </View>
           </View>
 
-          {/* Action Buttons */}
-          <View className="flex-row mb-6">
-            <TouchableOpacity 
+          {/* ─── Detailed Metrics ─── */}
+          <View className="bg-white p-5 rounded-2xl shadow-lg shadow-gray-200 mb-4" style={{
+            shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
+          }}>
+            <CustomText weight={600} className="text-base text-gray-800 mb-2">Gaze Metrics</CustomText>
+
+            <MetricRow icon={Target} iconColor="#3B82F6" label="Gaze Points" value={metrics?.gaze_points_count ?? 0} />
+            <MetricRow icon={Clock} iconColor="#8B5CF6" label="Avg Fixation Duration" value={metrics ? metrics.avg_fixation_duration.toFixed(2) : '0.00'} unit="s" />
+            <MetricRow icon={TrendingUp} iconColor="#3B82F6" label="Attention Score" value={metrics ? Math.round(metrics.attention_score) : 0} unit="/ 100" />
+            <MetricRow icon={Focus} iconColor="#6366F1" label="Gaze Pattern" value={metrics?.gaze_pattern_type ?? 'N/A'} />
+            <MetricRow icon={Zap} iconColor="#F59E0B" label="Saccade Frequency" value={metrics ? metrics.saccade_frequency.toFixed(1) : '0.0'} unit="/ min" />
+            <MetricRow icon={Activity} iconColor="#EF4444" label="Blink Rate" value={metrics ? metrics.blink_rate.toFixed(1) : '0.0'} unit="/ min" />
+            <MetricRow icon={Eye} iconColor="#22C55E" label="Left Eye Openness" value={metrics ? (metrics.left_eye_openness * 100).toFixed(0) : '0'} unit="%" />
+            <MetricRow icon={Eye} iconColor="#22C55E" label="Right Eye Openness" value={metrics ? (metrics.right_eye_openness * 100).toFixed(0) : '0'} unit="%" />
+
+            {/* Last row — no bottom border */}
+            <View className="flex-row items-center justify-between py-3">
+              <View className="flex-row items-center flex-1">
+                <Target size={18} color="#0EA5E9" />
+                <CustomText weight={500} className="text-gray-700 ml-2 text-sm">Joint Attention</CustomText>
+              </View>
+              <CustomText weight={700} className="text-gray-900 text-sm">
+                {metrics ? Math.round(metrics.joint_attention_score) : 0} / 100
+              </CustomText>
+            </View>
+          </View>
+
+          {/* ─── Insights ─── */}
+          {insights.length > 0 && (
+            <View className="bg-white p-5 rounded-2xl shadow-lg shadow-gray-200 mb-4" style={{
+              shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
+            }}>
+              <CustomText weight={600} className="text-base text-gray-800 mb-3">Insights</CustomText>
+              {insights.map((insight, idx) => (
+                <View key={idx} className="flex-row mb-2">
+                  <AlertCircle size={14} color="#6B7280" style={{ marginTop: 2 }} />
+                  <CustomText weight={400} className="text-gray-600 text-sm ml-2 flex-1 leading-relaxed">
+                    {insight}
+                  </CustomText>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* ─── Action Buttons ─── */}
+          <View className="flex-row mb-4">
+            <TouchableOpacity
               className="flex-1 border border-[#4A90E2] py-4 rounded-2xl mr-3 flex-row items-center justify-center"
               onPress={handleTryAgain}
             >
               <RefreshCw size={20} color="#4A90E2" />
               <CustomText weight={500} className="text-[#4A90E2] font-semibold ml-2">Try Again</CustomText>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               className="flex-1 bg-[#4A90E2] py-4 rounded-2xl ml-3 flex-row items-center justify-center shadow-lg"
               onPress={handleComplete}
-              disabled={isRecording}
               style={{
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 1,
+                shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 1,
               }}
             >
               <Check size={20} color="white" />
@@ -112,52 +179,12 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
             </TouchableOpacity>
           </View>
 
-          {/* Preliminary Results */}
-          <View className='bg-white p-4 rounded-2xl'>
-            <CustomText weight={600} className="text-lg bg-white font-semibold text-[#4A90E2] mb-4">Preliminary Results</CustomText>
-            
-            <View className="flex-row mb-6">
-              <View className="flex-1 bg-[#F3F4F6] p-4 rounded-2xl mr-3 items-center shadow-sm" style={{
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 1,
-              }}>
-                <Target size={24} color="#374151" className="mb-2" />
-                <CustomText weight={700} className="text-gray-900 text-2xl font-bold mb-1">{gazePoints}</CustomText>
-                <CustomText weight={400} className="text-gray-600 text-sm text-center">Gaze Points</CustomText>
-              </View>
-              
-              <View className="flex-1 bg-[#F3F4F6] p-4 rounded-2xl ml-3 items-center shadow-sm" style={{
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.3,
-                shadowRadius: 4,
-                elevation: 1,
-              }}>
-                <Clock size={24} color="#374151" className="mb-2" />
-                <CustomText weight={700} className="text-gray-900 text-2xl font-bold mb-1">{avgFixation}</CustomText>
-                <CustomText weight={400} className="text-gray-600 text-sm text-center">Avg. Fixation</CustomText>
-              </View>
-            </View>
-
-            {riskScore !== null && (
-              <View className="bg-[#DBEAFE] p-4 rounded-2xl mb-4">
-                <CustomText weight={600} className="text-[#4A90E2] text-center text-sm">
-                  ASD Risk Score: {riskScore}/100
-                </CustomText>
-              </View>
-            )}
-
-            <View className="bg-[#F0FDFA] p-4 rounded-2xl border border-[#22C55E]">
-              <CustomText weight={400} className="text-gray-600 text-sm text-center">
-                {isRecording 
-                  ? 'Eye tracking in progress. Please maintain focus on the center point.'
-                  : 'Results saved to your assessment profile.\nClick Complete to proceed to next assessment.'
-                }
-              </CustomText>
-            </View>
+          {/* ─── Disclaimer ─── */}
+          <View className="bg-yellow-50 p-4 rounded-xl mb-4 border border-yellow-200">
+            <CustomText weight={400} className="text-yellow-800 text-xs leading-relaxed text-center">
+              This is an automated screening indicator only — NOT a diagnosis.
+              Please consult a qualified healthcare professional for a comprehensive evaluation.
+            </CustomText>
           </View>
         </View>
       </ScrollView>

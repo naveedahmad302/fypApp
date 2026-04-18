@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import type { GazeMetrics, EyeTrackingResponse, SpeechMetrics, SpeechAnalysisResponse } from '../services/assessmentService';
 
 interface AssessmentState {
   /** Assessment IDs returned by the backend after each module completes. */
@@ -11,6 +12,15 @@ interface AssessmentState {
   speechScore: number | null;
   mcqScore: number | null;
 
+  /** Full model output for eye tracking. */
+  eyeTrackingMetrics: GazeMetrics | null;
+  eyeTrackingConfidence: number | null;
+  eyeTrackingInsights: string[];
+
+  /** Full model output for speech analysis. */
+  speechMetrics: SpeechMetrics | null;
+  speechInsights: string[];
+
   /** Tracks which modules the user has finished in this session. */
   eyeTrackingComplete: boolean;
   speechComplete: boolean;
@@ -21,8 +31,8 @@ interface AssessmentState {
 }
 
 interface AssessmentContextType extends AssessmentState {
-  setEyeTrackingResult: (assessmentId: string, score: number) => void;
-  setSpeechResult: (assessmentId: string, score: number) => void;
+  setEyeTrackingResult: (result: EyeTrackingResponse) => void;
+  setSpeechResult: (result: SpeechAnalysisResponse) => void;
   setMcqResult: (assessmentId: string, score: number) => void;
   markSpeechSkipped: () => void;
   setReportGenerated: (value: boolean) => void;
@@ -37,6 +47,11 @@ const initialState: AssessmentState = {
   eyeTrackingScore: null,
   speechScore: null,
   mcqScore: null,
+  eyeTrackingMetrics: null,
+  eyeTrackingConfidence: null,
+  eyeTrackingInsights: [],
+  speechMetrics: null,
+  speechInsights: [],
   eyeTrackingComplete: false,
   speechComplete: false,
   mcqComplete: false,
@@ -60,20 +75,25 @@ interface AssessmentProviderProps {
 export const AssessmentProvider: React.FC<AssessmentProviderProps> = ({ children }) => {
   const [state, setState] = useState<AssessmentState>(initialState);
 
-  const setEyeTrackingResult = (assessmentId: string, score: number) => {
+  const setEyeTrackingResult = (result: EyeTrackingResponse) => {
     setState(prev => ({
       ...prev,
-      eyeTrackingAssessmentId: assessmentId,
-      eyeTrackingScore: score,
+      eyeTrackingAssessmentId: result.assessment_id,
+      eyeTrackingScore: result.asd_risk_score,
+      eyeTrackingMetrics: result.metrics,
+      eyeTrackingConfidence: result.confidence_score,
+      eyeTrackingInsights: result.insights,
       eyeTrackingComplete: true,
     }));
   };
 
-  const setSpeechResult = (assessmentId: string, score: number) => {
+  const setSpeechResult = (result: SpeechAnalysisResponse) => {
     setState(prev => ({
       ...prev,
-      speechAssessmentId: assessmentId,
-      speechScore: score,
+      speechAssessmentId: result.assessment_id,
+      speechScore: result.asd_risk_score,
+      speechMetrics: result.metrics,
+      speechInsights: result.insights,
       speechComplete: true,
     }));
   };

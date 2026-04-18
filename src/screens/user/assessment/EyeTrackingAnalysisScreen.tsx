@@ -203,8 +203,8 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
         frames_base64: frames,
       });
 
-      console.log('[EyeTracking] Submission success. Score:', result.asd_risk_score);
-      setEyeTrackingResult(result.assessment_id, result.asd_risk_score);
+      console.log('[EyeTracking] Submission success. Score:', result.asd_risk_score, 'Confidence:', result.confidence_score);
+      setEyeTrackingResult(result);
       navigation.navigate('TrackingStatusScreen' as never);
     } catch (err) {
       console.error('[EyeTracking] Submission failed:', err);
