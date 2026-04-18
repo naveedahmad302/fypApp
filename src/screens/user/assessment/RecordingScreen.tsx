@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Platform, PermissionsAndroid } from 'react-native';
 import { Mic, MicOff, Volume1, RefreshCw, Check } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import RNFS from 'react-native-fs';
+import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import { useAuth } from '../../../context/AuthContext';
 import { useAssessment } from '../../../context/AssessmentContext';
 import { submitSpeechAnalysis, SpeechMetrics } from '../../../services/assessmentService';
@@ -10,6 +12,8 @@ import { submitSpeechAnalysis, SpeechMetrics } from '../../../services/assessmen
 interface RecordingScreenProps {
     navigation?: any;
 }
+
+const audioRecorderPlayer = new AudioRecorderPlayer();
 
 const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }) => {
     const navigation = useNavigation();
@@ -26,64 +30,110 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
     const [error, setError] = useState<string | null>(null);
     const [audioBase64, setAudioBase64] = useState<string | null>(null);
 
-    const intervalRef = useRef<number | null>(null);
-    const recordingTimerRef = useRef<number | null>(null);
-    const startTimeRef = useRef<number>(0);
+    const maxDurationTimerRef = useRef<number | null>(null);
+    const recordedPathRef = useRef<string | null>(null);
+    const isStoppingRef = useRef(false);
 
     useEffect(() => {
         return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+            if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
+            audioRecorderPlayer.removeRecordBackListener();
+            audioRecorderPlayer.stopRecorder().catch(() => {});
         };
     }, []);
 
-    const formatTime = (milliseconds: number): string => {
-        const totalSeconds = Math.floor(milliseconds / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        const tenths = Math.floor((milliseconds % 1000) / 100);
-        return `${minutes}:${seconds.toString().padStart(2, '0')}.${tenths}`;
+    /** Request RECORD_AUDIO permission on Android. */
+    const requestMicPermission = async (): Promise<boolean> => {
+        if (Platform.OS !== 'android') { return true; }
+        try {
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+                {
+                    title: 'Microphone Permission',
+                    message: 'This app needs access to your microphone to record speech for analysis.',
+                    buttonPositive: 'Allow',
+                    buttonNegative: 'Deny',
+                },
+            );
+            return granted === PermissionsAndroid.RESULTS.GRANTED;
+        } catch {
+            return false;
+        }
     };
 
-    const startRecording = () => {
-        setIsRecording(true);
-        setRecordingTime('0:00.0');
-        setError(null);
-        startTimeRef.current = Date.now();
-
-        recordingTimerRef.current = setInterval(() => {
-            const elapsed = Date.now() - startTimeRef.current;
-            setRecordingTime(formatTime(elapsed));
-            if (elapsed >= 60000) {
-                stopRecording();
+    const startRecording = async () => {
+        try {
+            const hasPermission = await requestMicPermission();
+            if (!hasPermission) {
+                setError('Microphone permission is required. Please allow it in your device settings.');
+                return;
             }
-        }, 100) as unknown as number;
 
-        intervalRef.current = setInterval(() => {
-            setAudioLevel(Math.random() * 100);
-        }, 200) as unknown as number;
+            setError(null);
+            setIsRecording(true);
+            setRecordingTime('0:00.0');
 
-        // In a real implementation, start audio recording here using
-        // react-native-audio-recorder-player and capture as base64.
+            // Start real audio recording (default AAC/mp4 — librosa handles decoding)
+            const path = Platform.select({
+                android: `${RNFS.CachesDirectoryPath}/speech_recording.mp4`,
+                ios: 'speech_recording.m4a',
+            });
+            await audioRecorderPlayer.startRecorder(path);
+            recordedPathRef.current = path ?? null;
+
+            // Listen for recording progress updates
+            audioRecorderPlayer.addRecordBackListener((e) => {
+                setRecordingTime(audioRecorderPlayer.mmssss(Math.floor(e.currentPosition)));
+                // Simulate audio level from metering (0-100)
+                const meter = e.currentMetering ?? -60;
+                const normalised = Math.max(0, Math.min(100, ((meter + 60) / 60) * 100));
+                setAudioLevel(normalised);
+            });
+
+            // Auto-stop after 60 seconds
+            maxDurationTimerRef.current = setTimeout(() => {
+                stopRecording();
+            }, 60000) as unknown as number;
+
+        } catch (err) {
+            console.error('[Speech] Failed to start recording:', err);
+            setError('Failed to start recording. Please check microphone permissions.');
+            setIsRecording(false);
+        }
     };
 
-    const stopRecording = () => {
-        setIsRecording(false);
-        setHasRecorded(true);
+    const stopRecording = async () => {
+        // Guard against double-stop race (user tap + auto-stop timer)
+        if (isStoppingRef.current) return;
+        isStoppingRef.current = true;
 
-        if (recordingTimerRef.current) {
-            clearInterval(recordingTimerRef.current);
-            recordingTimerRef.current = null;
+        // Clear the auto-stop timer immediately, before any async work
+        if (maxDurationTimerRef.current) {
+            clearTimeout(maxDurationTimerRef.current);
+            maxDurationTimerRef.current = null;
         }
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-        }
-        setAudioLevel(0);
 
-        // In a real implementation, the audio recording library provides
-        // the recorded audio as a file path or base64 string.
-        setAudioBase64('recorded');
+        try {
+            const resultPath = await audioRecorderPlayer.stopRecorder();
+            audioRecorderPlayer.removeRecordBackListener();
+
+            setIsRecording(false);
+            setHasRecorded(true);
+            setAudioLevel(0);
+
+            // Read the recorded file as base64
+            const filePath = resultPath.startsWith('file://') ? resultPath.slice(7) : resultPath;
+            const base64Data = await RNFS.readFile(filePath, 'base64');
+            setAudioBase64(base64Data);
+            console.log('[Speech] Recording saved, base64 length:', base64Data.length);
+
+        } catch (err) {
+            console.error('[Speech] Failed to stop recording:', err);
+            setError('Failed to save recording. Please try again.');
+            setIsRecording(false);
+        } finally {
+            isStoppingRef.current = false;
+        }
     };
 
     const handleRerecord = () => {
@@ -94,10 +144,11 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
         setSpeechInsights([]);
         setAudioBase64(null);
         setError(null);
+        recordedPathRef.current = null;
     };
 
     const handleComplete = async () => {
-        if (audioBase64 && audioBase64 !== 'recorded') {
+        if (audioBase64) {
             // Real audio data available — submit to backend
             try {
                 setIsSubmitting(true);
@@ -105,7 +156,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                 const result = await submitSpeechAnalysis({
                     user_id: user?.uid ?? 'anonymous',
                     audio_base64: audioBase64,
-                    audio_format: 'wav',
+                    audio_format: 'mp4',
                 });
                 setSpeechResult(result);
                 setSpeechMetrics(result.metrics);
@@ -121,10 +172,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                 setIsSubmitting(false);
             }
         } else {
-            // No real audio recording yet — mark speech as skipped so the
-            // assessment flow can continue (completedCount reaches 3).
-            // speechAssessmentId stays null → omitted from report request via ?? undefined.
-            // TODO: Integrate react-native-audio-recorder-player to capture real audio
+            // Fallback: skip speech if no audio was captured
             markSpeechSkipped();
             const nav = navProp || navigation;
             nav.navigate('MCQAssessmentScreen' as never);
