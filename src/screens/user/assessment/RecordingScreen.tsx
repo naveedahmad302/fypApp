@@ -78,7 +78,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                 android: `${RNFS.CachesDirectoryPath}/speech_recording.mp4`,
                 ios: 'speech_recording.m4a',
             });
-            await audioRecorderPlayer.startRecorder(path);
+            await audioRecorderPlayer.startRecorder(path, undefined, true);
             recordedPathRef.current = path ?? null;
 
             // Listen for recording progress updates
