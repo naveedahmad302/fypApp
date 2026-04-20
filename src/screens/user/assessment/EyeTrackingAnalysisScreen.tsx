@@ -178,24 +178,30 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
 
   /** Start the moving dot animation for object tracking phase. */
   const startDotAnimation = useCallback(() => {
+    // Reset dot position to origin so animation and math stay in sync on retries
+    dotX.setValue(0);
+    dotY.setValue(0);
+
     Animated.timing(dotOpacity, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start();
 
+    // Use Easing.inOut(Easing.quad) to match the easeInOutQuad formula
+    // in getStimulusPosition() — keeps visual and computed positions in sync.
     const moveTo = (x: number, y: number, duration: number) =>
       Animated.parallel([
         Animated.timing(dotX, {
           toValue: x,
           duration,
-          easing: Easing.inOut(Easing.ease),
+          easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(dotY, {
           toValue: y,
           duration,
-          easing: Easing.inOut(Easing.ease),
+          easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
       ]);
@@ -212,18 +218,21 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     sequence.start();
   }, [dotOpacity, dotX, dotY]);
 
-  /** Stop the dot animation. */
+  /** Stop the dot animation and reset position for potential retry. */
   const stopDotAnimation = useCallback(() => {
     if (dotAnimationRef.current) {
       dotAnimationRef.current.stop();
       dotAnimationRef.current = null;
     }
+    // Reset position so a retry starts from (0,0)
+    dotX.setValue(0);
+    dotY.setValue(0);
     Animated.timing(dotOpacity, {
       toValue: 0,
       duration: 200,
       useNativeDriver: true,
     }).start();
-  }, [dotOpacity]);
+  }, [dotOpacity, dotX, dotY]);
 
   /** Flash for social stimulus (simulates attention-grabbing event). */
   const triggerSocialStimulus = useCallback(() => {
