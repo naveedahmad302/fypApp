@@ -37,9 +37,15 @@ def eye_tracking_analysis(request: EyeTrackingRequest) -> EyeTrackingResponse:
     Returns detailed gaze metrics and an ASD risk score.
     """
     try:
+        # Convert FrameMetadata pydantic models to dicts for the service
+        frame_meta = None
+        if request.frame_metadata:
+            frame_meta = [fm.model_dump() for fm in request.frame_metadata]
+
         result = analyze_eye_tracking(
             user_id=request.user_id,
             frames_base64=request.frames_base64,
+            frame_metadata=frame_meta,
         )
         return result
     except RuntimeError as e:

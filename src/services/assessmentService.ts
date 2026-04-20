@@ -12,9 +12,17 @@ import { request } from './api';
 
 // --- Eye Tracking ---
 
+export interface FrameMetadata {
+  phase: 'free_gaze' | 'object_tracking' | 'social_stimulus';
+  timestamp_ms: number;
+  stimulus_x?: number;
+  stimulus_y?: number;
+}
+
 export interface EyeTrackingRequest {
   user_id: string;
   frames_base64: string[];
+  frame_metadata?: FrameMetadata[];
 }
 
 export interface GazeMetrics {
@@ -29,13 +37,39 @@ export interface GazeMetrics {
   joint_attention_score: number;
 }
 
+export interface BehaviorScores {
+  eye_contact_score: number;
+  gaze_stability_score: number;
+  fixation_score: number;
+  tracking_score: number;
+  atypical_movement_score: number;
+  social_engagement_score: number;
+  stimming_detected: boolean;
+  habituation_score: number;
+  blink_abnormality_score: number;
+}
+
+export interface FrameAnalysisLog {
+  frame_index: number;
+  eye_detected: boolean;
+  reason?: string;
+  ear?: number;
+  gaze_ratio?: number;
+  phase?: string;
+  hand_near_eye?: boolean;
+}
+
 export interface EyeTrackingResponse {
   assessment_id: string;
   status: string;
+  eye_detected: boolean;
   metrics: GazeMetrics;
+  behavior_scores: BehaviorScores;
   asd_risk_score: number;
   confidence_score: number;
   insights: string[];
+  frame_log: FrameAnalysisLog[];
+  feedback_message?: string;
 }
 
 // --- Speech Analysis ---
