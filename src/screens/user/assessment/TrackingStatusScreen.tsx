@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, ScrollView } from 'react-native';
-import { RefreshCw, Check, Clock, Target, Eye, Activity, AlertCircle, TrendingUp, Zap, Focus } from 'lucide-react-native';
+import { RefreshCw, Check, Clock, Target, Eye, Activity, AlertCircle, TrendingUp, Zap, Focus, Hand, Brain, Scan, Users } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import CustomText from '../../../components/CustomText';
@@ -43,6 +43,36 @@ const MetricRow = ({ icon: Icon, iconColor, label, value, unit }: {
   </View>
 );
 
+/** A horizontal score bar for a behavior dimension (0-100). */
+const ScoreBar = ({ icon: Icon, iconColor, label, score }: {
+  icon: React.ElementType;
+  iconColor: string;
+  label: string;
+  score: number;
+}) => {
+  const barColor =
+    score < 30 ? '#22C55E' : score < 60 ? '#F59E0B' : '#EF4444';
+  return (
+    <View className="mb-3">
+      <View className="flex-row items-center justify-between mb-1">
+        <View className="flex-row items-center flex-1">
+          <Icon size={14} color={iconColor} />
+          <CustomText weight={500} className="text-gray-700 ml-1.5 text-xs">{label}</CustomText>
+        </View>
+        <CustomText weight={600} className="text-xs" style={{ color: barColor }}>
+          {Math.round(score)}
+        </CustomText>
+      </View>
+      <View className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <View
+          className="h-full rounded-full"
+          style={{ width: `${Math.min(score, 100)}%`, backgroundColor: barColor }}
+        />
+      </View>
+    </View>
+  );
+};
+
 const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation: navProp }) => {
   const navigation = useNavigation();
   const {
@@ -50,12 +80,18 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
     eyeTrackingMetrics,
     eyeTrackingConfidence,
     eyeTrackingInsights,
+    eyeTrackingBehaviorScores,
+    eyeTrackingEyeDetected,
+    eyeTrackingFeedbackMessage,
   } = useAssessment();
 
   const riskScore = eyeTrackingScore ?? 0;
   const confidence = eyeTrackingConfidence ?? 0;
   const metrics = eyeTrackingMetrics;
   const insights = eyeTrackingInsights;
+  const behaviorScores = eyeTrackingBehaviorScores;
+  const eyeDetected = eyeTrackingEyeDetected;
+  const feedbackMessage = eyeTrackingFeedbackMessage;
   const riskInfo = getRiskInfo(riskScore);
   const confInfo = getConfidenceInfo(confidence);
 
@@ -112,6 +148,42 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
               </View>
             </View>
           </View>
+
+          {/* ─── Feedback message (if eyes not detected) ─── */}
+          {feedbackMessage && (
+            <View className="bg-orange-50 p-4 rounded-xl mb-4 border border-orange-200">
+              <CustomText weight={500} className="text-orange-800 text-sm text-center leading-relaxed">
+                {feedbackMessage}
+              </CustomText>
+            </View>
+          )}
+
+          {/* ─── Behavior Analysis (8 Dimensions) ─── */}
+          {behaviorScores && eyeDetected && (
+            <View className="bg-white p-5 rounded-2xl shadow-lg shadow-gray-200 mb-4" style={{
+              shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
+            }}>
+              <CustomText weight={600} className="text-base text-gray-800 mb-3">Behavior Analysis</CustomText>
+
+              <ScoreBar label="Eye Contact" score={behaviorScores.eye_contact_score} icon={Eye} iconColor="#3B82F6" />
+              <ScoreBar label="Gaze Stability" score={behaviorScores.gaze_stability_score} icon={Focus} iconColor="#6366F1" />
+              <ScoreBar label="Fixation" score={behaviorScores.fixation_score} icon={Target} iconColor="#8B5CF6" />
+              <ScoreBar label="Object Tracking" score={behaviorScores.tracking_score} icon={TrendingUp} iconColor="#0EA5E9" />
+              <ScoreBar label="Atypical Movement" score={behaviorScores.atypical_movement_score} icon={Scan} iconColor="#F59E0B" />
+              <ScoreBar label="Social Engagement" score={behaviorScores.social_engagement_score} icon={Users} iconColor="#10B981" />
+              <ScoreBar label="Habituation" score={behaviorScores.habituation_score} icon={Brain} iconColor="#EC4899" />
+              <ScoreBar label="Blink Abnormality" score={behaviorScores.blink_abnormality_score} icon={Activity} iconColor="#EF4444" />
+
+              {behaviorScores.stimming_detected && (
+                <View className="mt-3 bg-red-50 p-3 rounded-xl flex-row items-center">
+                  <Hand size={16} color="#EF4444" />
+                  <CustomText weight={500} className="text-red-700 text-sm ml-2">
+                    Hand-near-eye stimming detected
+                  </CustomText>
+                </View>
+              )}
+            </View>
+          )}
 
           {/* ─── Detailed Metrics ─── */}
           <View className="bg-white p-5 rounded-2xl shadow-lg shadow-gray-200 mb-4" style={{

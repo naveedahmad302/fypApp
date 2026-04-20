@@ -27,6 +27,15 @@ class RiskLevel(str, Enum):
 
 # --- Eye Tracking Schemas ---
 
+
+class FrameMetadata(BaseModel):
+    """Per-frame metadata sent by the frontend during multi-phase assessment."""
+    phase: str = Field("free_gaze", description="Assessment phase: free_gaze, object_tracking, social_stimulus")
+    timestamp_ms: int = Field(0, description="Timestamp in milliseconds since tracking start")
+    stimulus_x: Optional[float] = Field(None, description="Moving stimulus X position (for object tracking phase)")
+    stimulus_y: Optional[float] = Field(None, description="Moving stimulus Y position (for object tracking phase)")
+
+
 class EyeTrackingRequest(BaseModel):
     """Request schema for eye tracking analysis. Accepts base64-encoded image frames."""
     user_id: str = Field(..., description="Firebase user UID")
@@ -34,6 +43,10 @@ class EyeTrackingRequest(BaseModel):
         ...,
         description="List of base64-encoded image frames from the front camera",
         min_length=1,
+    )
+    frame_metadata: Optional[list[FrameMetadata]] = Field(
+        None,
+        description="Per-frame metadata with phase and stimulus position info",
     )
 
 
@@ -49,13 +62,41 @@ class GazeMetrics(BaseModel):
     joint_attention_score: float = Field(0.0, description="Joint attention capability score (0-100)")
 
 
+class BehaviorScores(BaseModel):
+    """Per-feature ASD behavioral scores (0-100 each, higher = more atypical)."""
+    eye_contact_score: float = Field(0.0, description="Eye contact quality score (0-100)")
+    gaze_stability_score: float = Field(0.0, description="Gaze stability / jitter score (0-100)")
+    fixation_score: float = Field(0.0, description="Fixation & staring behaviour score (0-100)")
+    tracking_score: float = Field(0.0, description="Object tracking accuracy score (0-100)")
+    atypical_movement_score: float = Field(0.0, description="Atypical eye movement score (0-100)")
+    social_engagement_score: float = Field(0.0, description="Social engagement response score (0-100)")
+    stimming_detected: bool = Field(False, description="Whether hand-near-eye stimming was detected")
+    habituation_score: float = Field(0.0, description="Temporal habituation score (0-100)")
+    blink_abnormality_score: float = Field(0.0, description="Blink rate abnormality score (0-100)")
+
+
+class FrameAnalysisLog(BaseModel):
+    """Per-frame detection log entry."""
+    frame_index: int = Field(0, description="Frame index in the sequence")
+    eye_detected: bool = Field(False, description="Whether eyes were detected in this frame")
+    reason: Optional[str] = Field(None, description="Reason for failed detection")
+    ear: Optional[float] = Field(None, description="Eye aspect ratio")
+    gaze_ratio: Optional[float] = Field(None, description="Horizontal gaze ratio")
+    phase: Optional[str] = Field(None, description="Assessment phase")
+    hand_near_eye: Optional[bool] = Field(None, description="Hand detected near eye")
+
+
 class EyeTrackingResponse(BaseModel):
     assessment_id: str
     status: AssessmentStatus
+    eye_detected: bool = Field(True, description="Whether eyes were reliably detected (gate check)")
     metrics: GazeMetrics
+    behavior_scores: BehaviorScores = Field(default_factory=BehaviorScores)
     asd_risk_score: float = Field(0.0, description="ASD risk score from eye tracking (0-100)")
     confidence_score: float = Field(0.0, description="Confidence in the result (0-100, higher = more reliable)")
     insights: list[str] = Field(default_factory=list)
+    frame_log: list[FrameAnalysisLog] = Field(default_factory=list, description="Per-frame detection log")
+    feedback_message: Optional[str] = Field(None, description="Real-time feedback message for the user")
 
 
 # --- Speech Analysis Schemas ---

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { GazeMetrics, EyeTrackingResponse, SpeechMetrics, SpeechAnalysisResponse } from '../services/assessmentService';
+import type { GazeMetrics, EyeTrackingResponse, SpeechMetrics, SpeechAnalysisResponse, BehaviorScores, FrameAnalysisLog } from '../services/assessmentService';
 
 interface AssessmentState {
   /** Assessment IDs returned by the backend after each module completes. */
@@ -16,6 +16,10 @@ interface AssessmentState {
   eyeTrackingMetrics: GazeMetrics | null;
   eyeTrackingConfidence: number | null;
   eyeTrackingInsights: string[];
+  eyeTrackingBehaviorScores: BehaviorScores | null;
+  eyeTrackingFrameLog: FrameAnalysisLog[];
+  eyeTrackingFeedbackMessage: string | null;
+  eyeTrackingEyeDetected: boolean;
 
   /** Full model output for speech analysis. */
   speechMetrics: SpeechMetrics | null;
@@ -50,6 +54,10 @@ const initialState: AssessmentState = {
   eyeTrackingMetrics: null,
   eyeTrackingConfidence: null,
   eyeTrackingInsights: [],
+  eyeTrackingBehaviorScores: null,
+  eyeTrackingFrameLog: [],
+  eyeTrackingFeedbackMessage: null,
+  eyeTrackingEyeDetected: true,
   speechMetrics: null,
   speechInsights: [],
   eyeTrackingComplete: false,
@@ -83,6 +91,10 @@ export const AssessmentProvider: React.FC<AssessmentProviderProps> = ({ children
       eyeTrackingMetrics: result.metrics,
       eyeTrackingConfidence: result.confidence_score,
       eyeTrackingInsights: result.insights,
+      eyeTrackingBehaviorScores: result.behavior_scores ?? null,
+      eyeTrackingFrameLog: result.frame_log ?? [],
+      eyeTrackingFeedbackMessage: result.feedback_message ?? null,
+      eyeTrackingEyeDetected: result.eye_detected ?? true,
       eyeTrackingComplete: true,
     }));
   };
