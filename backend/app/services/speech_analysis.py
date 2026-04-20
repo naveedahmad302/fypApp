@@ -7,6 +7,7 @@ and atypical prosody.
 
 import base64
 import json
+import subprocess
 import tempfile
 import uuid
 from pathlib import Path
@@ -23,27 +24,56 @@ from ..schemas.assessment import (
 
 
 def _decode_audio(audio_base64: str, audio_format: str = "wav") -> tuple[np.ndarray, int] | tuple[None, None]:
-    """Decode base64 audio to numpy array using librosa."""
+    """Decode base64 audio to numpy array using librosa.
+
+    For non-wav formats (mp4, m4a, aac, etc.) the file is first converted to
+    wav via ffmpeg so that librosa/soundfile can read it reliably.
+    """
     tmp_path = None
+    wav_path = None
     try:
         audio_bytes = base64.b64decode(audio_base64)
 
-        # Write to temporary file for librosa to read
+        # Write to temporary file
         suffix = f".{audio_format}"
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp.write(audio_bytes)
             tmp_path = tmp.name
 
+        # For non-wav formats, convert to wav via ffmpeg first
+        load_path = tmp_path
+        if audio_format.lower() not in ("wav", "wave"):
+            wav_path = tmp_path + ".wav"
+            result = subprocess.run(
+                [
+                    "ffmpeg", "-y",
+                    "-i", tmp_path,
+                    "-ar", "22050",
+                    "-ac", "1",
+                    "-f", "wav",
+                    wav_path,
+                ],
+                capture_output=True,
+                timeout=30,
+            )
+            if result.returncode != 0:
+                print(f"[Speech] ffmpeg conversion failed: {result.stderr.decode(errors='replace')}")
+                return None, None
+            load_path = wav_path
+
         # Load audio with librosa (resamples to 22050 Hz by default)
-        y, sr = librosa.load(tmp_path, sr=22050, mono=True)
+        y, sr = librosa.load(load_path, sr=22050, mono=True)
 
         return y, sr
-    except Exception:
+    except Exception as e:
+        print(f"[Speech] Audio decode error: {e}")
         return None, None
     finally:
-        # Clean up temp file
+        # Clean up temp files
         if tmp_path is not None:
             Path(tmp_path).unlink(missing_ok=True)
+        if wav_path is not None:
+            Path(wav_path).unlink(missing_ok=True)
 
 
 def _extract_pitch_features(y: np.ndarray, sr: int) -> dict:
