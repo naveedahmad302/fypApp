@@ -256,6 +256,7 @@ class _FrameFeatures:
         "phase", "stimulus_x", "stimulus_y",
         "hand_near_eye", "hand_eye_distance",
         "eye_detected", "detection_confidence",
+        "frame_w", "frame_h",
     )
 
     def __init__(self) -> None:
@@ -281,6 +282,8 @@ class _FrameFeatures:
         self.hand_eye_distance = float("inf")
         self.eye_detected = True
         self.detection_confidence = 1.0
+        self.frame_w = 0
+        self.frame_h = 0
 
 
 def _extract_features(
@@ -320,6 +323,10 @@ def _extract_features(
     # Nose tip reference
     nose = _pt(face_landmarks, NOSE_TIP, w, h)
     ff.nose_x, ff.nose_y = nose
+
+    # Store frame dimensions for coordinate normalisation
+    ff.frame_w = w
+    ff.frame_h = h
 
     return ff
 
@@ -660,14 +667,18 @@ def _analyze_object_tracking(features: list[_FrameFeatures]) -> dict:
                 "correlation_x": 0.0, "correlation_y": 0.0,
                 "insight": "Insufficient object tracking data."}
 
-    # Compute normalised distances between gaze and stimulus
+    # Compute normalised distances between gaze and stimulus.
+    # Frontend sends stimulus positions in [0, 1] normalised range.
+    # Gaze coordinates are in pixels, so we normalise them to [0, 1]
+    # using the frame dimensions for a consistent comparison.
     distances: list[float] = []
     for f in valid:
-        iod = f.inter_ocular_dist
-        gaze_norm_x = (f.smoothed_gaze_x - f.nose_x) / iod
-        gaze_norm_y = (f.smoothed_gaze_y - f.nose_y) / iod
-        stim_norm_x = (f.stimulus_x - f.nose_x) / iod if f.stimulus_x else 0.0
-        stim_norm_y = (f.stimulus_y - f.nose_y) / iod if f.stimulus_y else 0.0
+        fw = max(f.frame_w, 1)
+        fh = max(f.frame_h, 1)
+        gaze_norm_x = f.smoothed_gaze_x / fw
+        gaze_norm_y = f.smoothed_gaze_y / fh
+        stim_norm_x = f.stimulus_x if f.stimulus_x is not None else 0.0
+        stim_norm_y = f.stimulus_y if f.stimulus_y is not None else 0.0
         d = math.sqrt(
             (gaze_norm_x - stim_norm_x) ** 2 + (gaze_norm_y - stim_norm_y) ** 2
         )
@@ -678,16 +689,16 @@ def _analyze_object_tracking(features: list[_FrameFeatures]) -> dict:
 
     # Correlation between gaze and stimulus x/y
     gaze_xs = np.array([
-        (f.smoothed_gaze_x - f.nose_x) / f.inter_ocular_dist for f in valid
+        f.smoothed_gaze_x / max(f.frame_w, 1) for f in valid
     ])
     gaze_ys = np.array([
-        (f.smoothed_gaze_y - f.nose_y) / f.inter_ocular_dist for f in valid
+        f.smoothed_gaze_y / max(f.frame_h, 1) for f in valid
     ])
     stim_xs = np.array([
-        ((f.stimulus_x or 0) - f.nose_x) / f.inter_ocular_dist for f in valid
+        (f.stimulus_x if f.stimulus_x is not None else 0.0) for f in valid
     ])
     stim_ys = np.array([
-        ((f.stimulus_y or 0) - f.nose_y) / f.inter_ocular_dist for f in valid
+        (f.stimulus_y if f.stimulus_y is not None else 0.0) for f in valid
     ])
 
     corr_x = 0.0

@@ -29,7 +29,15 @@ const PHASE_LABELS: Record<Phase, string> = {
 };
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const DOT_AREA_SIZE = SCREEN_WIDTH - 80;
+const DOT_AREA_WIDTH = SCREEN_WIDTH - 80;
+const DOT_AREA_HEIGHT = DOT_AREA_WIDTH * 0.6;
+const DOT_SIZE = 20;
+// Maximum travel distances for the dot (stay inside the container)
+const DOT_MAX_X = DOT_AREA_WIDTH - DOT_SIZE;
+const DOT_MAX_Y = DOT_AREA_HEIGHT - DOT_SIZE;
+// Duration per animation leg in ms
+const DOT_LEG_DURATION = 1500;
+const DOT_CYCLE_DURATION = DOT_LEG_DURATION * 4; // 6000ms per full cycle
 
 const EyeTrackingAnalysisScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -92,14 +100,35 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     return 'social_stimulus';
   }, []);
 
-  /** Get the current stimulus position for the moving dot (normalised 0-1). */
+  /** Compute expected stimulus position mathematically from elapsed time.
+   *  This avoids reading stale Animated values when useNativeDriver is true.
+   *  The dot follows a rectangular path: (0,0) -> (maxX,0) -> (maxX,maxY) -> (0,maxY) -> (0,0).
+   */
   const getStimulusPosition = useCallback((): { x: number; y: number } | null => {
     if (phaseRef.current !== 'object_tracking') return null;
+    const elapsed = Date.now() - trackingStartRef.current - PHASE_FREE_GAZE_MS;
+    if (elapsed < 0) return null;
+    const t = (elapsed % DOT_CYCLE_DURATION) / DOT_LEG_DURATION; // 0-4 fractional leg index
+    const leg = Math.floor(t);
+    const frac = t - leg; // 0-1 within current leg
+    // Use easeInOut-like approximation
+    const ease = frac < 0.5
+      ? 2 * frac * frac
+      : 1 - Math.pow(-2 * frac + 2, 2) / 2;
+    let px = 0;
+    let py = 0;
+    switch (leg) {
+      case 0: px = ease * DOT_MAX_X; py = 0; break;                         // (0,0) -> (maxX,0)
+      case 1: px = DOT_MAX_X; py = ease * DOT_MAX_Y; break;                 // (maxX,0) -> (maxX,maxY)
+      case 2: px = DOT_MAX_X * (1 - ease); py = DOT_MAX_Y; break;           // (maxX,maxY) -> (0,maxY)
+      default: px = 0; py = DOT_MAX_Y * (1 - ease); break;                  // (0,maxY) -> (0,0)
+    }
+    // Return normalised [0, 1]
     return {
-      x: (dotX as any).__getValue() / DOT_AREA_SIZE,
-      y: (dotY as any).__getValue() / DOT_AREA_SIZE,
+      x: DOT_AREA_WIDTH > 0 ? px / DOT_AREA_WIDTH : 0,
+      y: DOT_AREA_HEIGHT > 0 ? py / DOT_AREA_HEIGHT : 0,
     };
-  }, [dotX, dotY]);
+  }, []);
 
   const captureFrame = useCallback(async () => {
     if (!camera.current) {
@@ -155,7 +184,6 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
       useNativeDriver: true,
     }).start();
 
-    const halfSize = DOT_AREA_SIZE;
     const moveTo = (x: number, y: number, duration: number) =>
       Animated.parallel([
         Animated.timing(dotX, {
@@ -174,10 +202,10 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
 
     const sequence = Animated.loop(
       Animated.sequence([
-        moveTo(halfSize, 0, 1500),
-        moveTo(halfSize, halfSize, 1500),
-        moveTo(0, halfSize, 1500),
-        moveTo(0, 0, 1500),
+        moveTo(DOT_MAX_X, 0, DOT_LEG_DURATION),
+        moveTo(DOT_MAX_X, DOT_MAX_Y, DOT_LEG_DURATION),
+        moveTo(0, DOT_MAX_Y, DOT_LEG_DURATION),
+        moveTo(0, 0, DOT_LEG_DURATION),
       ]),
     );
     dotAnimationRef.current = sequence;
@@ -438,8 +466,8 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
               <View
                 className="mt-4 self-center"
                 style={{
-                  width: DOT_AREA_SIZE,
-                  height: DOT_AREA_SIZE * 0.6,
+                  width: DOT_AREA_WIDTH,
+                  height: DOT_AREA_HEIGHT,
                   backgroundColor: '#F3F4F6',
                   borderRadius: 16,
                   overflow: 'hidden',
@@ -448,9 +476,9 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
                 <Animated.View
                   style={{
                     position: 'absolute',
-                    width: 20,
-                    height: 20,
-                    borderRadius: 10,
+                    width: DOT_SIZE,
+                    height: DOT_SIZE,
+                    borderRadius: DOT_SIZE / 2,
                     backgroundColor: '#4A90E2',
                     opacity: dotOpacity,
                     transform: [
