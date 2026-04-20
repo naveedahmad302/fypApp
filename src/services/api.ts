@@ -16,9 +16,10 @@
 // For a real device on the same network, use the machine's LAN IP.
 import { Platform } from 'react-native';
 
-// NOTE: Using LAN IP for real device testing (emulator uses 10.0.2.2 / localhost)
-// Change back to Platform.OS check when switching between emulator and real device
-const DEV_HOST = '192.168.1.9';
+// For real device OR emulator: run "adb reverse tcp:8000 tcp:8000" then
+//   localhost works on both. Without adb reverse on emulator, use 10.0.2.2.
+// For iOS simulator: localhost works directly.
+const DEV_HOST = 'localhost';
 
 export const API_BASE_URL = `http://${DEV_HOST}:8000`;
 

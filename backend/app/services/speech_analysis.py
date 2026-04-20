@@ -7,7 +7,10 @@ and atypical prosody.
 
 import base64
 import json
+import os
+import shutil
 import subprocess
+import sys
 import tempfile
 import uuid
 from pathlib import Path
@@ -21,6 +24,42 @@ from ..schemas.assessment import (
     SpeechAnalysisResponse,
     SpeechMetrics,
 )
+
+
+def _find_ffmpeg() -> str:
+    """Find the ffmpeg binary, searching common install locations on Windows."""
+    # 1. Check if it's already on PATH
+    found = shutil.which("ffmpeg")
+    if found:
+        return found
+
+    # 2. On Windows, search common installation directories
+    if sys.platform == "win32":
+        search_roots = [
+            os.environ.get("LOCALAPPDATA", ""),
+            os.environ.get("PROGRAMFILES", ""),
+            os.environ.get("PROGRAMFILES(X86)", ""),
+            os.environ.get("USERPROFILE", ""),
+            "C:\\",
+        ]
+        for root in search_roots:
+            if not root:
+                continue
+            root_path = Path(root)
+            # Search up to 3 levels deep for ffmpeg.exe
+            for pattern in ["ffmpeg*/bin/ffmpeg.exe", "*/ffmpeg*/bin/ffmpeg.exe"]:
+                matches = list(root_path.glob(pattern))
+                if matches:
+                    print(f"[Speech] Found ffmpeg at: {matches[0]}")
+                    return str(matches[0])
+
+    # 3. Not found
+    return "ffmpeg"  # Fall back to bare name (will fail with FileNotFoundError)
+
+
+# Resolve ffmpeg path once at module load time
+_FFMPEG_BIN = _find_ffmpeg()
+print(f"[Speech] Using ffmpeg: {_FFMPEG_BIN}")
 
 
 def _detect_audio_format(audio_bytes: bytes) -> str | None:
@@ -85,18 +124,32 @@ def _decode_audio(audio_base64: str, audio_format: str = "wav") -> tuple[np.ndar
 
         # Always convert via ffmpeg for reliability (handles all formats)
         wav_path = tmp_path + ".wav"
-        result = subprocess.run(
-            [
-                "ffmpeg", "-y",
-                "-i", tmp_path,
-                "-ar", "22050",
-                "-ac", "1",
-                "-f", "wav",
-                wav_path,
-            ],
-            capture_output=True,
-            timeout=30,
-        )
+        try:
+            result = subprocess.run(
+                [
+                    _FFMPEG_BIN, "-y",
+                    "-i", tmp_path,
+                    "-ar", "22050",
+                    "-ac", "1",
+                    "-f", "wav",
+                    wav_path,
+                ],
+                capture_output=True,
+                timeout=30,
+            )
+        except FileNotFoundError:
+            print("[Speech] ffmpeg not found on this system!")
+            print("[Speech] Install ffmpeg: https://ffmpeg.org/download.html")
+            # Fallback: try loading directly with librosa
+            print("[Speech] Attempting direct librosa load as fallback...")
+            try:
+                y, sr = librosa.load(tmp_path, sr=22050, mono=True)
+                print(f"[Speech] Direct librosa load succeeded: {len(y)} samples @ {sr}Hz")
+                return y, sr
+            except Exception as e2:
+                print(f"[Speech] Direct librosa load also failed: {e2}")
+                return None, None
+
         if result.returncode != 0:
             stderr_msg = result.stderr.decode(errors="replace")
             print(f"[Speech] ffmpeg conversion failed (exit {result.returncode}):")
