@@ -123,10 +123,10 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
       case 2: px = DOT_MAX_X * (1 - ease); py = DOT_MAX_Y; break;           // (maxX,maxY) -> (0,maxY)
       default: px = 0; py = DOT_MAX_Y * (1 - ease); break;                  // (0,maxY) -> (0,0)
     }
-    // Return normalised [0, 1]
+    // Return normalised [0, 1] — divide by max travel distance, not container size
     return {
-      x: DOT_AREA_WIDTH > 0 ? px / DOT_AREA_WIDTH : 0,
-      y: DOT_AREA_HEIGHT > 0 ? py / DOT_AREA_HEIGHT : 0,
+      x: DOT_MAX_X > 0 ? px / DOT_MAX_X : 0,
+      y: DOT_MAX_Y > 0 ? py / DOT_MAX_Y : 0,
     };
   }, []);
 
