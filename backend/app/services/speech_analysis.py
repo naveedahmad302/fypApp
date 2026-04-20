@@ -23,6 +23,34 @@ from ..schemas.assessment import (
 )
 
 
+def _detect_audio_format(audio_bytes: bytes) -> str | None:
+    """Detect audio format from file magic bytes."""
+    if len(audio_bytes) < 12:
+        return None
+    # MP4/M4A: 'ftyp' at offset 4
+    if audio_bytes[4:8] == b"ftyp":
+        return "mp4"
+    # WAV: starts with 'RIFF'
+    if audio_bytes[:4] == b"RIFF" and audio_bytes[8:12] == b"WAVE":
+        return "wav"
+    # OGG: starts with 'OggS'
+    if audio_bytes[:4] == b"OggS":
+        return "ogg"
+    # FLAC: starts with 'fLaC'
+    if audio_bytes[:4] == b"fLaC":
+        return "flac"
+    # MP3: starts with 0xFF 0xFB or ID3 tag
+    if audio_bytes[:3] == b"ID3" or (audio_bytes[0] == 0xFF and (audio_bytes[1] & 0xE0) == 0xE0):
+        return "mp3"
+    # AAC ADTS: starts with 0xFF 0xF1 or 0xFF 0xF9
+    if audio_bytes[0] == 0xFF and (audio_bytes[1] & 0xF0) == 0xF0:
+        return "aac"
+    # 3GP: 'ftyp3gp' at offset 4
+    if audio_bytes[4:11] == b"ftyp3gp":
+        return "3gp"
+    return None
+
+
 def _decode_audio(audio_base64: str, audio_format: str = "wav") -> tuple[np.ndarray, int] | tuple[None, None]:
     """Decode base64 audio to numpy array using librosa.
 
@@ -33,40 +61,69 @@ def _decode_audio(audio_base64: str, audio_format: str = "wav") -> tuple[np.ndar
     wav_path = None
     try:
         audio_bytes = base64.b64decode(audio_base64)
+        print(f"[Speech] Decoded {len(audio_bytes)} bytes, claimed format: {audio_format}")
+        print(f"[Speech] Magic bytes (hex): {audio_bytes[:16].hex()}")
+
+        if len(audio_bytes) < 100:
+            print("[Speech] Audio file too small (< 100 bytes)")
+            return None, None
+
+        # Detect actual format from magic bytes
+        detected_fmt = _detect_audio_format(audio_bytes)
+        if detected_fmt:
+            print(f"[Speech] Detected format from magic bytes: {detected_fmt}")
+            if detected_fmt != audio_format.lower():
+                print(f"[Speech] Format mismatch: claimed={audio_format}, detected={detected_fmt}. Using detected.")
+                audio_format = detected_fmt
 
         # Write to temporary file
         suffix = f".{audio_format}"
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp.write(audio_bytes)
             tmp_path = tmp.name
+        print(f"[Speech] Wrote temp file: {tmp_path}")
 
-        # For non-wav formats, convert to wav via ffmpeg first
-        load_path = tmp_path
-        if audio_format.lower() not in ("wav", "wave"):
-            wav_path = tmp_path + ".wav"
-            result = subprocess.run(
-                [
-                    "ffmpeg", "-y",
-                    "-i", tmp_path,
-                    "-ar", "22050",
-                    "-ac", "1",
-                    "-f", "wav",
-                    wav_path,
-                ],
-                capture_output=True,
-                timeout=30,
-            )
-            if result.returncode != 0:
-                print(f"[Speech] ffmpeg conversion failed: {result.stderr.decode(errors='replace')}")
+        # Always convert via ffmpeg for reliability (handles all formats)
+        wav_path = tmp_path + ".wav"
+        result = subprocess.run(
+            [
+                "ffmpeg", "-y",
+                "-i", tmp_path,
+                "-ar", "22050",
+                "-ac", "1",
+                "-f", "wav",
+                wav_path,
+            ],
+            capture_output=True,
+            timeout=30,
+        )
+        if result.returncode != 0:
+            stderr_msg = result.stderr.decode(errors="replace")
+            print(f"[Speech] ffmpeg conversion failed (exit {result.returncode}):")
+            print(f"[Speech]   stderr: {stderr_msg[:500]}")
+            # Fallback: try loading directly with librosa (works for wav/mp3)
+            print("[Speech] Attempting direct librosa load as fallback...")
+            try:
+                y, sr = librosa.load(tmp_path, sr=22050, mono=True)
+                print(f"[Speech] Direct librosa load succeeded: {len(y)} samples @ {sr}Hz")
+                return y, sr
+            except Exception as e2:
+                print(f"[Speech] Direct librosa load also failed: {e2}")
                 return None, None
-            load_path = wav_path
+        else:
+            wav_size = Path(wav_path).stat().st_size
+            print(f"[Speech] ffmpeg conversion succeeded, wav size: {wav_size} bytes")
 
         # Load audio with librosa (resamples to 22050 Hz by default)
-        y, sr = librosa.load(load_path, sr=22050, mono=True)
+        y, sr = librosa.load(wav_path, sr=22050, mono=True)
+        print(f"[Speech] Loaded audio: {len(y)} samples @ {sr}Hz ({len(y)/sr:.1f}s)")
+
+        if len(y) < sr * 0.5:
+            print(f"[Speech] Warning: audio very short ({len(y)/sr:.2f}s)")
 
         return y, sr
     except Exception as e:
-        print(f"[Speech] Audio decode error: {e}")
+        print(f"[Speech] Audio decode error: {type(e).__name__}: {e}")
         return None, None
     finally:
         # Clean up temp files
