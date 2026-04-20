@@ -405,6 +405,21 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     try {
       setIsSubmitting(true);
       console.log('[EyeTracking] Submitting', frames.length, 'frames with metadata to backend...');
+      
+      // Check backend connectivity before submission
+      try {
+        await healthCheck();
+        console.log('[EyeTracking] Backend health check passed');
+      } catch (healthErr) {
+        console.error('[EyeTracking] Backend health check failed:', healthErr);
+        setError(
+          'Backend server is not reachable.\n' +
+          'Please ensure the server is running at ' +
+          'http://192.168.1.9:8000 and check your network connection.'
+        );
+        return;
+      }
+      
       const result = await submitEyeTracking({
         user_id: user?.uid ?? 'anonymous',
         frames_base64: frames,
@@ -420,10 +435,28 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
       navigation.navigate('TrackingStatusScreen' as never);
     } catch (err) {
       console.error('[EyeTracking] Submission failed:', err);
-      setError(
-        'Failed to analyze eye tracking data.\n' +
-        'Make sure the backend is running and reachable.',
-      );
+      
+      let errorMessage = 'Failed to analyze eye tracking data.\n';
+      
+      if (err instanceof Error) {
+        if (err.name === 'AbortError' || err.message.includes('Aborted')) {
+          errorMessage += 'The request timed out after 2 minutes.\n' +
+                        'This might happen if:\n' +
+                        '1. The server is processing a large dataset\n' +
+                        '2. Network connection is slow\n' +
+                        '3. Server resources are limited\n\n' +
+                        'Try again or check server performance.';
+        } else if (err.message.includes('Network request failed')) {
+          errorMessage += 'Network connection failed.\n' +
+                        'Check your internet connection and server accessibility.';
+        } else {
+          errorMessage += `Error: ${err.message}`;
+        }
+      } else {
+        errorMessage += 'Make sure the backend is running and reachable.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
