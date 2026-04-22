@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { GazeMetrics, EyeTrackingResponse, SpeechMetrics, SpeechAnalysisResponse, BehaviorScores, FrameAnalysisLog } from '../services/assessmentService';
+import type {
+  GazeMetrics,
+  EyeTrackingResponse,
+  SpeechMetrics,
+  SpeechAnalysisResponse,
+  SpeechFeatures,
+  BehavioralFlags,
+  BehaviorScores,
+  FrameAnalysisLog,
+} from '../services/assessmentService';
 
 interface AssessmentState {
   /** Assessment IDs returned by the backend after each module completes. */
@@ -23,6 +32,12 @@ interface AssessmentState {
 
   /** Full model output for speech analysis. */
   speechMetrics: SpeechMetrics | null;
+  speechFeatures: SpeechFeatures | null;
+  speechBehavioralFlags: BehavioralFlags | null;
+  speechLikelihood: number | null;
+  speechConfidence: number | null;
+  speechExplanation: string | null;
+  speechDetected: boolean;
   speechInsights: string[];
 
   /** Tracks which modules the user has finished in this session. */
@@ -59,6 +74,12 @@ const initialState: AssessmentState = {
   eyeTrackingFeedbackMessage: null,
   eyeTrackingEyeDetected: true,
   speechMetrics: null,
+  speechFeatures: null,
+  speechBehavioralFlags: null,
+  speechLikelihood: null,
+  speechConfidence: null,
+  speechExplanation: null,
+  speechDetected: true,
   speechInsights: [],
   eyeTrackingComplete: false,
   speechComplete: false,
@@ -105,6 +126,12 @@ export const AssessmentProvider: React.FC<AssessmentProviderProps> = ({ children
       speechAssessmentId: result.assessment_id,
       speechScore: result.asd_risk_score,
       speechMetrics: result.metrics,
+      speechFeatures: result.features ?? null,
+      speechBehavioralFlags: result.behavioral_flags ?? null,
+      speechLikelihood: typeof result.final_asd_likelihood === 'number' ? result.final_asd_likelihood : null,
+      speechConfidence: typeof result.confidence === 'number' ? result.confidence : null,
+      speechExplanation: result.explanation ?? null,
+      speechDetected: result.speech_detected ?? true,
       speechInsights: result.insights,
       speechComplete: true,
     }));
