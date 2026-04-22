@@ -127,3 +127,29 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_assessments_type ON assessments(type);
             CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);
         """)
+
+        # --- Lightweight column migrations for the upgraded speech analyzer.
+        # SQLite can't "ADD COLUMN IF NOT EXISTS", so we try each and ignore
+        # the error raised when the column already exists.
+        _speech_migrations = [
+            "ALTER TABLE speech_results ADD COLUMN features_json TEXT",
+            "ALTER TABLE speech_results ADD COLUMN behavioral_flags_json TEXT",
+            "ALTER TABLE speech_results ADD COLUMN final_asd_likelihood REAL DEFAULT 0.0",
+            "ALTER TABLE speech_results ADD COLUMN confidence REAL DEFAULT 0.0",
+            "ALTER TABLE speech_results ADD COLUMN explanation TEXT",
+            "ALTER TABLE speech_results ADD COLUMN speech_detected INTEGER DEFAULT 1",
+            "ALTER TABLE speech_results ADD COLUMN pitch_jitter REAL DEFAULT 0.0",
+            "ALTER TABLE speech_results ADD COLUMN energy_shimmer REAL DEFAULT 0.0",
+            "ALTER TABLE speech_results ADD COLUMN voiced_fraction REAL DEFAULT 0.0",
+            "ALTER TABLE speech_results ADD COLUMN duration_sec REAL DEFAULT 0.0",
+            "ALTER TABLE speech_results ADD COLUMN pause_count INTEGER DEFAULT 0",
+            "ALTER TABLE speech_results ADD COLUMN hesitation_count INTEGER DEFAULT 0",
+            "ALTER TABLE speech_results ADD COLUMN temporal_monotone_consistency REAL DEFAULT 0.0",
+            "ALTER TABLE speech_results ADD COLUMN rhythm_variability REAL DEFAULT 0.0",
+        ]
+        for stmt in _speech_migrations:
+            try:
+                conn.execute(stmt)
+            except sqlite3.OperationalError:
+                # Column already exists — safe to ignore.
+                pass

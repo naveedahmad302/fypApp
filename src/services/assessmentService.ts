@@ -91,13 +91,44 @@ export interface SpeechMetrics {
   speech_rate_variability: number;
   prosody_score: number;
   monotone_score: number;
+  pitch_jitter: number;
+  energy_shimmer: number;
+  pause_count: number;
+  hesitation_count: number;
+  voiced_fraction: number;
+  duration_sec: number;
+  temporal_monotone_consistency: number;
+  rhythm_variability: number;
+}
+
+export type MfccPattern = 'varied' | 'repetitive' | 'flat';
+export type PausePattern = 'natural' | 'irregular' | 'long' | 'rushed';
+
+export interface SpeechFeatures {
+  pitch_variation: number;
+  energy_variation: number;
+  mfcc_pattern: MfccPattern;
+  pause_pattern: PausePattern;
+}
+
+export interface BehavioralFlags {
+  monotone: number;
+  echolalia: number;
+  rhythm_issue: number;
+  emotional_flatness: number;
 }
 
 export interface SpeechAnalysisResponse {
   assessment_id: string;
   status: string;
+  speech_detected: boolean;
   metrics: SpeechMetrics;
+  features: SpeechFeatures;
+  behavioral_flags: BehavioralFlags;
   asd_risk_score: number;
+  final_asd_likelihood: number;
+  confidence: number;
+  explanation: string;
   insights: string[];
 }
 

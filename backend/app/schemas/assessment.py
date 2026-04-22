@@ -119,13 +119,50 @@ class SpeechMetrics(BaseModel):
     speech_rate_variability: float = Field(0.0, description="Variability in speech rate")
     prosody_score: float = Field(0.0, description="Overall prosody score (0-100)")
     monotone_score: float = Field(0.0, description="Monotone tendency score (0-100, higher = more monotone)")
+    # Extended metrics from the upgraded analyzer
+    pitch_jitter: float = Field(0.0, description="Mean absolute successive pitch difference (Hz)")
+    energy_shimmer: float = Field(0.0, description="Frame-to-frame RMS coefficient of variation")
+    pause_count: int = Field(0, description="Number of detected pauses")
+    hesitation_count: int = Field(0, description="Number of short hesitation-style pauses")
+    voiced_fraction: float = Field(0.0, description="Fraction of voiced frames (0-1)")
+    duration_sec: float = Field(0.0, description="Audio duration in seconds")
+    temporal_monotone_consistency: float = Field(
+        0.0,
+        description="Fraction of temporal windows showing monotone speech (0-1)",
+    )
+    rhythm_variability: float = Field(
+        0.0,
+        description="Coefficient of variation of onset intervals across windows",
+    )
+
+
+class SpeechFeatures(BaseModel):
+    """High-level feature summary consumed by the UI."""
+    pitch_variation: float = Field(0.0, description="Normalized pitch variation (0-1)")
+    energy_variation: float = Field(0.0, description="Normalized energy variation (0-1)")
+    mfcc_pattern: str = Field("varied", description="MFCC structural pattern: varied | repetitive | flat")
+    pause_pattern: str = Field("natural", description="Pause classification: natural | irregular | long | rushed")
+
+
+class BehavioralFlags(BaseModel):
+    """Probabilistic behavioral ASD indicators (each 0-1)."""
+    monotone: float = Field(0.0, description="Monotone speech likelihood (0-1)")
+    echolalia: float = Field(0.0, description="Repetitive/echolalic speech likelihood (0-1)")
+    rhythm_issue: float = Field(0.0, description="Rhythm irregularity likelihood (0-1)")
+    emotional_flatness: float = Field(0.0, description="Emotional flatness likelihood (0-1)")
 
 
 class SpeechAnalysisResponse(BaseModel):
     assessment_id: str
     status: AssessmentStatus
+    speech_detected: bool = Field(True, description="Whether meaningful speech was detected in the audio")
     metrics: SpeechMetrics
-    asd_risk_score: float = Field(0.0, description="ASD risk score from speech analysis (0-100)")
+    features: SpeechFeatures = Field(default_factory=SpeechFeatures)
+    behavioral_flags: BehavioralFlags = Field(default_factory=BehavioralFlags)
+    asd_risk_score: float = Field(0.0, description="ASD risk score from speech analysis (0-100, legacy)")
+    final_asd_likelihood: float = Field(0.0, description="Probabilistic ASD likelihood from speech (0-1)")
+    confidence: float = Field(0.0, description="Confidence in the speech analysis result (0-1)")
+    explanation: str = Field("", description="Human-readable explanation of the dominant indicators")
     insights: list[str] = Field(default_factory=list)
 
 

@@ -172,11 +172,20 @@ def generate_report(request: GenerateReportRequest) -> ReportResponse:
     if request.speech_assessment_id:
         speech_result = _get_speech_result(request.speech_assessment_id)
         if speech_result:
-            insights = json.loads(speech_result.get("insights_json", "[]"))
-            # Use clarity score as the module score (inverted from risk)
+            insights = json.loads(speech_result.get("insights_json") or "[]")
+            # Module "score" is a non-risk view of the result. Prefer a
+            # direct inversion of the upgraded ASD likelihood (clamped to
+            # 0-100) so the report number always lines up with the
+            # probabilistic model; fall back to the legacy clarity score
+            # for rows produced before the upgrade.
+            likelihood = speech_result.get("final_asd_likelihood")
+            if likelihood is not None:
+                module_score = round((1.0 - float(likelihood)) * 100.0, 1)
+            else:
+                module_score = round(speech_result.get("clarity_score", 0), 1)
             speech_module = ModuleResult(
                 module_name="Speech Analysis",
-                score=round(speech_result.get("clarity_score", 0), 1),
+                score=module_score,
                 risk_score=round(speech_result.get("asd_risk_score", 0), 1),
                 insights=insights,
                 status="completed",
