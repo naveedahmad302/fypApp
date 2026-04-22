@@ -2,7 +2,7 @@
 
 A comprehensive mobile application designed to assist in autism assessment through various interactive modules.
 
-## Features
+## Features:
 
 - **User Authentication**
   - Secure login/signup

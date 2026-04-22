@@ -21,6 +21,11 @@ const ReportScreen: React.FC = () => {
     eyeTrackingMetrics,
     eyeTrackingConfidence,
     speechMetrics,
+    speechFeatures,
+    speechBehavioralFlags,
+    speechLikelihood,
+    speechConfidence,
+    speechExplanation,
   } = useAssessment();
 
   const [report, setReport] = useState<ReportResponse | null>(null);
@@ -214,13 +219,82 @@ const ReportScreen: React.FC = () => {
                   {/* Speech detailed metrics (from context) */}
                   {mod.name === 'Speech Analysis' && speechMetrics && (
                     <View className="mt-1">
+                      {typeof speechLikelihood === 'number' && (
+                        <InlineMetric
+                          label="ASD Likelihood"
+                          value={Math.round(speechLikelihood * 100) + '%'}
+                        />
+                      )}
+                      {typeof speechConfidence === 'number' && (
+                        <InlineMetric
+                          label="Confidence"
+                          value={Math.round(speechConfidence * 100) + '%'}
+                        />
+                      )}
                       <InlineMetric label="Words / Min" value={Math.round(speechMetrics.words_per_minute)} />
                       <InlineMetric label="Avg Pause" value={speechMetrics.avg_pause_duration.toFixed(2) + ' s'} />
+                      <InlineMetric label="Pause Count" value={speechMetrics.pause_count} />
+                      <InlineMetric label="Hesitations" value={speechMetrics.hesitation_count} />
                       <InlineMetric label="Clarity Score" value={Math.round(speechMetrics.clarity_score) + ' / 100'} />
                       <InlineMetric label="Vocal Variation" value={Math.round(speechMetrics.vocal_variation_score) + ' / 100'} />
                       <InlineMetric label="Pitch Mean" value={speechMetrics.pitch_mean.toFixed(1) + ' Hz'} />
+                      <InlineMetric label="Pitch Jitter" value={speechMetrics.pitch_jitter.toFixed(2) + ' Hz'} />
+                      <InlineMetric label="Energy Shimmer" value={speechMetrics.energy_shimmer.toFixed(3)} />
+                      <InlineMetric label="Voiced Fraction" value={Math.round(speechMetrics.voiced_fraction * 100) + '%'} />
                       <InlineMetric label="Monotone Score" value={Math.round(speechMetrics.monotone_score) + ' / 100'} />
                       <InlineMetric label="Prosody Score" value={Math.round(speechMetrics.prosody_score) + ' / 100'} />
+                      <InlineMetric
+                        label="Temporal Monotone"
+                        value={Math.round(speechMetrics.temporal_monotone_consistency * 100) + '%'}
+                      />
+
+                      {speechFeatures && (
+                        <View className="mt-2 pt-2 border-t border-gray-100">
+                          <InlineMetric
+                            label="Pitch Variation"
+                            value={Math.round(speechFeatures.pitch_variation * 100) + '%'}
+                          />
+                          <InlineMetric
+                            label="Energy Variation"
+                            value={Math.round(speechFeatures.energy_variation * 100) + '%'}
+                          />
+                          <InlineMetric label="MFCC Pattern" value={speechFeatures.mfcc_pattern} />
+                          <InlineMetric label="Pause Pattern" value={speechFeatures.pause_pattern} />
+                        </View>
+                      )}
+
+                      {speechBehavioralFlags && (
+                        <View className="mt-2 pt-2 border-t border-gray-100">
+                          <Text className="text-gray-500 text-xs font-semibold mb-1">
+                            Behavioral Flags
+                          </Text>
+                          <InlineMetric
+                            label="Monotone"
+                            value={Math.round(speechBehavioralFlags.monotone * 100) + '%'}
+                          />
+                          <InlineMetric
+                            label="Echolalia"
+                            value={Math.round(speechBehavioralFlags.echolalia * 100) + '%'}
+                          />
+                          <InlineMetric
+                            label="Rhythm Issue"
+                            value={Math.round(speechBehavioralFlags.rhythm_issue * 100) + '%'}
+                          />
+                          <InlineMetric
+                            label="Emotional Flatness"
+                            value={Math.round(speechBehavioralFlags.emotional_flatness * 100) + '%'}
+                          />
+                        </View>
+                      )}
+
+                      {speechExplanation ? (
+                        <View className="mt-2 pt-2 border-t border-gray-100">
+                          <Text className="text-gray-500 text-xs mb-1">Explanation</Text>
+                          <Text className="text-gray-700 text-xs leading-relaxed">
+                            {speechExplanation}
+                          </Text>
+                        </View>
+                      ) : null}
                     </View>
                   )}
 
