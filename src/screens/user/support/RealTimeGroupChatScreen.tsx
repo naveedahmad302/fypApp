@@ -14,8 +14,12 @@ const RealTimeGroupChatScreen = ({ route }: { route: { params: { groupName: stri
   const navigation = useNavigation<RealTimeGroupChatRouteProp>();
   const [messages, setMessages] = useState<IMessage[]>([]);
 
-  // Collection name based on group
-  const collectionName = groupName.toLowerCase().replace(/\s+/g, '_');
+  // Whitelist of allowed collection names to prevent injection
+  const ALLOWED_COLLECTIONS: Record<string, string> = {
+    'parents support circle': 'parents_support_circle',
+    'weekly check ins': 'weekly_check_ins',
+  };
+  const collectionName = ALLOWED_COLLECTIONS[groupName.toLowerCase()] || 'parents_support_circle';
 
   useEffect(() => {
     const unsubscribe = firestore()
@@ -34,13 +38,16 @@ const RealTimeGroupChatScreen = ({ route }: { route: { params: { groupName: stri
     return () => unsubscribe();
   }, [collectionName]);
 
+  const MAX_MESSAGE_LENGTH = 2000;
+
   const onSend = useCallback((messages = []) => {
     const { text, user } = messages[0];
+    if (!text || text.trim().length === 0 || text.length > MAX_MESSAGE_LENGTH) return;
     
     firestore()
       .collection(collectionName)
       .add({
-        text,
+        text: text.trim(),
         user,
         createdAt: firestore.FieldValue.serverTimestamp(),
       });

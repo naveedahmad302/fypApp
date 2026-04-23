@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { TAuthStackNavigationProps } from '../../navigation/authStack/types';
+import { signIn, signUp } from '../../firebase/auth';
+import { saveUserToFirestore, getUserFromFirestore } from '../../firebase/firestore';
 
 const AuthScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('signup');
@@ -11,20 +13,36 @@ const AuthScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const { setAuthenticated } = useAuth();
+  const { setAuthenticated, setUser } = useAuth();
 
   const handleSubmit = async () => {
-    console.log('Submitting form for tab:', activeTab);
     if (!formData.email || !formData.password || (activeTab === 'signup' && !formData.fullName)) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      if (activeTab === 'signup') {
+        const user = await signUp(formData.email, formData.password);
+        await saveUserToFirestore(user.uid, formData.email, formData.fullName);
+        Alert.alert('Success', 'Account created successfully! Please sign in.');
+      } else {
+        const user = await signIn(formData.email, formData.password);
+        const userData = await getUserFromFirestore(user.uid);
+        setAuthenticated(true);
+        if (userData) {
+          setUser({
+            name: userData.fullName,
+            email: userData.email,
+            uid: userData.uid,
+          });
+        }
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Authentication failed. Please try again.');
+    } finally {
       setIsLoading(false);
-      Alert.alert('Success', activeTab === 'signup' ? 'Account created successfully!' : 'Login successful!');
-      setAuthenticated(true);
-    }, 2000);
+    }
   };
 
   return (
@@ -48,7 +66,6 @@ const AuthScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }
           <View className="bg-gray-100 rounded-xl p-1 flex-row mb-6">
             <TouchableOpacity
               onPress={() => {
-                console.log('Switching to tab: signup');
                 setActiveTab('signup');
               }}
               className={`flex-1 py-2 px-4 rounded-lg ${
@@ -65,7 +82,6 @@ const AuthScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }
             
             <TouchableOpacity
               onPress={() => {
-                console.log('Switching to tab: Login');
                 setActiveTab('Login');
               }}
               className={`flex-1 py-2 px-4 rounded-lg ${

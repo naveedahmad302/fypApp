@@ -6,11 +6,15 @@ export const initializeFirebase = async () => {
     // Check if Firebase is already initialized
     if (!App.apps.length) {
       await App.initializeApp();
-      console.log('Firebase initialized successfully');
+      if (__DEV__) {
+        console.log('Firebase initialized successfully');
+      }
     }
     return true;
   } catch (error) {
-    console.error('Error initializing Firebase:', error);
+    if (__DEV__) {
+      console.error('Error initializing Firebase:', error);
+    }
     return false;
   }
 };
@@ -18,9 +22,13 @@ export const initializeFirebase = async () => {
 // Initialize Firebase when this module is imported
 initializeFirebase().then(initialized => {
   if (initialized) {
-    console.log('Firebase is ready to use');
+    if (__DEV__) {
+      console.log('Firebase is ready to use');
+    }
   } else {
-    console.error('Failed to initialize Firebase');
+    if (__DEV__) {
+      console.error('Failed to initialize Firebase');
+    }
   }
 });
 

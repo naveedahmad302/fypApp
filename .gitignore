@@ -35,6 +35,14 @@ local.properties
 !debug.keystore
 .kotlin/
 
+# Firebase config files (contain API keys)
+google-services.json
+GoogleService-Info.plist
+
+# Environment files
+.env
+.env.*
+
 # node.js
 #
 node_modules/

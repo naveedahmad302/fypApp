@@ -10,12 +10,12 @@ GoogleSignin.configure({
 // Sign in
 export const signIn = async (email: string, password: string) => {
   try {
-    console.log('Attempting Firebase sign-in for email:', email);
     const userCredential = await auth().signInWithEmailAndPassword(email, password);
-    console.log('Firebase sign-in successful, UID:', userCredential.user.uid);
     return userCredential.user;
   } catch (error: any) {
-    console.error('Firebase auth error:', error.code, error.message);
+    if (__DEV__) {
+      console.error('Firebase auth error:', error.code, error.message);
+    }
     // Preserve the original error code and message
     const customError = new Error(error.message);
     (customError as any).code = error.code;
@@ -51,21 +51,16 @@ export const sendPasswordResetEmail = async (email: string) => {
     await auth().sendPasswordResetEmail(email);
     return { success: true };
   } catch (error: any) {
-    let errorMessage = 'Failed to send reset email. Please try again.';
-    
-    switch (error.code) {
-      case 'auth/invalid-email':
-        errorMessage = 'The email address is not valid.';
-        break;
-      case 'auth/user-not-found':
-        errorMessage = 'No user found with this email address.';
-        break;
-      case 'auth/too-many-requests':
-        errorMessage = 'Too many requests. Please try again later.';
-        break;
+    // Use a generic message for most errors to prevent user enumeration.
+    // Only distinguish rate-limiting and clearly invalid input.
+    if (error.code === 'auth/invalid-email') {
+      throw new Error('Please enter a valid email address.');
+    } else if (error.code === 'auth/too-many-requests') {
+      throw new Error('Too many requests. Please try again later.');
     }
-    
-    throw new Error(errorMessage);
+    // For 'auth/user-not-found' and other errors, return success so the
+    // caller shows the same green toast — attackers cannot enumerate emails.
+    return { success: true };
   }
 };
 

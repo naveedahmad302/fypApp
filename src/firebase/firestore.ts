@@ -31,21 +31,19 @@ export const saveUserToFirestore = async (uid: string, email: string, fullName: 
 // Fetch user data from Firestore
 export const getUserFromFirestore = async (uid: string) => {
   try {
-    console.log('Fetching user from Firestore with UID:', uid);
     const doc = await firestore().collection('users').doc(uid).get();
     const exists = doc.exists;
-    console.log('Firestore doc exists:', exists);
     
     if (!exists) {
-      console.log('User document not found in Firestore');
       return null;
     }
     
     const userData = doc.data() as IUser;
-    console.log('User data retrieved from Firestore:', userData);
     return userData;
   } catch (error: any) {
-    console.error('Firestore error:', error);
+    if (__DEV__) {
+      console.error('Firestore error:', error);
+    }
     throw new Error(`Failed to fetch user data: ${error.message}`);
   }
 };
@@ -53,19 +51,19 @@ export const getUserFromFirestore = async (uid: string) => {
 // Create Firestore document for existing Auth user
 export const createFirestoreDocumentForAuthUser = async (uid: string, email: string, displayName?: string) => {
   try {
-    console.log('Creating Firestore document for Auth user:', uid);
     await firestore().collection('users').doc(uid).set({
       uid,
       email,
       fullName: displayName || email.split('@')[0], // Use part before @ as default name
       createdAt: firestore.FieldValue.serverTimestamp(),
     });
-    console.log('Firestore document created successfully');
     
     // Return the created user data
     return await getUserFromFirestore(uid);
   } catch (error: any) {
-    console.error('Error creating Firestore document:', error);
+    if (__DEV__) {
+      console.error('Error creating Firestore document:', error);
+    }
     throw new Error(`Failed to create user profile: ${error.message}`);
   }
 };
@@ -73,7 +71,6 @@ export const createFirestoreDocumentForAuthUser = async (uid: string, email: str
 // Update user data in Firestore
 export const updateUserInFirestore = async (uid: string, userData: Partial<IUser>) => {
   try {
-    console.log('Attempting to update user:', uid, 'with data:', userData);
     
     // Check if document exists first
     const docRef = firestore().collection('users').doc(uid);
@@ -84,9 +81,10 @@ export const updateUserInFirestore = async (uid: string, userData: Partial<IUser
     }
     
     await docRef.update(userData);
-    console.log('User data updated successfully');
   } catch (error: any) {
-    console.error('Firestore update error:', error);
+    if (__DEV__) {
+      console.error('Firestore update error:', error);
+    }
     throw new Error(error.message || 'Failed to update user data');
   }
 };

@@ -10,7 +10,6 @@ import { signIn, signInWithGoogle } from '../../firebase/auth';
 import { getUserFromFirestore, createFirestoreDocumentForAuthUser } from '../../firebase/firestore';
 import { SocialLogin } from '../../components/SocialLogin';
 import { showSuccessToast, showErrorToast, showInfoToast } from '../../utils/toast';
-import { debugAuthStatus, listAllFirestoreUsers } from '../../utils/debugAuth';
 
 const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -36,19 +35,14 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
   setIsLoading(true);
 
   try {
-    console.log('Attempting login with email:', email);
     const user = await signIn(email, password);
-    console.log('Firebase auth successful, user UID:', user.uid);
     
     // Fetch user data from Firestore
     let userData = await getUserFromFirestore(user.uid);
-    console.log('Firestore user data:', userData);
     
     // If user doesn't have Firestore document, create one
     if (!userData) {
-      console.log('Creating Firestore document for existing Auth user...');
       userData = await createFirestoreDocumentForAuthUser(user.uid, user.email || '', user.displayName || undefined);
-      console.log('Created user data:', userData);
       showSuccessToast(`Welcome back! Your profile has been created.`, 'Login Successful');
     } else {
       showSuccessToast(`Welcome back, ${userData?.fullName || user.email}`, 'Login Successful');
@@ -65,7 +59,6 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
       }
     }, 1500);
   } catch (error: any) {
-    console.log('Login error:', error.code, error.message);
     
     // Handle specific Firebase Auth errors
     if (error.code === 'auth/user-not-found') {
