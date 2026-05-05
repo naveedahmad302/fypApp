@@ -29,13 +29,25 @@ import { showSuccessToast, showErrorToast } from '../../../utils/toast';
 const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({
   navigation,
 }) => {
-  const { setAuthenticated, setUser, user } = useAuth();
+  const { setAuthenticated, setUser, user, refreshUserData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<IUser | null>(null);
 
   useEffect(() => {
     loadUserProfile();
   }, [user?.uid]);
+
+  // Refresh data when screen comes into focus (after editing profile)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (user?.uid) {
+        refreshUserData();
+        loadUserProfile();
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, user?.uid, refreshUserData]);
 
   const loadUserProfile = async () => {
     if (!user?.uid) return;
@@ -94,7 +106,7 @@ const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({
                 )}
               </View>
               <Text className="text-2xl font-radio-canada font-bold text-gray-900 mb-1">
-                {userData?.fullName || user?.name || 'User'}
+                {userData?.fullName || user?.fullName || 'User'}
               </Text>
               <Text className="text-gray-500 font-radio-canada mb-1">
                 {userData?.email || user?.email || ''}
