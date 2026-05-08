@@ -38,6 +38,20 @@ def get_db() -> Generator[sqlite3.Connection, None, None]:
         conn.close()
 
 
+def get_db_health() -> None:
+    """Cheap connectivity check used by ``/readyz``.
+
+    Opens a connection, runs a trivial read against the assessments
+    table (which is exercised on every assessment write), and closes.
+    Raises if the database file is missing, unreadable, or schema-less.
+    """
+    with get_db() as conn:
+        # ``EXPLAIN`` parses the query without executing it; combined with
+        # the ``LIMIT 0`` clause it forces SQLite to confirm the table
+        # and column actually exist without scanning rows.
+        conn.execute("SELECT user_id FROM assessments LIMIT 0").fetchall()
+
+
 def init_db() -> None:
     """Initialize database tables."""
     with get_db() as conn:

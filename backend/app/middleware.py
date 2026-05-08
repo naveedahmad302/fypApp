@@ -132,26 +132,49 @@ class ErrorEnvelopeMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+        from .logging_config import (
+            bind_request_id,
+            bind_route,
+            bind_user_id,
+            reset_request_id,
+            reset_route,
+            reset_user_id,
+        )
+
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
+        # Bind correlation id + route on the contextvars so every log
+        # line emitted while handling this request includes them.
+        rid_token = bind_request_id(request_id)
+        route_token = bind_route(f"{request.method} {request.url.path}")
+        # Reset user_id at request start; auth dep will set it once the
+        # token is verified.
+        uid_token = bind_user_id(None)
         try:
-            response = await call_next(request)
-        except Exception as exc:  # pragma: no cover - exercised by tests
-            settings = get_settings()
-            logger.exception("Unhandled error in request %s: %s", request_id, exc)
-            payload = {
-                "error": {
-                    "code": "internal_error",
-                    "message": "Internal server error.",
-                    "request_id": request_id,
+            try:
+                response = await call_next(request)
+            except Exception as exc:  # pragma: no cover - exercised by tests
+                settings = get_settings()
+                logger.exception(
+                    "Unhandled error in request %s: %s", request_id, exc
+                )
+                payload = {
+                    "error": {
+                        "code": "internal_error",
+                        "message": "Internal server error.",
+                        "request_id": request_id,
+                    }
                 }
-            }
-            if settings.expose_internal_errors:
-                payload["error"]["debug"] = str(exc)
-            return JSONResponse(status_code=500, content=payload)
+                if settings.expose_internal_errors:
+                    payload["error"]["debug"] = str(exc)
+                return JSONResponse(status_code=500, content=payload)
 
-        response.headers.setdefault("X-Request-ID", request_id)
-        return response
+            response.headers.setdefault("X-Request-ID", request_id)
+            return response
+        finally:
+            reset_user_id(uid_token)
+            reset_route(route_token)
+            reset_request_id(rid_token)
 
 
 # ---------------------------------------------------------------------------
