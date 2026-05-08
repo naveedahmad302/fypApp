@@ -128,9 +128,43 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);
         """)
 
-        # --- Lightweight column migrations for the upgraded speech analyzer.
+        # --- Lightweight column migrations.
         # SQLite can't "ADD COLUMN IF NOT EXISTS", so we try each and ignore
         # the error raised when the column already exists.
+        #
+        # Soft-delete + ownership-audit columns. We never DELETE rows from
+        # `assessments` or `reports` once an authenticated user has touched
+        # them; instead we stamp `deleted_at` so the data remains available
+        # for audit, regulatory recovery, and accidental-delete undo, but
+        # is invisible to ordinary owner-scoped queries (which all filter
+        # `WHERE deleted_at IS NULL`).
+        _audit_migrations = [
+            "ALTER TABLE assessments ADD COLUMN deleted_at TEXT",
+            "ALTER TABLE reports ADD COLUMN deleted_at TEXT",
+            "ALTER TABLE reports ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'))",
+        ]
+        for stmt in _audit_migrations:
+            try:
+                conn.execute(stmt)
+            except sqlite3.OperationalError:
+                # Column already exists — safe to ignore.
+                pass
+
+        # Composite index for the most common owner-scoped query path:
+        #   SELECT ... FROM assessments WHERE user_id=? AND deleted_at IS NULL
+        # ORDER BY created_at DESC.
+        try:
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_assessments_owner_active "
+                "ON assessments(user_id, deleted_at, created_at)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_reports_owner_active "
+                "ON reports(user_id, deleted_at, created_at)"
+            )
+        except sqlite3.OperationalError:
+            pass
+
         _speech_migrations = [
             "ALTER TABLE speech_results ADD COLUMN features_json TEXT",
             "ALTER TABLE speech_results ADD COLUMN behavioral_flags_json TEXT",

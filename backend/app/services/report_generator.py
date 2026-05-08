@@ -284,10 +284,17 @@ def generate_report(request: GenerateReportRequest) -> ReportResponse:
 
 
 def get_user_report(user_id: str) -> ReportResponse | None:
-    """Get the latest report for a user."""
+    """Get the latest live report for a user.
+
+    Soft-deleted reports (``deleted_at IS NOT NULL``) are skipped — they
+    remain in the table for audit but are invisible to ordinary owner
+    queries.
+    """
     with get_db() as conn:
         row = conn.execute(
-            "SELECT * FROM reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 1",
+            "SELECT * FROM reports "
+            "WHERE user_id = ? AND deleted_at IS NULL "
+            "ORDER BY created_at DESC LIMIT 1",
             (user_id,),
         ).fetchone()
 

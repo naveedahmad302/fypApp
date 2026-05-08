@@ -10,7 +10,6 @@ import { signIn, signInWithGoogle } from '../../firebase/auth';
 import { getUserFromFirestore, createFirestoreDocumentForAuthUser } from '../../firebase/firestore';
 import { SocialLogin } from '../../components/SocialLogin';
 import { showSuccessToast, showErrorToast, showInfoToast } from '../../utils/toast';
-import { debugAuthStatus, listAllFirestoreUsers } from '../../utils/debugAuth';
 
 const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }) => {
   const [email, setEmail] = useState('');
