@@ -1,9 +1,13 @@
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
-// Configure Google Sign-In
+import { GOOGLE_WEB_CLIENT_ID } from '../config/env';
+
+// Configure Google Sign-In. The web-client ID is sourced from
+// `src/config/env.ts` so it can be swapped per environment without
+// code changes — see `src/config/runtime.local.example.ts`.
 GoogleSignin.configure({
-  webClientId: '996258236172-49328nk2f3vhe9ejufq125mis22b18n4.apps.googleusercontent.com', 
+  webClientId: GOOGLE_WEB_CLIENT_ID,
   offlineAccess: true,
 });
 

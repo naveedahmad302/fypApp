@@ -11,15 +11,17 @@ import { signIn, signInWithGoogle } from '../firebase/auth';
 import { getUserFromFirestore, saveUserToFirestore } from '../firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { showSuccessToast, showErrorToast } from '../utils/toast';
+import { GOOGLE_WEB_CLIENT_ID } from '../config/env';
 
 export const SocialLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { setAuthenticated, setUser } = useAuth();
 
-  // Configure Google Sign-In
+  // Configure Google Sign-In. The web-client ID is sourced from
+  // `src/config/env.ts`; see `runtime.local.example.ts` for overrides.
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: '996258236172-49328nk2f3vhe9ejufq125mis22b18n4.apps.googleusercontent.com',
+      webClientId: GOOGLE_WEB_CLIENT_ID,
       offlineAccess: true,
     });
   }, []);

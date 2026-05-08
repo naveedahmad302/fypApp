@@ -44,7 +44,9 @@ const ReportScreen: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchReport(user?.uid ?? 'anonymous');
+      // The owning UID is derived from the verified Firebase ID token
+      // by the backend — see src/services/api.ts for header injection.
+      const data = await fetchReport();
       setReport(data);
     } catch (err) {
       console.error('Failed to load report:', err);

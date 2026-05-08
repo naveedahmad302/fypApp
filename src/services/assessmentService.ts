@@ -2,6 +2,11 @@
  * Assessment API service — wraps all backend endpoints for the three
  * ASD detection modules (eye tracking, speech analysis, MCQ) plus
  * report generation and history retrieval.
+ *
+ * Auth: every protected endpoint receives an `Authorization: Bearer
+ * <id-token>` header automatically via `request()`. Request bodies no
+ * longer carry a `user_id` field — the backend trusts only the
+ * verified UID from the ID token.
  */
 
 import { request } from './api';
@@ -20,7 +25,8 @@ export interface FrameMetadata {
 }
 
 export interface EyeTrackingRequest {
-  user_id: string;
+  /** @deprecated Ignored by the backend. The owning UID is taken from the verified ID token. */
+  user_id?: string;
   frames_base64: string[];
   frame_metadata?: FrameMetadata[];
 }
@@ -75,7 +81,8 @@ export interface EyeTrackingResponse {
 // --- Speech Analysis ---
 
 export interface SpeechAnalysisRequest {
-  user_id: string;
+  /** @deprecated Ignored by the backend. The owning UID is taken from the verified ID token. */
+  user_id?: string;
   audio_base64: string;
   audio_format: string;
 }
@@ -140,7 +147,8 @@ export interface MCQAnswer {
 }
 
 export interface MCQAssessmentRequest {
-  user_id: string;
+  /** @deprecated Ignored by the backend. The owning UID is taken from the verified ID token. */
+  user_id?: string;
   answers: MCQAnswer[];
 }
 
@@ -179,7 +187,8 @@ export interface MCQQuestionsResponse {
 // --- Report ---
 
 export interface GenerateReportRequest {
-  user_id: string;
+  /** @deprecated Overwritten by the backend with the verified UID from the ID token. */
+  user_id?: string;
   eye_tracking_assessment_id?: string;
   speech_assessment_id?: string;
   mcq_assessment_id?: string;
@@ -272,19 +281,21 @@ export function generateReport(
   });
 }
 
-/** Get the latest report for a user. */
-export function fetchReport(userId: string): Promise<ReportResponse> {
-  return request<ReportResponse>(`/api/assessment/report/${userId}`);
+/** Get the latest report for the *currently authenticated* user.
+ *
+ * The user-id is derived from the ID token; the legacy
+ * `/report/{user_id}` path is no longer called from the client.
+ */
+export function fetchReport(): Promise<ReportResponse> {
+  return request<ReportResponse>('/api/assessment/report');
 }
 
-/** Get assessment history for a user. */
-export function fetchAssessmentHistory(
-  userId: string,
-): Promise<UserAssessmentHistory> {
-  return request<UserAssessmentHistory>(`/api/assessment/history/${userId}`);
+/** Get assessment history for the currently authenticated user. */
+export function fetchAssessmentHistory(): Promise<UserAssessmentHistory> {
+  return request<UserAssessmentHistory>('/api/assessment/history');
 }
 
 /** Health check — useful to verify connectivity before starting an assessment. */
 export function healthCheck(): Promise<{ status: string }> {
-  return request<{ status: string }>('/healthz');
+  return request<{ status: string }>('/healthz', { skipAuth: true });
 }
