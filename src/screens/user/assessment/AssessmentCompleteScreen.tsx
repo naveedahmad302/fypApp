@@ -34,8 +34,9 @@ const AssessmentCompleteScreen: React.FC<AssessmentCompleteScreenProps> = ({ nav
       setIsGenerating(true);
       setError(null);
 
+      // user_id is no longer sent: the backend uses the verified UID
+      // from the Authorization bearer token (see src/services/api.ts).
       await generateReport({
-        user_id: user?.uid ?? 'anonymous',
         eye_tracking_assessment_id: eyeTrackingAssessmentId ?? undefined,
         speech_assessment_id: speechAssessmentId ?? undefined,
         mcq_assessment_id: mcqAssessmentId ?? undefined,

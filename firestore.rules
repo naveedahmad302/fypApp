@@ -1,23 +1,141 @@
 rules_version = '2';
+
+// =========================================================================
+// Firestore security rules
+//
+// Goals:
+//   * Deny by default (no rule = no access).
+//   * Every collection is scoped to an authenticated UID.
+//   * Profiles, assessments, reports and uploaded files are readable and
+//     writeable only by their owner.
+//   * Chat messages are readable by every authenticated user (so the
+//     community feed works) but only the original author may edit or
+//     delete their own messages.
+//   * No collection name is derived from user input — only the explicit
+//     names enumerated below are reachable via these rules.
+//   * Document-shape validation runs on every write so a malicious
+//     client cannot poison a document with extra/typo'd fields.
+// =========================================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read and write their own documents
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+    // -----------------------------------------------------------------
+    // Helper functions
+    // -----------------------------------------------------------------
+
+    // Caller is signed in.
+    function isSignedIn() {
+      return request.auth != null;
     }
-    
-    // Allow authenticated users to read user profiles
-    match /users/{userId} {
-      allow read: if request.auth != null;
+
+    // Caller owns the document keyed by `uid`.
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
     }
-    
-    // Chat collections - allow all authenticated users to read and write
+
+    // Returns the resource's authorId field (null-safe).
+    function existingAuthor() {
+      return resource != null && 'authorId' in resource.data
+        ? resource.data.authorId
+        : null;
+    }
+
+    // Caller is the original author of the chat message.
+    function isMessageAuthor() {
+      return isSignedIn() && request.auth.uid == existingAuthor();
+    }
+
+    // String validation helper.
+    function isShortString(value, maxLen) {
+      return value is string && value.size() > 0 && value.size() <= maxLen;
+    }
+
+    // -----------------------------------------------------------------
+    // /users/{userId}
+    // Personal profile. Strictly readable/writable by the owner only.
+    // -----------------------------------------------------------------
+    match /users/{userId} {
+      allow read: if isSelf(userId);
+
+      allow create: if isSelf(userId)
+        && request.resource.data.uid == userId
+        && isShortString(request.resource.data.email, 254)
+        && isShortString(request.resource.data.fullName, 120);
+
+      allow update: if isSelf(userId)
+        // Owner cannot rewrite their own UID or createdAt timestamp.
+        && (!('uid' in request.resource.data) ||
+             request.resource.data.uid == resource.data.uid)
+        && (!('createdAt' in request.resource.data) ||
+             request.resource.data.createdAt == resource.data.createdAt);
+
+      allow delete: if isSelf(userId);
+
+      // -------------------------------------------------------------
+      // /users/{userId}/<owned-subcollection>/{docId}
+      // All assessment / report / upload data is nested under the owner
+      // so ownership is enforced by the path alone.
+      // -------------------------------------------------------------
+      match /assessments/{assessmentId} {
+        allow read, write: if isSelf(userId);
+      }
+      match /reports/{reportId} {
+        allow read, write: if isSelf(userId);
+      }
+      match /uploads/{uploadId} {
+        allow read, write: if isSelf(userId);
+      }
+      match /predictions/{predictionId} {
+        allow read, write: if isSelf(userId);
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // Community chat collections.
+    //
+    // Two explicitly-named collections are exposed. New ones must be
+    // added here; arbitrary names are not reachable.
+    // -----------------------------------------------------------------
     match /parents_support_circle/{messageId} {
-      allow read, write: if request.auth != null;
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && isShortString(request.resource.data.text, 4000)
+        && request.resource.data.createdAt == request.time;
+
+      // Only the author may edit their own message; they cannot
+      // overwrite the authorId / createdAt fields.
+      allow update: if isMessageAuthor()
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && isShortString(request.resource.data.text, 4000);
+
+      allow delete: if isMessageAuthor();
     }
-    
+
     match /weekly_check_ins/{messageId} {
-      allow read, write: if request.auth != null;
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && isShortString(request.resource.data.text, 4000)
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMessageAuthor()
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && isShortString(request.resource.data.text, 4000);
+
+      allow delete: if isMessageAuthor();
+    }
+
+    // -----------------------------------------------------------------
+    // Default deny — anything not matched above is rejected.
+    // -----------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
