@@ -84,6 +84,15 @@ METADATA_CANDIDATES = (
     "metadata.json",
     "model_metadata.json",
 )
+# Per-feature mean/std of the MediaPipe-derived input distribution.
+# Built once via ``backend/scripts/build_mediapipe_stats.py`` and used by
+# ``preprocess_matrix(mode="domain_adapt")`` to rescale MediaPipe inputs
+# into the trained-eye-tracker space before the trained scaler is
+# applied. Optional — without it, ``domain_adapt`` falls back to
+# ``online_standardize``.
+MEDIAPIPE_STATS_CANDIDATES = (
+    "mediapipe_stats.npz",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -166,20 +175,44 @@ DEFAULT_ADAPTER_CONFIG = AdapterConfig()
 # How to bring a per-frame 14-vector into the value range the trained
 # model expects.
 #
-# - "trained_scaler"     Apply the saved StandardScaler. This is correct
-#                        when inputs come from the same hardware
-#                        eye-tracker that produced the training data.
+# - "trained_scaler"     Apply the saved StandardScaler. Correct when
+#                        inputs come from the same hardware eye-tracker
+#                        that produced the training data. Saturates if
+#                        you feed it MediaPipe values directly.
 # - "online_standardize" Standardise per-batch using the batch's own
-#                        mean/std. Best when inputs are MediaPipe
-#                        approximations whose absolute scale differs
-#                        from the eye-tracker training distribution.
+#                        mean/std. Workaround for MediaPipe approximations
+#                        when no domain-adapt stats are available — keeps
+#                        the model responsive but its decision boundary is
+#                        no longer calibrated.
+# - "domain_adapt"       Per-feature affine map from the MediaPipe input
+#                        distribution to the trained-eye-tracker space,
+#                        followed by the trained scaler. Recovers the
+#                        trained decision boundary on MediaPipe inputs.
+#                        Requires ``mediapipe_stats.npz`` next to the
+#                        model weights; falls back to online_standardize
+#                        if missing.
 # - "none"               Feed raw values straight in (debug only).
 #
-# Default = "online_standardize" because this backend is fed by webcam
-# MediaPipe approximations, NOT a real eye-tracker. See README.
-PreprocessingMode = Literal["trained_scaler", "online_standardize", "none"]
+# Default = "domain_adapt" because:
+#   1. mediapipe_stats.npz now ships with the model artefacts, so the
+#      mode works out of the box on a fresh clone.
+#   2. It uses the trained decision boundary instead of a per-batch
+#      z-score, which is what the user actually wants when they ask
+#      "is the trained model active?".
+#   3. If the stats file is ever absent, it degrades to
+#      online_standardize automatically — no hard failure.
+PreprocessingMode = Literal[
+    "trained_scaler", "online_standardize", "domain_adapt", "none"
+]
 
-DEFAULT_PREPROCESSING_MODE: PreprocessingMode = "online_standardize"
+DEFAULT_PREPROCESSING_MODE: PreprocessingMode = "domain_adapt"
+
+_VALID_PREPROCESSING_MODES: tuple[str, ...] = (
+    "trained_scaler",
+    "online_standardize",
+    "domain_adapt",
+    "none",
+)
 
 
 def get_preprocessing_mode() -> PreprocessingMode:
@@ -187,7 +220,7 @@ def get_preprocessing_mode() -> PreprocessingMode:
     raw = os.environ.get(
         "EYE_TRACKING_PREPROC", DEFAULT_PREPROCESSING_MODE
     ).strip().lower()
-    if raw not in ("trained_scaler", "online_standardize", "none"):
+    if raw not in _VALID_PREPROCESSING_MODES:
         logger.warning(
             "Unknown EYE_TRACKING_PREPROC=%r; falling back to %r",
             raw,

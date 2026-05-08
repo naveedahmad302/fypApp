@@ -26,6 +26,7 @@ from .keras_mlp import (  # noqa: F401
 from .model_runner import (  # noqa: F401
     InferenceResult,
     LoadedModel,
+    MediaPipeStats,
     ModelArtefactMissing,
     load_model,
     preprocess_matrix,

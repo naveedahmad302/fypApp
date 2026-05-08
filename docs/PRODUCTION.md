@@ -84,6 +84,7 @@ header so HSTS is set on https responses only. Set
 | 5.2 | Concurrency cap (`ASD_INFERENCE_MAX_CONCURRENT`, default 4) | ✅ | PR #6 |
 | 5.3 | 504 returned on deadline; 503 + `Retry-After` on overload | ✅ | PR #6 |
 | 5.4 | Out-of-distribution feature rows filtered before model.run() | ✅ | PR #9 |
+| 5.4a | MediaPipe → trained-distribution domain adaptation (`EYE_TRACKING_PREPROC=domain_adapt`) | ✅ | PR-G |
 | 5.5 | Trained-model artefact pinned in repo with `metadata.json` (label encoder + class index) | ✅ | PR #2 |
 | 5.6 | NumPy-only forward pass — no TensorFlow / PyTorch in the runtime image | ✅ | PR #2 |
 | 5.7 | Subprocess hard-cancel for inference | 🔵 | known follow-up |
@@ -153,10 +154,13 @@ Run these from a clean machine after every release tag:
 ## 10. Known follow-ups (not blockers)
 
 - Subprocess-based hard-cancel for inference (5.7).
-- Retrain the eye-tracking model on MediaPipe-derived feature vectors so
-  `EYE_TRACKING_PREPROC=trained_scaler` can be used without OOD
-  saturation. The `online_standardize` mode currently in use is a
-  workaround.
+- Retrain the eye-tracking model directly on MediaPipe-derived feature
+  vectors using the original labels. PR-G (`EYE_TRACKING_PREPROC=domain_adapt`)
+  bridges the trained eye-tracker decision boundary to the MediaPipe
+  input distribution at inference time — the model's calibration on
+  webcam data is therefore as good as the affine map. Retraining
+  natively on MediaPipe vectors removes the bridge and would tighten
+  decision-boundary calibration further.
 - M-CHAT-R/F + AQ-10 questionnaire upgrade for the MCQ module.
 - ASDSpeech-trained classifier for the speech module.
 - Sentry / GCP Error Reporting wiring (6.6).
