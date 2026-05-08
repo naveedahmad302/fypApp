@@ -39,6 +39,7 @@ from .config import (
     MODEL_CANDIDATES,
     SCALER_CANDIDATES,
 )
+from .keras_mlp import KerasMlpEstimator, load_weights
 from .validation import (
     FeatureValidationError,
     validate_feature_matrix,
@@ -75,7 +76,15 @@ def _first_existing(root: Path, candidates: tuple[str, ...]) -> Optional[Path]:
 
 
 def _load_serialised(path: Path) -> Any:
-    """Load a joblib or pickle file. Tries joblib first, then pickle."""
+    """Load a joblib, pickle, or numpy weights file.
+
+    * ``.npz`` → wrapped as a :class:`KerasMlpEstimator` (pure-NumPy
+      forward pass for the trained Keras MLP).
+    * ``.joblib`` / ``.pkl`` → tries joblib first, falls back to pickle.
+    """
+    suffix = path.suffix.lower()
+    if suffix == ".npz":
+        return KerasMlpEstimator(load_weights(path))
     try:
         import joblib  # type: ignore[import-not-found]
 
@@ -184,28 +193,69 @@ def _safe_predict_proba(estimator: Any, X: np.ndarray) -> np.ndarray:
     )
 
 
+def preprocess_matrix(
+    model: LoadedModel,
+    feature_matrix: np.ndarray,
+    mode: str = "trained_scaler",
+) -> np.ndarray:
+    """Bring an (N, 14) raw feature matrix into the model's input space.
+
+    Modes
+    -----
+    ``"trained_scaler"``
+        Apply the saved StandardScaler if one was loaded, else pass
+        through. Use when inputs match the training distribution.
+    ``"online_standardize"``
+        Standardise each column to zero-mean, unit-std using the batch's
+        own statistics. Use when inputs are MediaPipe approximations
+        whose absolute scale differs from the training distribution.
+        With a single sample (std == 0) we fall back to the trained
+        scaler if present, else zero-fill.
+    ``"none"``
+        Pass through unchanged (debug only).
+    """
+    if mode == "none":
+        return feature_matrix
+    if mode == "online_standardize":
+        if feature_matrix.shape[0] >= 2:
+            mean = feature_matrix.mean(axis=0, keepdims=True)
+            std = feature_matrix.std(axis=0, keepdims=True)
+            std = np.where(std < 1e-9, 1.0, std)
+            return (feature_matrix - mean) / std
+        # Single sample → cannot compute meaningful batch stats.
+        if model.scaler is not None:
+            return _apply_scaler(model.scaler, feature_matrix)
+        return np.zeros_like(feature_matrix)
+    # default: trained_scaler
+    if model.scaler is not None:
+        return _apply_scaler(model.scaler, feature_matrix)
+    return feature_matrix
+
+
+def _apply_scaler(scaler: Any, X: np.ndarray) -> np.ndarray:
+    try:
+        out = np.asarray(scaler.transform(X), dtype=np.float64)
+    except Exception as exc:
+        raise FeatureValidationError(f"Scaler.transform failed: {exc}") from exc
+    if not np.isfinite(out).all():
+        raise FeatureValidationError(
+            "Scaler produced non-finite values — check the scaler matches "
+            "the training pipeline."
+        )
+    return out
+
+
 def run_inference(
     model: LoadedModel,
     feature_matrix: np.ndarray,
+    preprocessing_mode: str = "trained_scaler",
 ) -> InferenceResult:
     """Run the trained model on an (N, 14) feature matrix and aggregate."""
     cleaned = validate_feature_matrix(
         feature_matrix, feature_names=model.feature_names
     )
 
-    X = cleaned
-    if model.scaler is not None:
-        try:
-            X = np.asarray(model.scaler.transform(cleaned), dtype=np.float64)
-        except Exception as exc:
-            raise FeatureValidationError(
-                f"Scaler.transform failed: {exc}"
-            ) from exc
-        if not np.isfinite(X).all():
-            raise FeatureValidationError(
-                "Scaler produced non-finite values — check the scaler "
-                "matches the training pipeline."
-            )
+    X = preprocess_matrix(model, cleaned, mode=preprocessing_mode)
 
     probs = _safe_predict_proba(model.estimator, X)
     probs = np.clip(np.asarray(probs, dtype=np.float64), 0.0, 1.0)

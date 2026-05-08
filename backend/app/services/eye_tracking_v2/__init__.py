@@ -17,11 +17,18 @@ from .mediapipe_adapter import (  # noqa: F401
     feature_vector_dict,
     landmarks_to_feature_vector,
 )
+from .keras_mlp import (  # noqa: F401
+    KerasMlpEstimator,
+    KerasMlpWeights,
+    forward as keras_mlp_forward,
+    load_weights as load_keras_mlp_weights,
+)
 from .model_runner import (  # noqa: F401
     InferenceResult,
     LoadedModel,
     ModelArtefactMissing,
     load_model,
+    preprocess_matrix,
     run_inference,
 )
 from .pipeline import (  # noqa: F401

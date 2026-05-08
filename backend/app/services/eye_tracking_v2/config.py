@@ -62,7 +62,11 @@ _BACKEND_ROOT = Path(__file__).resolve().parents[2]  # backend/app/
 MODEL_ROOT = _BACKEND_ROOT / "models" / "eye_model_v1"
 
 # Recognised filenames inside MODEL_ROOT. The runner picks the first match.
+# .npz holds the weights of a pure-NumPy port of the trained Keras MLP
+# (see keras_mlp.py). .joblib / .pkl point at sklearn-style estimators.
 MODEL_CANDIDATES = (
+    "autism_model_weights.npz",
+    "model.npz",
     "model.joblib",
     "model.pkl",
     "eye_model.joblib",
@@ -156,6 +160,43 @@ class AdapterConfig:
 DEFAULT_ADAPTER_CONFIG = AdapterConfig()
 
 
+# ---------------------------------------------------------------------------
+# Preprocessing strategy
+# ---------------------------------------------------------------------------
+# How to bring a per-frame 14-vector into the value range the trained
+# model expects.
+#
+# - "trained_scaler"     Apply the saved StandardScaler. This is correct
+#                        when inputs come from the same hardware
+#                        eye-tracker that produced the training data.
+# - "online_standardize" Standardise per-batch using the batch's own
+#                        mean/std. Best when inputs are MediaPipe
+#                        approximations whose absolute scale differs
+#                        from the eye-tracker training distribution.
+# - "none"               Feed raw values straight in (debug only).
+#
+# Default = "online_standardize" because this backend is fed by webcam
+# MediaPipe approximations, NOT a real eye-tracker. See README.
+PreprocessingMode = Literal["trained_scaler", "online_standardize", "none"]
+
+DEFAULT_PREPROCESSING_MODE: PreprocessingMode = "online_standardize"
+
+
+def get_preprocessing_mode() -> PreprocessingMode:
+    """Return the active preprocessing mode (env: EYE_TRACKING_PREPROC)."""
+    raw = os.environ.get(
+        "EYE_TRACKING_PREPROC", DEFAULT_PREPROCESSING_MODE
+    ).strip().lower()
+    if raw not in ("trained_scaler", "online_standardize", "none"):
+        logger.warning(
+            "Unknown EYE_TRACKING_PREPROC=%r; falling back to %r",
+            raw,
+            DEFAULT_PREPROCESSING_MODE,
+        )
+        return DEFAULT_PREPROCESSING_MODE
+    return raw  # type: ignore[return-value]
+
+
 @dataclass
 class PipelineConfig:
     """Full v2 pipeline configuration."""
@@ -163,6 +204,9 @@ class PipelineConfig:
     backend: Backend = field(default_factory=get_backend)
     adapter: AdapterConfig = field(default_factory=AdapterConfig)
     model_root: Path = field(default_factory=lambda: MODEL_ROOT)
+    preprocessing: PreprocessingMode = field(
+        default_factory=get_preprocessing_mode
+    )
     # Raise vs silently fall back to legacy when the model artefact is
     # missing. Production should set fail_open=False to surface the issue.
     fail_open: bool = True
@@ -172,8 +216,9 @@ def load_pipeline_config() -> PipelineConfig:
     """Build the active pipeline configuration."""
     cfg = PipelineConfig()
     logger.info(
-        "eye_tracking_v2 config: backend=%s, model_root=%s, ipd_mm=%.1f",
+        "eye_tracking_v2 config: backend=%s preproc=%s model_root=%s ipd_mm=%.1f",
         cfg.backend,
+        cfg.preprocessing,
         cfg.model_root,
         cfg.adapter.ipd_mm,
     )

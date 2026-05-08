@@ -130,10 +130,45 @@ def check_inference(vec: np.ndarray) -> None:
     assert result.n_frames_used == 5
 
 
+def check_real_model(vec: np.ndarray) -> None:
+    """If the real artefact is present, run a probability sanity check.
+
+    Skipped silently when artefacts are missing so the smoke test still
+    runs in CI / fresh checkouts.
+    """
+    log.info("== real-model check ==")
+    from backend.app.services.eye_tracking_v2 import (
+        load_model,
+        run_inference,
+    )
+    from backend.app.services.eye_tracking_v2.config import MODEL_ROOT
+
+    try:
+        model = load_model(MODEL_ROOT)
+    except FileNotFoundError as exc:
+        log.info("skipped (artefact missing): %s", exc)
+        return
+
+    log.info("loaded %s", model.artefact_path.name)
+    # Build a 5-frame batch with slight per-frame variation.
+    batch = np.tile(vec, (5, 1)).astype(np.float64)
+    batch[:, 6] += np.linspace(-2.0, 2.0, 5)  # nudge pupil_right_x_px
+
+    online = run_inference(model, batch, preprocessing_mode="online_standardize")
+    log.info(
+        "online_standardize: P(ASD)=%.3f confidence=%.3f n=%d",
+        online.asd_probability,
+        online.confidence,
+        online.n_frames_used,
+    )
+    assert 0.0 <= online.asd_probability <= 1.0
+
+
 def main() -> int:
     vec = check_adapter()
     check_validation(vec)
     check_inference(vec)
+    check_real_model(vec)
     log.info("all v2 smoke checks passed")
     return 0
 

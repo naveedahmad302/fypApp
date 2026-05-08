@@ -322,7 +322,9 @@ def analyze_eye_tracking_v2(
         # ----------------------------------------------------------------
         # 3. Run inference + persist the row.
         # ----------------------------------------------------------------
-        inference = run_inference(model, feature_matrix)
+        inference = run_inference(
+            model, feature_matrix, preprocessing_mode=cfg.preprocessing
+        )
         logger.info(
             "eye_tracking_v2: inference probability=%.3f confidence=%.3f "
             "n_frames=%d",
