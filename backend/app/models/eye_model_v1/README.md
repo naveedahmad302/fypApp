@@ -114,8 +114,7 @@ inputs.
 |---|---|
 | `EYE_TRACKING_BACKEND=new_model` (default) | Use the trained MLP. Falls back to legacy MediaPipe behavioural pipeline if any artefact is missing. |
 | `EYE_TRACKING_BACKEND=legacy_mediapipe` | Force the original 8-dimensional behavioural pipeline. |
-| `EYE_TRACKING_PREPROC=domain_adapt_self` (default since PR-I) | Per-session "self" calibration: `mp_mean / mp_std` come from the current batch, then the trained scaler. Implicit per-user calibration with no UI step. |
-| `EYE_TRACKING_PREPROC=domain_adapt` | Same affine but using the global `mediapipe_stats.npz`. |
+| `EYE_TRACKING_PREPROC=domain_adapt` (default) | MediaPipe → trained-distribution affine + trained scaler. |
 | `EYE_TRACKING_PREPROC=online_standardize` | Per-batch z-score (legacy workaround for MediaPipe inputs). |
 | `EYE_TRACKING_PREPROC=trained_scaler` | Apply the saved StandardScaler directly (real eye-tracker hardware only). |
 | `EYE_TRACKING_PREPROC=none` | Pass raw values straight to the MLP (debug only). |

@@ -262,38 +262,18 @@ back to the global stats rather than crashing.
 
 ---
 
-## 6. Preprocessing modes (PR-G + PR-H + PR-I)
+## 6. Preprocessing modes (PR-G + PR-H)
 
-`EYE_TRACKING_PREPROC` env var — default `domain_adapt_self` (PR-I):
+`EYE_TRACKING_PREPROC` env var — three modes, default `domain_adapt`:
 
 | Mode | Transform applied to (N, 14) before estimator |
 |------|------------------------------------------------|
 | `trained_scaler`     | `(x − scaler.mean_) / scaler.scale_` directly. Saturates because scaler was fit on hardware-eye-tracker data, not MediaPipe. Kept as a baseline / for reproducibility. |
 | `online_standardize` | Per-batch z-score (own mean/std). Always responsive but uses the model's decision boundary on a different distribution than training. |
-| `domain_adapt`       | Affine `(x − mp_mean) / mp_std × trained_std + trained_mean` then trained_scaler, where `mp_mean / mp_std` come from the global `mediapipe_stats.npz` artefact. PR-H's saved per-user profile (§5) overrides the global stats when present. |
-| `domain_adapt_self`  | Same composition as `domain_adapt`, but `mp_mean / mp_std` are computed **from the current session itself**. Implicit per-user calibration with no UI step. **Default since PR-I.** Falls back to `domain_adapt` for batches < 2 frames; falls back to `online_standardize` if `scaler.pkl` is absent. |
+| `domain_adapt`       | Affine `(x − mp_mean) / mp_std × trained_std + trained_mean` then trained_scaler. With calibration (§5) the `mp_mean / mp_std` come from the user, not the global stats. **Default since PR-G; calibration-enhanced since PR-H.** |
 
-### Why `domain_adapt_self` is the default
-
-The target audience for this screening flow is 4–9 yr olds, who
-cannot follow a multi-step calibration UI. `domain_adapt_self`
-computes the per-user shift+scale from the same camera capture used
-for prediction, which means every session is implicitly calibrated
-against its own input distribution before the trained decision
-boundary is applied — no extra UI step, no kid cooperation required.
-
-Mathematically this is "online_standardize that respects the trained
-decision boundary":
-
-```
-z       = (x − x.mean(0)) / x.std(0)         # per-batch z
-aligned = z × scaler.scale_ + scaler.mean_   # rescale to trained
-result  = scaler.transform(aligned)          # then trained scaler
-```
-
-The composition recovers the trained-distribution geometry and leaves
-the model's decision boundary meaningful while removing the bias from
-the global synthetic stats.
+Falls back to `online_standardize` (with a warning) if
+`mediapipe_stats.npz` is missing.
 
 ---
 
@@ -351,7 +331,6 @@ size) so the frontend can plot the actual numbers fed to the model.
 | `test_calibration_profile.py`                     | §5 — profile build, schema round-trip, model swap |
 | `test_calibration_endpoint.py`                    | §5 — POST/GET/DELETE, auth isolation, validation |
 | `test_domain_adapt_preprocessing.py` (PR-G)       | §6 — domain_adapt vs trained_scaler vs online_standardize |
-| `test_domain_adapt_self.py` (PR-I)                | §6 — domain_adapt_self z-score property, invariance, fallbacks |
 | `test_eye_tracking_v2_*.py`                       | §1 §2 §7 — adapter, validator, model runner |
 
 Run all backend tests with `cd backend && poetry run pytest`.
