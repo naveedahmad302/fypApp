@@ -24,7 +24,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
 logger = logging.getLogger("eye_tracking_v2.config")
 
@@ -164,6 +164,39 @@ class AdapterConfig:
     # below this are dropped.
     min_face_detection_confidence: float = 0.5
     min_face_presence_confidence: float = 0.5
+
+    # ------------------------------------------------------------------
+    # Monocular depth photogrammetry (PR-H)
+    # ------------------------------------------------------------------
+    # Mean horizontal iris diameter across the human population in mm.
+    # Anatomical literature pegs this at 11.7 ± 0.5 mm, with very low
+    # inter-individual variation — small enough that we can use it as a
+    # known reference length for monocular depth estimation. We use it
+    # to derive Z (mm) from the iris diameter measured in pixels:
+    #
+    #     Z_mm  =  focal_length_px  *  iris_diameter_mm  /  iris_diameter_px
+    #
+    # This replaces the earlier "scale MediaPipe's relative-depth
+    # channel by IPD-derived mm/unit" which produced a near-zero,
+    # near-constant Z that the trained model never learned anything
+    # useful from.
+    iris_diameter_mm: float = 11.7
+
+    # Effective focal length of the user's camera in pixels, derived by
+    # the adapter at runtime from the input frame width when this is
+    # ``None``. The default heuristic ``focal_px = frame_width`` is
+    # close enough to typical phone front-cameras (~70° HFOV ⇒ focal_px
+    # ≈ 0.71 × frame_w) and laptop webcams (~60° HFOV ⇒ focal_px ≈ 0.87
+    # × frame_w) for the depth estimate to land in the right regime
+    # (300–1200 mm). Set explicitly when the device is known.
+    focal_length_px: Optional[float] = None
+
+    # Depth values outside this window are treated as sensor noise (face
+    # too close/far, iris occluded, MediaPipe degenerate). Generous
+    # margins so legitimate phone/tablet usage at 200–700 mm always
+    # validates while still rejecting pathological frames.
+    depth_min_mm: float = 100.0
+    depth_max_mm: float = 1500.0
 
 
 DEFAULT_ADAPTER_CONFIG = AdapterConfig()

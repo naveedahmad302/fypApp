@@ -21,21 +21,30 @@ gaze coordinates). We don't have a hardware tracker — we approximate each
 of the 14 inputs from a single RGB webcam frame using MediaPipe Face Mesh
 + Iris landmarks. The mapping is:
 
-* **Eye Position (X, Y, Z) mm** — the 3-D centre of each eye in
-  camera-centric coordinates, in millimetres. MediaPipe returns 3-D
-  landmarks in a normalised, *unitless* scale (x, y in [0, 1] of the
-  image, z in roughly the same scale). We convert to millimetres by
-  measuring the inter-pupillary distance (IPD) in normalised units and
-  scaling so it equals ``ipd_mm`` (default 63 mm; tuneable in
-  ``AdapterConfig``).
+* **Eye Position X, Y (mm)** — the 2-D centre of each eye in
+  camera-centric coordinates, in millimetres. We anchor the unitless →
+  mm scaling using the **inter-pupillary distance** (IPD): we measure
+  the iris-to-iris distance in MediaPipe's normalised landmark space
+  and scale so that distance equals ``ipd_mm`` (default 63 mm).
+* **Eye Position Z (mm)** — depth from camera plane, computed by
+  **monocular iris-size photogrammetry** (PR-H). The horizontal iris
+  diameter is biologically very stable (≈ 11.7 mm), so given an
+  estimate of the camera's effective focal length in pixels we recover
+
+      Z_mm  =  focal_length_px  ×  iris_diameter_mm  /  iris_diameter_px
+
+  This is a real metric Z. It replaces the previous strategy of
+  scaling MediaPipe's unitless relative-depth channel by the IPD
+  factor, which produced a near-zero, near-constant Z that the
+  trained model never used productively.
 * **Pupil Position (X, Y) px** — the iris centre projected to image
   pixel coordinates (multiplying normalised landmark coords by the
   frame width / height).
 * **Point of Regard (X, Y) px** — the estimated screen-pixel location
   the user is looking at, computed by extrapolating the pupil offset
   relative to the eye centre, scaled by ``por_gain_*`` and re-mapped
-  onto the assumed screen resolution. This is approximate: without
-  per-user calibration we cannot achieve hardware-tracker accuracy.
+  onto the assumed screen resolution. This is approximate; per-user
+  calibration (PR-H, see ``calibration.py``) tightens it.
 
 Anatomical convention
 ---------------------
@@ -49,12 +58,13 @@ iris, 473–477 are the user's right iris). We map carefully:
 
 Limitations
 -----------
-* No per-user calibration — Point of Regard is approximate.
-* The screen resolution baked into ``AdapterConfig`` is a default; if
-  the model expects a different resolution, override at call time.
-* Z (depth) for eye position is derived from MediaPipe's relative depth
-  channel, which is not metric. We scale it by the same IPD-derived
-  factor — it is consistent across frames but not absolutely accurate.
+* Point of Regard is approximate without per-user calibration.
+* Default focal length is heuristic (≈ frame width); accuracy improves
+  when the frontend supplies the device's actual focal length in
+  ``AdapterConfig.focal_length_px``.
+* Iris-size depth assumes the iris is fully visible. Heavy squinting or
+  partial occlusion produces an unreliable Z; the validator's range
+  bounds catch the worst offenders before they reach the model.
 """
 
 from __future__ import annotations
@@ -164,8 +174,8 @@ def landmarks_to_feature_vector(
     left_centre_norm = _midpoint(left_outer_norm, left_inner_norm)
 
     # ------------------------------------------------------------------
-    # Step 2. Determine the unitless → millimetre scaling factor using
-    # the assumed inter-pupillary distance.
+    # Step 2. Determine the unitless → millimetre scaling factor for the
+    # X / Y axes using the assumed inter-pupillary distance.
     # ------------------------------------------------------------------
     ipd_norm = _norm_distance(right_iris_norm, left_iris_norm)
     if ipd_norm < 1e-6:
@@ -177,15 +187,62 @@ def landmarks_to_feature_vector(
         return None
     mm_per_unit = config.ipd_mm / ipd_norm
 
-    def _to_mm(p_norm: tuple[float, float, float]) -> tuple[float, float, float]:
-        return (
-            p_norm[0] * mm_per_unit,
-            p_norm[1] * mm_per_unit,
-            p_norm[2] * mm_per_unit,
-        )
+    # ------------------------------------------------------------------
+    # Step 2a. Monocular depth via iris-size photogrammetry (PR-H).
+    #
+    # We measure the on-screen iris diameter in pixels (max pairwise
+    # distance among the 5 iris landmarks projected to image space)
+    # and recover absolute Z in mm given the camera's focal length:
+    #
+    #     Z_mm  =  focal_px  ×  iris_diameter_mm  /  iris_diameter_px
+    #
+    # Each eye gets its own Z (they differ slightly under head yaw, and
+    # the trained model expects per-eye Z). Frames where either iris is
+    # too small / occluded fall outside ``[depth_min_mm, depth_max_mm]``
+    # and get clamped — the row will be dropped by the validator's
+    # range guard if the clamp pegs it at a bound.
+    # ------------------------------------------------------------------
+    focal_px = config.focal_length_px or float(frame_w)
 
-    right_eye_mm = _to_mm(right_centre_norm)
-    left_eye_mm = _to_mm(left_centre_norm)
+    def _iris_diameter_px(iris_indices: Sequence[int]) -> float:
+        """Maximum pairwise distance among iris landmarks in image px."""
+        pts_px = np.asarray(
+            [
+                (landmarks[i].x * frame_w, landmarks[i].y * frame_h)
+                for i in iris_indices
+            ],
+            dtype=np.float64,
+        )
+        d2 = np.sum(
+            (pts_px[:, None, :] - pts_px[None, :, :]) ** 2, axis=-1
+        )
+        return float(math.sqrt(d2.max()))
+
+    right_iris_px = _iris_diameter_px(RIGHT_IRIS)
+    left_iris_px = _iris_diameter_px(LEFT_IRIS)
+    if right_iris_px < 1.0 or left_iris_px < 1.0:
+        logger.debug(
+            "frame %d: degenerate iris diameter (right=%.2f, left=%.2f)",
+            frame_index, right_iris_px, left_iris_px,
+        )
+        return None
+
+    right_z_mm = (focal_px * config.iris_diameter_mm) / right_iris_px
+    left_z_mm = (focal_px * config.iris_diameter_mm) / left_iris_px
+    right_z_mm = float(np.clip(right_z_mm, config.depth_min_mm, config.depth_max_mm))
+    left_z_mm = float(np.clip(left_z_mm, config.depth_min_mm, config.depth_max_mm))
+
+    # X, Y in mm via the IPD scaling; Z is the photogrammetry result.
+    right_eye_mm = (
+        right_centre_norm[0] * mm_per_unit,
+        right_centre_norm[1] * mm_per_unit,
+        right_z_mm,
+    )
+    left_eye_mm = (
+        left_centre_norm[0] * mm_per_unit,
+        left_centre_norm[1] * mm_per_unit,
+        left_z_mm,
+    )
 
     # ------------------------------------------------------------------
     # Step 3. Pupil position in image pixel coordinates.

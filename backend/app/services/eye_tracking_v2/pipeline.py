@@ -35,6 +35,7 @@ from ...schemas.assessment import (
     FrameAnalysisLog,
     GazeMetrics,
 )
+from .calibration import apply_calibration_to_loaded_model
 from .config import (
     FEATURE_ORDER,
     PipelineConfig,
@@ -49,6 +50,10 @@ from .model_runner import (
     ModelArtefactMissing,
     load_model,
     run_inference,
+)
+from .smoothing import (
+    DEFAULT_SMOOTHING_CONFIG,
+    apply_temporal_stabilisation,
 )
 from .validation import FeatureValidationError
 
@@ -364,6 +369,23 @@ def analyze_eye_tracking_v2(
             len(frames_base64),
         )
 
+        # ----------------------------------------------------------------
+        # 1a. Temporal stabilisation: blink / outlier rejection + EMA
+        # smoothing across frames. This runs BEFORE preprocessing so
+        # the trained scaler / domain_adapt sees a noise-reduced signal.
+        # See ``smoothing.py`` for the algorithm and parameters.
+        # ----------------------------------------------------------------
+        if n_used > 0:
+            feature_matrix, smoothing_stats = apply_temporal_stabilisation(
+                feature_matrix, DEFAULT_SMOOTHING_CONFIG
+            )
+            logger.info(
+                "eye_tracking_v2: smoothing dropped=%d/%d alpha=%.2f",
+                smoothing_stats["n_dropped"],
+                smoothing_stats["n_in"],
+                smoothing_stats["alpha"],
+            )
+
         if n_used == 0:
             with get_db() as conn:
                 conn.execute(
@@ -403,6 +425,26 @@ def analyze_eye_tracking_v2(
                 frame_metadata=frame_metadata,
                 assessment_id=assessment_id,
             )
+
+        # ----------------------------------------------------------------
+        # 2a. Apply this user's calibration profile (PR-H) when present.
+        # Replaces the model's global ``mediapipe_stats`` with the user's
+        # personally-fitted mean/std, so domain_adapt's affine map is
+        # tuned to the actual user behind the camera. No-op when no
+        # profile exists for this user.
+        # ----------------------------------------------------------------
+        try:
+            from ..calibration_store import load_profile
+
+            user_profile = load_profile(user_id)
+        except Exception:  # pragma: no cover - defensive
+            logger.exception(
+                "eye_tracking_v2: calibration lookup failed for user=%s; "
+                "continuing with global stats",
+                user_id,
+            )
+            user_profile = None
+        model = apply_calibration_to_loaded_model(model, user_profile)
 
         # ----------------------------------------------------------------
         # 3. Run inference + persist the row.
