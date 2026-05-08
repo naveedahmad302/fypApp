@@ -15,6 +15,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from ..auth import require_auth_uid
 from ..config import get_settings
 from ..database import get_db
+from ..inference_runner import run_with_timeout
+from ..rate_limit import rate_limited_user_id
 from ..schemas.assessment import (
     EyeTrackingRequest,
     EyeTrackingResponse,
@@ -33,6 +35,7 @@ from ..services.eye_tracking import analyze_eye_tracking
 from ..services.mcq_assessment import assess_mcq
 from ..services.report_generator import generate_report, get_user_report
 from ..services.speech_analysis import analyze_speech
+from ..upload_validation import validate_audio_upload, validate_image_frames
 
 
 logger = logging.getLogger(__name__)
@@ -88,16 +91,20 @@ def _enforce_payload_caps_mcq(request: MCQAssessmentRequest) -> None:
 
 
 def _assert_assessment_owned(assessment_id: str, user_id: str) -> None:
-    """Raise 404 if ``assessment_id`` is not owned by ``user_id``.
+    """Raise 404 if ``assessment_id`` is not owned and live for ``user_id``.
 
     We deliberately return 404 (not 403) so that an attacker cannot
-    enumerate assessment IDs belonging to other users.
+    enumerate assessment IDs belonging to other users. Soft-deleted
+    rows are treated as not-existing for ownership purposes — the
+    audit trail remains in the table but ordinary requests cannot
+    interact with the row.
     """
     if not assessment_id:
         return
     with get_db() as conn:
         row = conn.execute(
-            "SELECT user_id FROM assessments WHERE id = ?",
+            "SELECT user_id FROM assessments "
+            "WHERE id = ? AND deleted_at IS NULL",
             (assessment_id,),
         ).fetchone()
     if row is None or row["user_id"] != user_id:
@@ -115,7 +122,7 @@ def _assert_assessment_owned(assessment_id: str, user_id: str) -> None:
 @router.post("/eye-tracking", response_model=EyeTrackingResponse)
 def eye_tracking_analysis(
     request: EyeTrackingRequest,
-    current_user_id: str = Depends(require_auth_uid),
+    current_user_id: str = Depends(rate_limited_user_id("heavy")),
 ) -> EyeTrackingResponse:
     """Analyze eye tracking data from camera frames.
 
@@ -123,13 +130,18 @@ def eye_tracking_analysis(
     ``user_id`` field present in the request body is ignored.
     """
     _enforce_payload_caps_eye(request)
+    # Verify each frame is actually a JPEG/PNG. Rejects payloads that
+    # are merely *named* image but contain something else.
+    validate_image_frames(request.frames_base64)
 
     frame_meta = None
     if request.frame_metadata:
         frame_meta = [fm.model_dump() for fm in request.frame_metadata]
 
     try:
-        return analyze_eye_tracking(
+        return run_with_timeout(
+            "eye_tracking",
+            analyze_eye_tracking,
             user_id=current_user_id,
             frames_base64=request.frames_base64,
             frame_metadata=frame_meta,
@@ -152,16 +164,24 @@ def eye_tracking_analysis(
 @router.post("/speech", response_model=SpeechAnalysisResponse)
 def speech_analysis(
     request: SpeechAnalysisRequest,
-    current_user_id: str = Depends(require_auth_uid),
+    current_user_id: str = Depends(rate_limited_user_id("heavy")),
 ) -> SpeechAnalysisResponse:
     """Analyze speech patterns from audio recording."""
     _enforce_payload_caps_speech(request)
+    # Magic-byte verification overrides whatever extension the client
+    # claims; downstream code uses the canonical format we return.
+    canonical_format = validate_audio_upload(
+        request.audio_base64,
+        request.audio_format,
+    )
 
     try:
-        return analyze_speech(
+        return run_with_timeout(
+            "speech",
+            analyze_speech,
             user_id=current_user_id,
             audio_base64=request.audio_base64,
-            audio_format=request.audio_format,
+            audio_format=canonical_format,
         )
     except HTTPException:
         raise
@@ -181,7 +201,7 @@ def speech_analysis(
 @router.post("/mcq", response_model=MCQAssessmentResponse)
 def mcq_assessment(
     request: MCQAssessmentRequest,
-    current_user_id: str = Depends(require_auth_uid),
+    current_user_id: str = Depends(rate_limited_user_id("light")),
 ) -> MCQAssessmentResponse:
     """Score MCQ behavioral questionnaire responses."""
     _enforce_payload_caps_mcq(request)
@@ -234,7 +254,7 @@ def generate_assessment_report(
     safe_request = request.model_copy(update={"user_id": current_user_id})
 
     try:
-        return generate_report(safe_request)
+        return run_with_timeout("report_generate", generate_report, safe_request)
     except HTTPException:
         raise
     except Exception:
@@ -290,6 +310,30 @@ def get_assessment_history_for_current_user(
     return _load_history(current_user_id)
 
 
+@router.delete("/{assessment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def soft_delete_assessment(
+    assessment_id: str,
+    current_user_id: str = Depends(require_auth_uid),
+) -> None:
+    """Soft-delete an assessment owned by the caller.
+
+    The row stays in the database with `deleted_at` populated so the
+    audit trail remains intact, but every owner-scoped query filters
+    soft-deleted rows out, so the data is effectively invisible to the
+    user. We deliberately reject the request with 404 if the row is
+    not owned (or is already soft-deleted) so an attacker cannot
+    distinguish "doesn't exist" from "belongs to someone else".
+    """
+    _assert_assessment_owned(assessment_id, current_user_id)
+    with get_db() as conn:
+        conn.execute(
+            "UPDATE assessments "
+            "SET deleted_at = datetime('now'), updated_at = datetime('now') "
+            "WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            (assessment_id, current_user_id),
+        )
+
+
 @router.get("/history/{user_id}", response_model=UserAssessmentHistory, deprecated=True)
 def get_assessment_history_legacy(
     user_id: str,
@@ -307,7 +351,8 @@ def _load_history(user_id: str) -> UserAssessmentHistory:
     with get_db() as conn:
         rows = conn.execute(
             "SELECT id, type, status, created_at FROM assessments "
-            "WHERE user_id = ? ORDER BY created_at DESC",
+            "WHERE user_id = ? AND deleted_at IS NULL "
+            "ORDER BY created_at DESC",
             (user_id,),
         ).fetchall()
 

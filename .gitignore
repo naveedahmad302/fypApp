@@ -97,3 +97,9 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .ruff_cache/
+
+# Firestore emulator tests
+firestore-tests/node_modules/
+firestore-tests/.emulator-data/
+firestore-tests/firestore-debug.log
+firestore-tests/firebase-debug.log

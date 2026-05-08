@@ -22,9 +22,11 @@ import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .config import get_settings
-from .database import init_db
+from .database import init_db, get_db_health
+from .logging_config import setup_logging
 from .middleware import (
     ErrorEnvelopeMiddleware,
     MaxBodySizeMiddleware,
@@ -38,12 +40,10 @@ from .routers.assessment import router as assessment_router
 _settings = get_settings()
 
 
-# Configure root logging. Structured/JSON logging is added in a follow-up
-# PR; here we just centralise the level and format.
-logging.basicConfig(
-    level=getattr(logging, _settings.log_level.upper(), logging.INFO),
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-)
+# Install structured logging immediately, before any other module emits
+# its first log line. Format is JSON in production, text in development
+# (override with ``ASD_LOG_FORMAT=json|text``).
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -133,9 +133,52 @@ async def healthz() -> dict:
 
 @app.get("/readyz")
 async def readyz() -> dict:
-    """Readiness probe — verifies dependencies are reachable."""
-    # SQLite is local-fs so a successful init_db() at startup is enough.
-    return {"status": "ready"}
+    """Readiness probe — verifies dependencies are reachable.
+
+    The probe runs cheap, side-effect-free checks against:
+
+    * **SQLite** — opens a connection and runs ``PRAGMA integrity_check``
+      against the soft-delete columns added in PR-B.
+    * **Firebase Admin** — confirms the verifier is initialised and the
+      service account is loadable (only meaningful in non-test mode).
+
+    Returns 503 if any check fails so Kubernetes / Cloud Run pull the
+    pod out of rotation rather than serving requests it can't actually
+    fulfil.
+    """
+    settings = get_settings()
+    checks: dict[str, str] = {}
+
+    # SQLite — fast (~1ms) read against the assessments table.
+    try:
+        get_db_health()
+        checks["sqlite"] = "ok"
+    except Exception as exc:  # pragma: no cover - exercised by tests
+        logger.error("readyz: sqlite check failed: %s", exc)
+        checks["sqlite"] = f"error: {exc.__class__.__name__}"
+
+    # Firebase Admin — skip in test mode (we use stub tokens, no SDK).
+    if settings.auth_test_mode:
+        checks["firebase_admin"] = "skipped (test mode)"
+    else:
+        try:
+            # Lazy import — module-level import would force credential
+            # validation at server start.
+            from .auth import _ensure_firebase_initialised
+
+            _ensure_firebase_initialised()
+            checks["firebase_admin"] = "ok"
+        except Exception as exc:  # pragma: no cover
+            logger.error("readyz: firebase admin check failed: %s", exc)
+            checks["firebase_admin"] = f"error: {exc.__class__.__name__}"
+
+    is_ok = all(value == "ok" or value.startswith("skipped") for value in checks.values())
+    if not is_ok:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "not_ready", "checks": checks},
+        )
+    return {"status": "ready", "checks": checks}
 
 
 @app.get("/")

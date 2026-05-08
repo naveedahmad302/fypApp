@@ -114,11 +114,63 @@ class Settings(BaseSettings):
         description="Max number of answers per /mcq request (defensive ceiling).",
     )
 
+    # --- Rate limiting ----------------------------------------------------
+    # Per-user limits on heavy ML endpoints. The limiter is in-process and
+    # keyed by the verified Firebase UID (so one logged-in client cannot
+    # consume another user's budget by stealing tokens — the auth layer
+    # already prevents that). For multi-instance deployments a Redis-backed
+    # limiter is the next step (out of scope for this PR).
+    rate_limit_enabled: bool = Field(
+        True,
+        description="Master switch for per-UID rate limiting.",
+    )
+    # Heavy-inference budget — applies to /eye-tracking, /speech, /report/generate.
+    rate_limit_heavy_per_minute: int = Field(
+        12,
+        description="Heavy-inference requests per minute per user.",
+    )
+    rate_limit_heavy_per_hour: int = Field(
+        120,
+        description="Heavy-inference requests per hour per user.",
+    )
+    # Light-inference budget — /mcq, /history, /report (read).
+    rate_limit_light_per_minute: int = Field(
+        60,
+        description="Light requests per minute per user.",
+    )
+    rate_limit_light_per_hour: int = Field(
+        600,
+        description="Light requests per hour per user.",
+    )
+
+    # --- Inference runtime caps ------------------------------------------
+    # Hard wall-clock timeout per inference call. If exceeded the API
+    # returns 504 instead of holding the connection open forever.
+    inference_timeout_seconds: float = Field(
+        45.0,
+        description="Max seconds an ML inference call may run before 504.",
+    )
+    # Cap concurrent inference jobs so a flood of slow requests cannot
+    # exhaust the FastAPI thread pool. New requests above this count
+    # return 503 with a Retry-After hint.
+    inference_max_concurrent: int = Field(
+        4,
+        description="Max simultaneous ML inferences in flight on this process.",
+    )
+
     # --- Logging ----------------------------------------------------------
     log_level: str = Field("INFO", description="Root log level.")
     log_redact_payloads: bool = Field(
         True,
         description="If true, never log raw request bodies.",
+    )
+    log_format: str = Field(
+        "auto",
+        description=(
+            "Log output format: 'json' (one structured object per line, "
+            "preferred for log aggregators), 'text' (human-readable), or "
+            "'auto' which picks json in production and text otherwise."
+        ),
     )
 
     # ---------------------------------------------------------------------
@@ -156,6 +208,16 @@ class Settings(BaseSettings):
     def expose_internal_errors(self) -> bool:
         """Whether to leak exception messages to the client."""
         return self.env != "production"
+
+    @property
+    def resolved_log_format(self) -> str:
+        """Resolve ``log_format=auto`` to a concrete format."""
+        choice = (self.log_format or "auto").lower()
+        if choice == "auto":
+            return "json" if self.is_production else "text"
+        if choice not in ("json", "text"):
+            return "json" if self.is_production else "text"
+        return choice
 
 
 @lru_cache(maxsize=1)
