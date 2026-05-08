@@ -1,0 +1,644 @@
+@UTF8
+@PID:	11312/a-00005255-1
+@Begin
+@Languages:	eng
+@Participants:	FAT Father, CHI Child
+@ID:	eng|Nadig|FAT||male|||Father|||
+@ID:	eng|Nadig|CHI|1;11.05|male|TYP||Child||133|
+@L1 of CHI:	eng
+@L1 of FAT:	eng
+@Bg
+@Types:	cross, toyplay, ASD
+*FAT:	can you see the &-uh what is it ?
+%mor:	aux|can-Fin-S pron|you-Prs-Nom-S2 verb|see-Inf-S det|the-Def-Art pron|what-Int-S1 aux|be-Fin-Ind-Pres-S3 pron|it-Prs-Nom-S3 ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|5|DET 5|3|OBJ 6|7|COP 7|3|CCOMP 8|3|PUNCT
+*FAT:	xxx toes .
+%mor:	noun|toe-Plur .
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	tickle xxx .
+%mor:	verb|tickle-Fin-Imp-S .
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	&~tick &~tick .
+*FAT:	ah she's gonna tickle Billy too ?
+%mor:	intj|ah pron|she-Prs-Nom-S3~aux|be-Fin-Ind-Pres-S3 verb|go-Part-Pres-S~part|to verb|tickle-Inf-S propn|Billy-Acc adv|too ?
+%gra:	1|4|DISCOURSE 2|4|NSUBJ 3|4|AUX 4|0|ROOT 5|6|MARK 6|4|XCOMP 7|6|OBJ 8|6|ADVMOD 9|4|PUNCT
+*FAT:	&~tick &~tick &~tick &~tick &~tick &~tick &~tick &~tick &~tick &~tick &~tick &~tick .
+*FAT:	<come back> [/] come back .
+%mor:	verb|come-Fin-Imp-S adv|back .
+%gra:	1|0|ROOT 2|1|ADVMOD 3|1|PUNCT
+*CHI:	&=grunts .
+*FAT:	yes , come here .
+%mor:	intj|yes cm|cm verb|come-Fin-Imp-S adv|here .
+%gra:	1|3|DISCOURSE 2|1|PUNCT 3|0|ROOT 4|3|ADVMOD 5|3|PUNCT
+*FAT:	what about the , can you brush her hair ?
+%mor:	pron|what-Int-S1 adp|about det|the-Def-Art cm|cm aux|can-Fin-S pron|you-Prs-Nom-S2 verb|brush-Inf-S pron|her-Prs-Gen-S3 noun|hair-Acc ?
+%gra:	1|7|OBJ 2|3|CASE 3|1|OBL 4|3|PUNCT 5|7|AUX 6|7|NSUBJ 7|0|ROOT 8|9|NMOD-POSS 9|7|OBJ 10|7|PUNCT
+*FAT:	can you brush her hair ?
+%mor:	aux|can-Fin-S pron|you-Prs-Nom-S2 verb|brush-Inf-S pron|her-Prs-Gen-S3 noun|hair-Acc ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|5|NMOD-POSS 5|3|OBJ 6|3|PUNCT
+*FAT:	brush her hair ?
+%mor:	verb|brush-Fin-Imp-S pron|her-Prs-Gen-S3 noun|hair-Acc ?
+%gra:	1|0|ROOT 2|3|NMOD-POSS 3|1|OBJ 4|1|PUNCT
+*FAT:	good , brush her hair .
+%mor:	adj|good-S1 cm|cm verb|brush-Fin-Imp-S pron|her-Prs-Gen-S3 noun|hair-Acc .
+%gra:	1|0|ROOT 2|3|PUNCT 3|1|PARATAXIS 4|5|NMOD-POSS 5|3|OBJ 6|1|PUNCT
+*FAT:	or you wanna brush the front ?
+%mor:	cconj|or pron|you-Prs-Nom-S2 verb|want-Fin-Ind-Pres-S2~part|to verb|brush-Inf-S det|the-Def-Art noun|front-Acc ?
+%gra:	1|3|CC 2|3|NSUBJ 3|0|ROOT 4|5|MARK 5|3|XCOMP 6|7|DET 7|5|OBJ 8|3|PUNCT
+*FAT:	how (a)bout brush Billy's hair ?
+%mor:	adv|how adp|about verb|brush-Inf-S propn|Billy~part|s noun|hair-Acc ?
+%gra:	1|0|ROOT 2|3|MARK 3|1|ACL 4|6|NMOD-POSS 5|4|CASE 6|3|OBJ 7|1|PUNCT
+*FAT:	can you brush your hair ?
+%mor:	aux|can-Fin-S pron|you-Prs-Nom-S2 verb|brush-Inf-S pron|your-Prs-Gen-S2 noun|hair-Acc ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|5|NMOD-POSS 5|3|OBJ 6|3|PUNCT
+*FAT:	there you go .
+%mor:	pron|there-Dem-S1 pron|you-Prs-Nom-S2 verb|go-Fin-Ind-Pres-S2 .
+%gra:	1|3|EXPL 2|3|NSUBJ 3|0|ROOT 4|3|PUNCT
+*FAT:	see look xxx brush her hair .
+%mor:	verb|see-Fin-Imp-S noun|look-Acc verb|brush-Fin-Imp-S pron|her-Prs-Gen-S3 noun|hair-Acc .
+%gra:	1|0|ROOT 2|1|OBJ 3|1|XCOMP 4|5|NMOD-POSS 5|3|OBJ 6|1|PUNCT
+*CHI:	&=laughs .
+*FAT:	what do you see ?
+%mor:	pron|what-Int-S1 aux|do-Fin-Ind-Pres-S2 pron|you-Prs-Nom-S2 verb|see-Inf-S ?
+%gra:	1|4|OBJ 2|4|AUX 3|4|NSUBJ 4|0|ROOT 5|4|PUNCT
+*CHI:	&~de &=laughs .
+*FAT:	haha cool .
+%mor:	intj|haha adj|cool-S1 .
+%gra:	1|2|DISCOURSE 2|0|ROOT 3|2|PUNCT
+*FAT:	is he gonna sleep <&~kr &~shoo> [/] &~kr &~shoo .
+%mor:	aux|be-Fin-Ind-Pres-S3 pron|he-Prs-Nom-S3 verb|go-Part-Pres-S~part|to verb|sleep-Inf-S .
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|5|MARK 5|3|XCOMP 6|3|PUNCT
+*CHI:	&=laughs .
+*FAT:	&=laughs &~kr &~shoo she only has one eye that closes ?
+%mor:	pron|she-Prs-Nom-S3 adv|only verb|have-Fin-Ind-Pres-S3 num|one noun|eye-Acc pron|that-Rel verb|close-Fin-Ind-Pres-S3 ?
+%gra:	1|3|NSUBJ 2|3|ADVMOD 3|0|ROOT 4|5|NUMMOD 5|3|OBJ 6|7|NSUBJ 7|5|ACL-RELCL 8|3|PUNCT
+*FAT:	&~kr &~shoo she go to sleep ?
+%mor:	pron|she-Prs-Nom-S3 verb|go-Fin-Ind-Pres-S3 adp|to noun|sleep ?
+%gra:	1|2|NSUBJ 2|0|ROOT 3|4|CASE 4|2|OBL 5|2|PUNCT
+*CHI:	0 .
+%com:	child hit baby .
+*FAT:	no [/] no [/] no [/] no hitting .
+%mor:	det|no-Def-Neg noun|hit-Ger .
+%gra:	1|2|DET 2|0|ROOT 3|2|PUNCT
+*FAT:	&~kr &~shoo okay there you go .
+%mor:	intj|okay adv|there pron|you-Prs-Nom-S2 verb|go-Fin-Ind-Pres-S2 .
+%gra:	1|2|DISCOURSE 2|4|ADVMOD 3|4|NSUBJ 4|0|ROOT 5|4|PUNCT
+*FAT:	brush her hair .
+%mor:	verb|brush-Fin-Imp-S pron|her-Prs-Gen-S3 noun|hair-Acc .
+%gra:	1|0|ROOT 2|3|NMOD-POSS 3|1|OBJ 4|1|PUNCT
+*FAT:	but easy [/] easy [/] easy .
+%mor:	cconj|but adj|easy-S1 .
+%gra:	1|2|CC 2|0|ROOT 3|2|PUNCT
+*FAT:	what's that ?
+%mor:	pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 pron|that-Dem ?
+%gra:	1|0|ROOT 2|3|COP 3|1|NSUBJ 4|1|PUNCT
+*FAT:	what's this ?
+%mor:	pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 pron|this-Dem-S1 ?
+%gra:	1|0|ROOT 2|3|COP 3|1|NSUBJ 4|1|PUNCT
+*FAT:	Billy what's this ?
+%mor:	propn|Billy pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 pron|this-Dem-S1 ?
+%gra:	1|0|ROOT 2|1|OBJ 3|4|COP 4|1|PARATAXIS 5|1|PUNCT
+*FAT:	look &~wh what's this ?
+%mor:	verb|look-Fin-Imp-S pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 pron|this-Dem-S1 ?
+%gra:	1|0|ROOT 2|1|OBJ 3|4|COP 4|2|ACL-RELCL 5|1|PUNCT
+*FAT:	what's this ?
+%mor:	pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 pron|this-Dem-S1 ?
+%gra:	1|0|ROOT 2|3|COP 3|1|NSUBJ 4|1|PUNCT
+*CHI:	&~nah .
+*FAT:	that's her nose ?
+%mor:	pron|that-Dem~aux|be-Fin-Ind-Pres-S3 pron|her-Prs-Gen-S3 noun|nose ?
+%gra:	1|4|NSUBJ 2|4|COP 3|4|NMOD-POSS 4|0|ROOT 5|4|PUNCT
+*FAT:	that's her nose ?
+%mor:	pron|that-Dem~aux|be-Fin-Ind-Pres-S3 pron|her-Prs-Gen-S3 noun|nose ?
+%gra:	1|4|NSUBJ 2|4|COP 3|4|NMOD-POSS 4|0|ROOT 5|4|PUNCT
+*FAT:	where's Billy's nose ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 propn|Billy~part|s noun|nose ?
+%gra:	1|0|ROOT 2|1|COP 3|5|NMOD-POSS 4|3|CASE 5|1|NSUBJ 6|1|PUNCT
+*FAT:	where's [/] where's your nose ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 pron|your-Prs-Gen-S2 noun|nose ?
+%gra:	1|0|ROOT 2|1|COP 3|4|NMOD-POSS 4|1|NSUBJ 5|1|PUNCT
+*CHI:	0 .
+%com:	child points to his own nose .
+*FAT:	where's your mouth ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 pron|your-Prs-Gen-S2 noun|mouth ?
+%gra:	1|0|ROOT 2|1|COP 3|4|NMOD-POSS 4|1|NSUBJ 5|1|PUNCT
+*CHI:	0 .
+%com:	child pointing to his own mouth .
+*FAT:	where's her mouth ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 pron|her-Prs-Gen-S3 noun|mouth ?
+%gra:	1|0|ROOT 2|1|COP 3|4|NMOD-POSS 4|1|NSUBJ 5|1|PUNCT
+*FAT:	where's the doll's mouth ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 det|the-Def-Art noun|doll~part|s noun|mouth ?
+%gra:	1|0|ROOT 2|1|COP 3|4|DET 4|6|NMOD-POSS 5|4|CASE 6|1|NSUBJ 7|1|PUNCT
+*FAT:	the little girl's mouth ?
+%mor:	det|the-Def-Art adj|little-S1 noun|girl~part|s noun|mouth ?
+%gra:	1|3|DET 2|3|AMOD 3|5|NMOD-POSS 4|3|CASE 5|0|ROOT 6|5|PUNCT
+*FAT:	where's her mouth ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 pron|her-Prs-Gen-S3 noun|mouth ?
+%gra:	1|0|ROOT 2|1|COP 3|4|NMOD-POSS 4|1|NSUBJ 5|1|PUNCT
+*CHI:	0 .
+%com:	child points to doll's mouth .
+*FAT:	that's right .
+%mor:	pron|that-Dem~aux|be-Fin-Ind-Pres-S3 adj|right-S1 .
+%gra:	1|3|NSUBJ 2|3|COP 3|0|ROOT 4|3|PUNCT
+*FAT:	does she have ears ?
+%mor:	aux|do-Fin-Ind-Pres-S3 pron|she-Prs-Nom-S3 verb|have-Inf-S noun|ear-Plur-Acc ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|3|PUNCT
+*CHI:	0 .
+%com:	child touches doll's ears .
+*FAT:	the other ear ?
+%mor:	det|the-Def-Art adj|other-S1 noun|ear ?
+%gra:	1|3|DET 2|3|AMOD 3|0|ROOT 4|3|PUNCT
+*CHI:	0 .
+%com:	child touches the other ear .
+*FAT:	where (a)r(e) your ears ?
+%mor:	adv|where aux|be-Fin-Ind-Pres-P3 pron|your-Prs-Gen-S2 noun|ear-Plur ?
+%gra:	1|0|ROOT 2|1|COP 3|4|NMOD-POSS 4|1|NSUBJ 5|1|PUNCT
+*FAT:	where's Billy's ears ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 propn|Billy~part|s noun|ear-Plur ?
+%gra:	1|0|ROOT 2|1|COP 3|5|NMOD-POSS 4|3|CASE 5|1|NSUBJ 6|1|PUNCT
+*CHI:	0 .
+%com:	child touches both of his own ears .
+*FAT:	&~oop you have two ears !
+%mor:	pron|you-Prs-Nom-S2 verb|have-Fin-Ind-Pres-S2 num|two noun|ear-Plur-Acc !
+%gra:	1|2|NSUBJ 2|0|ROOT 3|4|NUMMOD 4|2|OBJ 5|2|PUNCT
+*FAT:	you have both of them look at that .
+%mor:	pron|you-Prs-Nom-S2 verb|have-Fin-Ind-Pres-S2 det|both-Def-Tot adp|of pron|they-Prs-Acc-P3 verb|look-Inf-S adp|at pron|that-Dem .
+%gra:	1|2|NSUBJ 2|0|ROOT 3|2|OBJ 4|5|CASE 5|3|NMOD 6|2|XCOMP 7|8|CASE 8|6|OBL 9|2|PUNCT
+*FAT:	what about her hair .
+%mor:	pron|what-Int-S1 adp|about pron|her-Prs-Gen-S3 noun|hair .
+%gra:	1|0|ROOT 2|4|CASE 3|4|NMOD-POSS 4|1|NMOD 5|1|PUNCT
+*FAT:	does she have hair ?
+%mor:	aux|do-Fin-Ind-Pres-S3 pron|she-Prs-Nom-S3 verb|have-Inf-S noun|hair-Acc ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|3|PUNCT
+*CHI:	0 .
+%com:	child touches doll's hair .
+*FAT:	where's your hair ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 pron|your-Prs-Gen-S2 noun|hair ?
+%gra:	1|0|ROOT 2|1|COP 3|4|NMOD-POSS 4|1|NSUBJ 5|1|PUNCT
+*FAT:	where's your hair ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 pron|your-Prs-Gen-S2 noun|hair ?
+%gra:	1|0|ROOT 2|1|COP 3|4|NMOD-POSS 4|1|NSUBJ 5|1|PUNCT
+*CHI:	&~eh &~nuh .
+*FAT:	no ?
+%mor:	intj|no ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	well what about some of the other toys .
+%mor:	intj|well pron|what-Int-S1 adp|about det|some-Def-Ind adp|of det|the-Def-Art adj|other-S1 noun|toy-Plur .
+%gra:	1|2|DISCOURSE 2|0|ROOT 3|4|CASE 4|2|NMOD 5|8|CASE 6|8|DET 7|8|AMOD 8|4|NMOD 9|2|PUNCT
+*FAT:	come here .
+%mor:	verb|come-Fin-Imp-S adv|here .
+%gra:	1|0|ROOT 2|1|ADVMOD 3|1|PUNCT
+*FAT:	what do we see .
+%mor:	pron|what-Int-S1 aux|do-Fin-Ind-Pres-P1 pron|we-Prs-Nom-P1 verb|see-Inf-S .
+%gra:	1|4|OBJ 2|4|AUX 3|4|NSUBJ 4|0|ROOT 5|4|PUNCT
+*FAT:	what do you see .
+%mor:	pron|what-Int-S1 aux|do-Fin-Ind-Pres-S2 pron|you-Prs-Nom-S2 verb|see-Inf-S .
+%gra:	1|4|OBJ 2|4|AUX 3|4|NSUBJ 4|0|ROOT 5|4|PUNCT
+*FAT:	come here .
+%mor:	verb|come-Fin-Imp-S adv|here .
+%gra:	1|0|ROOT 2|1|ADVMOD 3|1|PUNCT
+*FAT:	what's in bucket ?
+%mor:	pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 adp|in noun|bucket ?
+%gra:	1|4|NSUBJ 2|4|COP 3|4|CASE 4|0|ROOT 5|4|PUNCT
+*FAT:	xxx you know what this one is .
+%mor:	pron|you-Prs-Nom-S2 verb|know-Fin-Ind-Pres-S2 pron|what-Int-S1 det|this-Def-Dem-Sing noun|one aux|be-Fin-Ind-Pres-S3 .
+%gra:	1|2|NSUBJ 2|0|ROOT 3|2|OBJ 4|5|DET 5|3|NSUBJ 6|3|ACL-RELCL 7|2|PUNCT
+*FAT:	oh what's that ?
+%mor:	intj|oh pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 pron|that-Dem ?
+%gra:	1|2|DISCOURSE 2|0|ROOT 3|4|COP 4|2|NSUBJ 5|2|PUNCT
+*FAT:	horsie .
+%mor:	propn|horsie .
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	it's a phone .
+%mor:	pron|it-Prs-Nom-S3~aux|be-Fin-Ind-Pres-S3 det|a-Ind-Art noun|phone .
+%gra:	1|4|NSUBJ 2|4|COP 3|4|DET 4|0|ROOT 5|4|PUNCT
+*FAT:	is that for you ?
+%mor:	aux|be-Fin-Ind-Pres-S3 pron|that-Dem adp|for pron|you-Prs-Acc-S2 ?
+%gra:	1|4|COP 2|0|ROOT 3|4|CASE 4|2|NMOD 5|2|PUNCT
+*FAT:	hello ?
+%mor:	intj|hello ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	hello ?
+%mor:	intj|hello ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	yes , can you tell a story on the phone ?
+%mor:	intj|yes cm|cm aux|can-Fin-S pron|you-Prs-Nom-S2 verb|tell-Inf-S det|a-Ind-Art noun|story-Acc adp|on det|the-Def-Art noun|phone ?
+%gra:	1|5|DISCOURSE 2|1|PUNCT 3|5|AUX 4|5|NSUBJ 5|0|ROOT 6|7|DET 7|5|OBJ 8|10|CASE 9|10|DET 10|7|NMOD 11|5|PUNCT
+*FAT:	huh ?
+%mor:	intj|huh ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	yeah ?
+%mor:	intj|yeah ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	tell a story .
+%mor:	verb|tell-Fin-Imp-S det|a-Ind-Art noun|story-Acc .
+%gra:	1|0|ROOT 2|3|DET 3|1|OBJ 4|1|PUNCT
+*FAT:	say hello .
+%mor:	verb|say-Fin-Imp-S intj|hello .
+%gra:	1|0|ROOT 2|1|OBJ 3|1|PUNCT
+*FAT:	who's on the phone ?
+%mor:	pron|who-Int~aux|be-Fin-Ind-Pres-S3 adp|on det|the-Def-Art noun|phone ?
+%gra:	1|5|NSUBJ 2|5|COP 3|5|CASE 4|5|DET 5|0|ROOT 6|5|PUNCT
+*FAT:	is it Mommy ?
+%mor:	aux|be-Fin-Ind-Pres-S3 pron|it-Prs-Nom-S3 propn|Mommy ?
+%gra:	1|3|COP 2|3|NSUBJ 3|0|ROOT 4|3|PUNCT
+*FAT:	is Mommy on the phone ?
+%mor:	aux|be-Fin-Ind-Pres-S3 propn|Mommy adp|on det|the-Def-Art noun|phone ?
+%gra:	1|5|COP 2|5|NSUBJ 3|5|CASE 4|5|DET 5|0|ROOT 6|5|PUNCT
+*FAT:	oh , can you do your little phone ?
+%mor:	intj|oh cm|cm aux|can-Fin-S pron|you-Prs-Nom-S2 verb|do-Inf-S pron|your-Prs-Gen-S2 adj|little-S1 noun|phone-Acc ?
+%gra:	1|5|DISCOURSE 2|1|PUNCT 3|5|AUX 4|5|NSUBJ 5|0|ROOT 6|8|NMOD-POSS 7|8|AMOD 8|5|OBJ 9|5|PUNCT
+*FAT:	phone conversations ?
+%mor:	noun|phone noun|conversation-Plur ?
+%gra:	1|2|COMPOUND 2|0|ROOT 3|2|PUNCT
+*FAT:	like this .
+%mor:	adp|like pron|this-Dem-S1 .
+%gra:	1|2|CASE 2|0|ROOT 3|2|PUNCT
+*FAT:	like this &~wee &~wee &~wee &~wee &~wee &~wee &~wee .
+%mor:	adp|like pron|this-Dem-S1 .
+%gra:	1|2|CASE 2|0|ROOT 3|2|PUNCT
+*FAT:	xxx .
+*CHI:	&~nuh .
+*FAT:	what's that ?
+%mor:	pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 pron|that-Dem ?
+%gra:	1|0|ROOT 2|3|COP 3|1|NSUBJ 4|1|PUNCT
+*CHI:	&=grunts .
+*FAT:	is that a bottle ?
+%mor:	aux|be-Fin-Ind-Pres-S3 sconj|that det|a-Ind-Art noun|bottle ?
+%gra:	1|4|COP 2|4|MARK 3|4|DET 4|0|ROOT 5|4|PUNCT
+*FAT:	does the baby get the bottle ?
+%mor:	aux|do-Fin-Ind-Pres-S3 det|the-Def-Art noun|baby verb|get-Inf-S det|the-Def-Art noun|bottle-Acc ?
+%gra:	1|4|AUX 2|3|DET 3|4|NSUBJ 4|0|ROOT 5|6|DET 6|4|OBJ 7|4|PUNCT
+*FAT:	no [/] no not for you .
+%mor:	intj|no part|not adp|for pron|you-Prs-Acc-S2 .
+%gra:	1|4|DISCOURSE 2|4|ADVMOD 3|4|CASE 4|0|ROOT 5|4|PUNCT
+*FAT:	for the baby ?
+%mor:	adp|for det|the-Def-Art noun|baby ?
+%gra:	1|3|CASE 2|3|DET 3|0|ROOT 4|3|PUNCT
+*FAT:	there you go &=sips .
+%mor:	pron|there-Dem-S1 pron|you-Prs-Nom-S2 verb|go-Fin-Ind-Pres-S2 .
+%gra:	1|3|EXPL 2|3|NSUBJ 3|0|ROOT 4|3|PUNCT
+*FAT:	&=gasps what's that ?
+%mor:	pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 pron|that-Dem ?
+%gra:	1|0|ROOT 2|3|COP 3|1|NSUBJ 4|1|PUNCT
+*CHI:	0 .
+%com:	child looks in bucket and takes out a teapot .
+*CHI:	&~da !
+*FAT:	it's for , is that for [/] for drinking ?
+%mor:	pron|it-Prs-Nom-S3~aux|be-Fin-Ind-Pres-S3 adp|for cm|cm aux|be-Fin-Ind-Pres-S3 pron|that-Dem adp|for noun|drinking-Ger ?
+%gra:	1|2|NSUBJ 2|8|COP 3|8|REPARANDUM 4|3|PUNCT 5|8|COP 6|8|NSUBJ 7|8|CASE 8|0|ROOT 9|8|PUNCT
+*FAT:	oh it's a plate .
+%mor:	intj|oh pron|it-Prs-Nom-S3~aux|be-Fin-Ind-Pres-S3 det|a-Ind-Art noun|plate .
+%gra:	1|5|DISCOURSE 2|5|NSUBJ 3|5|COP 4|5|DET 5|0|ROOT 6|5|PUNCT
+*FAT:	are you putting milk on the plate ?
+%mor:	aux|be-Fin-Ind-Pres-S2 pron|you-Prs-Nom-S2 verb|put-Part-Pres-S noun|milk-Acc adp|on det|the-Def-Art noun|plate ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|7|CASE 6|7|DET 7|3|OBL 8|3|PUNCT
+*FAT:	can I have some ?
+%mor:	aux|can-Fin-S pron|I-Prs-Nom-S1 verb|have-Inf-S det|some-Def-Ind ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|3|PUNCT
+*FAT:	can I have some ?
+%mor:	aux|can-Fin-S pron|I-Prs-Nom-S1 verb|have-Inf-S det|some-Def-Ind ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|3|PUNCT
+*FAT:	&=sips Billy's turn &=sips ?
+%mor:	propn|Billy~part|s noun|turn ?
+%gra:	1|3|NMOD-POSS 2|1|CASE 3|0|ROOT 4|3|PUNCT
+*FAT:	ready &=sips ?
+%mor:	adj|ready-S1 ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	can we have some more , can we have some milk ?
+%mor:	aux|can-Fin-S pron|we-Prs-Nom-P1 verb|have-Inf-S det|some-Def-Ind adj|more-Cmp-S1 cm|cm aux|can-Fin-S pron|we-Prs-Nom-P1 verb|have-Inf-S det|some-Def-Ind noun|milk-Acc ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|5|DET 5|3|OBJ 6|9|PUNCT 7|9|AUX 8|9|NSUBJ 9|3|PARATAXIS 10|11|DET 11|9|OBJ 12|3|PUNCT
+*CHI:	0 .
+%com:	child putting bottle to spoon .
+*FAT:	oh , it's a &~oo lots of milk !
+%mor:	intj|oh cm|cm pron|it-Prs-Nom-S3~aux|be-Fin-Ind-Pres-S3 det|a-Ind-Art noun|lot-Plur adp|of noun|milk !
+%gra:	1|6|DISCOURSE 2|1|PUNCT 3|6|NSUBJ 4|6|COP 5|6|DET 6|0|ROOT 7|8|CASE 8|6|NMOD 9|6|PUNCT
+*FAT:	want some ?
+%mor:	verb|want-Fin-Imp-Pres-S det|some-Def-Ind ?
+%gra:	1|0|ROOT 2|1|OBJ 3|1|PUNCT
+*FAT:	Billy have some ?
+%mor:	propn|Billy verb|have-Fin-Ind-Pres-P3 det|some-Def-Ind ?
+%gra:	1|2|NSUBJ 2|0|ROOT 3|2|OBJ 4|2|PUNCT
+*FAT:	&=sips can Daddy have some now ?
+%mor:	aux|can-Fin-S propn|Daddy verb|have-Inf-S det|some-Def-Ind adv|now ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|3|ADVMOD 6|3|PUNCT
+*CHI:	0 .
+%com:	child putting bottle over spoon and squeezing .
+*FAT:	&=sips &=coughs &~oo xxx some more ?
+%mor:	det|some-Def-Ind adj|more-Cmp-S1 ?
+%gra:	1|2|DET 2|0|ROOT 3|2|PUNCT
+*CHI:	0 .
+%com:	child still squeezing bottle over spoon .
+*FAT:	oh , good job , .
+%mor:	intj|oh cm|cm adj|good-S1 noun|job cm|cm .
+%gra:	1|4|DISCOURSE 2|1|PUNCT 3|4|AMOD 4|0|ROOT 5|4|PUNCT 6|4|PUNCT
+*FAT:	do you want it ?
+%mor:	aux|do-Fin-Ind-Pres-S2 pron|you-Prs-Nom-S2 verb|want-Inf-S pron|it-Prs-Acc-S3 ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|3|PUNCT
+*FAT:	is it for Daddy or for Billy ?
+%mor:	aux|be-Fin-Ind-Pres-S3 pron|it-Prs-Nom-S3 adp|for propn|Daddy cconj|or adp|for propn|Billy ?
+%gra:	1|4|COP 2|4|NSUBJ 3|4|CASE 4|0|ROOT 5|7|CC 6|7|CASE 7|4|CONJ 8|4|PUNCT
+*FAT:	for Billy ?
+%mor:	adp|for propn|Billy ?
+%gra:	1|2|CASE 2|0|ROOT 3|2|PUNCT
+*FAT:	good job , &=coughs .
+%mor:	adj|good-S1 noun|job cm|cm .
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT 4|2|PUNCT
+*FAT:	oh what's this one for Daddy ?
+%mor:	intj|oh pron|what-Int-S1~aux|be-Fin-Ind-Pres-S3 det|this-Def-Dem-Sing noun|one adp|for propn|Daddy ?
+%gra:	1|2|DISCOURSE 2|0|ROOT 3|5|COP 4|5|DET 5|2|NSUBJ 6|7|CASE 7|5|NMOD 8|2|PUNCT
+*FAT:	do I get some more ?
+%mor:	aux|do-Fin-Ind-Pres-S1 pron|I-Prs-Nom-S1 verb|get-Inf-S det|some-Def-Ind adj|more-Cmp-S1 ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|5|DET 5|3|OBJ 6|3|PUNCT
+*FAT:	little bit more , squeeze !
+%mor:	adj|little-S1 noun|bit adj|more-Cmp-S1 cm|cm verb|squeeze-Fin-Imp-S !
+%gra:	1|2|AMOD 2|3|OBL-UNMARKED 3|0|ROOT 4|5|PUNCT 5|3|PARATAXIS 6|3|PUNCT
+*FAT:	&=grunts good job , ready &=sips ?
+%mor:	adj|good-S1 noun|job cm|cm adj|ready-S1 ?
+%gra:	1|2|AMOD 2|0|ROOT 3|4|PUNCT 4|2|PARATAXIS 5|2|PUNCT
+*FAT:	<how about> [/] how about can we put some milk in here ?
+%mor:	adv|how adv|about aux|can-Fin-S pron|we-Prs-Nom-P1 verb|put-Inf-S det|some-Def-Ind noun|milk-Acc adp|in adv|here ?
+%gra:	1|2|ADVMOD 2|5|ADVMOD 3|5|AUX 4|5|NSUBJ 5|0|ROOT 6|7|DET 7|5|OBJ 8|9|CASE 9|5|OBL 10|5|PUNCT
+*CHI:	0 .
+%com:	child puts spoon into cup .
+*CHI:	&~m &~m .
+*FAT:	who's that for , is that for Daddy or for Billy ?
+%mor:	pron|who-Int~aux|be-Fin-Ind-Pres-S3 pron|that-Dem adp|for cm|cm aux|be-Fin-Ind-Pres-S3 pron|that-Dem adp|for propn|Daddy cconj|or adp|for propn|Billy ?
+%gra:	1|9|NSUBJ-OUTER 2|3|COP 3|9|REPARANDUM 4|9|REPARANDUM 5|4|PUNCT 6|9|COP 7|9|NSUBJ 8|9|CASE 9|0|ROOT 10|12|CC 11|12|CASE 12|9|CONJ 13|9|PUNCT
+*FAT:	or for the baby ?
+%mor:	cconj|or adp|for det|the-Def-Art noun|baby ?
+%gra:	1|4|CC 2|4|CASE 3|4|DET 4|0|ROOT 5|4|PUNCT
+*FAT:	how about for the , &~th &~lil baby ?
+%mor:	adv|how adv|about adp|for det|the-Def-Art cm|cm noun|baby ?
+%gra:	1|2|ADVMOD 2|0|ROOT 3|4|CASE 4|2|OBL 5|6|PUNCT 6|2|OBL 7|2|PUNCT
+*FAT:	&=sips there baby's turn ?
+%mor:	pron|there-Prs-Gen-S3 noun|baby~part|s noun|turn ?
+%gra:	1|2|NMOD-POSS 2|4|NMOD-POSS 3|2|CASE 4|0|ROOT 5|4|PUNCT
+*CHI:	baby .
+%mor:	noun|baby .
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	yeah , the baby .
+%mor:	intj|yeah cm|cm det|the-Def-Art noun|baby .
+%gra:	1|4|DISCOURSE 2|1|PUNCT 3|4|DET 4|0|ROOT 5|4|PUNCT
+*FAT:	good job , you share ?
+%mor:	adj|good-S1 noun|job cm|cm pron|you-Prs-Nom-S2 verb|share-Fin-Ind-Pres-S2 ?
+%gra:	1|2|AMOD 2|0|ROOT 3|5|PUNCT 4|5|NSUBJ 5|2|PARATAXIS 6|2|PUNCT
+*FAT:	you sharing your milk with the baby ?
+%mor:	pron|you-Prs-Nom-S2 verb|share-Ger-S pron|your-Prs-Gen-S2 noun|milk-Acc adp|with det|the-Def-Art noun|baby ?
+%gra:	1|2|NSUBJ 2|0|ROOT 3|4|NMOD-POSS 4|2|OBJ 5|7|CASE 6|7|DET 7|2|OBL 8|2|PUNCT
+*FAT:	so there's two babies .
+%mor:	adv|so pron|there-Int-S1~verb|be-Fin-Ind-Pres-S3 num|two noun|baby-Plur .
+%gra:	1|3|ADVMOD 2|3|EXPL 3|0|ROOT 4|5|NUMMOD 5|3|NSUBJ 6|3|PUNCT
+*FAT:	here look .
+%mor:	adv|here verb|look-Fin-Imp-S .
+%gra:	1|0|ROOT 2|1|PARATAXIS 3|1|PUNCT
+*FAT:	share your milk with the two babies .
+%mor:	verb|share-Fin-Imp-S pron|your-Prs-Gen-S2 noun|milk-Acc adp|with det|the-Def-Art num|two noun|baby-Plur .
+%gra:	1|0|ROOT 2|3|NMOD-POSS 3|1|OBJ 4|7|CASE 5|7|DET 6|7|NUMMOD 7|1|OBL 8|1|PUNCT
+*CHI:	0 &=sips .
+%com:	child put bottle over spoon and fed one baby .
+*FAT:	good job , .
+%mor:	adj|good-S1 noun|job cm|cm .
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT 4|2|PUNCT
+*CHI:	xxx .
+*FAT:	yeah two babies ?
+%mor:	intj|yeah num|two noun|baby-Plur ?
+%gra:	1|3|DISCOURSE 2|3|NUMMOD 3|0|ROOT 4|3|PUNCT
+*FAT:	is this baby want some ?
+%mor:	aux|be-Fin-Ind-Pres-S3 det|this-Def-Dem-Sing noun|baby verb|want-Inf-S det|some-Def-Ind ?
+%gra:	1|4|AUX 2|3|DET 3|4|NSUBJ 4|0|ROOT 5|4|OBJ 6|4|PUNCT
+*CHI:	0 &=sips .
+%com:	child feeds other baby .
+*FAT:	yeah &=laughs ?
+%mor:	intj|yeah ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	what about for Billy ?
+%mor:	pron|what-Int-S1 adp|about adp|for propn|Billy ?
+%gra:	1|0|ROOT 2|1|CASE 3|4|CASE 4|1|NMOD 5|1|PUNCT
+*FAT:	does Billy get some ?
+%mor:	aux|do-Fin-Ind-Pres-S3 propn|Billy verb|get-Inf-S det|some-Def-Ind ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|3|PUNCT
+*CHI:	baba@b .
+%mor:	bab|baba .
+%gra:	1|0|DEP 2|1|PUNCT
+*FAT:	what ?
+%mor:	pron|what-Int-S1 ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	yeah two spoons .
+%mor:	intj|yeah num|two noun|spoon-Plur .
+%gra:	1|3|DISCOURSE 2|3|NUMMOD 3|0|ROOT 4|3|PUNCT
+*FAT:	you don't need two ?
+%mor:	pron|you-Prs-Nom-S2 aux|do-Fin-Ind-Pres-S2~part|not verb|need-Inf-S num|two ?
+%gra:	1|4|NSUBJ 2|4|AUX 3|4|ADVMOD 4|0|ROOT 5|4|OBJ 6|4|PUNCT
+*FAT:	oh some for Billy &=sips ?
+%mor:	intj|oh det|some-Def-Ind adp|for propn|Billy ?
+%gra:	1|2|DISCOURSE 2|0|ROOT 3|4|CASE 4|2|NMOD 5|2|PUNCT
+*FAT:	good job , .
+%mor:	adj|good-S1 noun|job cm|cm .
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT 4|2|PUNCT
+*FAT:	you gonna share ?
+%mor:	pron|you-Prs-Nom-S2 verb|go-Part-Pres-S~part|to verb|share-Inf-S ?
+%gra:	1|2|NSUBJ 2|0|ROOT 3|4|MARK 4|2|XCOMP 5|2|PUNCT
+*CHI:	&=sips .
+*FAT:	there you go .
+%mor:	pron|there-Dem-S1 pron|you-Prs-Nom-S2 verb|go-Fin-Ind-Pres-S2 .
+%gra:	1|3|EXPL 2|3|NSUBJ 3|0|ROOT 4|3|PUNCT
+*FAT:	you gonna share ?
+%mor:	pron|you-Prs-Nom-S2 verb|go-Part-Pres-S~part|to verb|share-Inf-S ?
+%gra:	1|2|NSUBJ 2|0|ROOT 3|4|MARK 4|2|XCOMP 5|2|PUNCT
+*FAT:	where you squeezing the milk ?
+%mor:	adv|where pron|you-Prs-Nom-S2 verb|squeez-Part-Pres-S det|the-Def-Art noun|milk-Acc ?
+%gra:	1|3|ADVMOD 2|3|NSUBJ 3|0|ROOT 4|5|DET 5|3|OBJ 6|3|PUNCT
+*FAT:	could put it in the spoon .
+%mor:	aux|could-Fin-S verb|put-Inf-S pron|it-Prs-Acc-S3 adp|in det|the-Def-Art noun|spoon .
+%gra:	1|2|AUX 2|0|ROOT 3|2|OBJ 4|6|CASE 5|6|DET 6|2|OBL 7|2|PUNCT
+*CHI:	&=sips .
+*FAT:	good job , .
+%mor:	adj|good-S1 noun|job cm|cm .
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT 4|2|PUNCT
+*FAT:	&~oop xxx .
+*FAT:	here xxx .
+%mor:	adv|here .
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	fill it up ?
+%mor:	verb|fill-Fin-Imp-S pron|it-Prs-Acc-S3 adp|up ?
+%gra:	1|0|ROOT 2|1|OBJ 3|1|COMPOUND-PRT 4|1|PUNCT
+*FAT:	is this one for , who's this for ?
+%mor:	aux|be-Fin-Ind-Pres-S3 det|this-Def-Dem-Sing noun|one adp|for cm|cm pron|who-Int~aux|be-Fin-Ind-Pres-S3 pron|this-Dem-S1 adp|for ?
+%gra:	1|3|COP 2|3|DET 3|0|ROOT 4|8|REPARANDUM 5|4|PUNCT 6|8|NSUBJ 7|8|COP 8|3|APPOS 9|8|PUNCT 10|3|PUNCT
+*FAT:	is this for me or you ?
+%mor:	aux|be-Fin-Ind-Pres-S3 pron|this-Dem-S1 adp|for pron|I-Prs-Acc-S1 cconj|or pron|you-Prs-Acc-S2 ?
+%gra:	1|4|COP 2|4|NSUBJ 3|4|CASE 4|0|ROOT 5|6|CC 6|4|CONJ 7|4|PUNCT
+*FAT:	hello is this for Daddy or Billy ?
+%mor:	intj|hello aux|be-Fin-Ind-Pres-S3 pron|this-Dem-S1 adp|for propn|Daddy cconj|or propn|Billy ?
+%gra:	1|3|DISCOURSE 2|1|COP 3|0|ROOT 4|5|CASE 5|3|NMOD 6|7|CC 7|5|CONJ 8|3|PUNCT
+*CHI:	0 .
+%com:	child put spoon in mouth .
+*FAT:	oh you must be hungry .
+%mor:	intj|oh pron|you-Prs-Nom-S2 aux|must-Fin-S aux|be-Inf-S adj|hungry-S1 .
+%gra:	1|5|DISCOURSE 2|5|NSUBJ 3|5|AUX 4|5|COP 5|0|ROOT 6|5|PUNCT
+*FAT:	you have lots of milk .
+%mor:	pron|you-Prs-Nom-S2 verb|have-Fin-Ind-Pres-S2 noun|lot-Plur-Acc adp|of noun|milk .
+%gra:	1|2|NSUBJ 2|0|ROOT 3|2|OBJ 4|5|CASE 5|3|NMOD 6|2|PUNCT
+*CHI:	&=grunts .
+*FAT:	xxx .
+*FAT:	&~oop hey this one , who's this one for ?
+%mor:	intj|hey det|this-Def-Dem-Sing noun|one cm|cm pron|who-Int~aux|be-Fin-Ind-Pres-S3 det|this-Def-Dem-Sing noun|one adp|for ?
+%gra:	1|3|DISCOURSE 2|3|DET 3|0|ROOT 4|8|PUNCT 5|8|NSUBJ 6|8|COP 7|8|DET 8|3|ACL-RELCL 9|8|NMOD 10|3|PUNCT
+*FAT:	this one for Billy ?
+%mor:	det|this-Def-Dem-Sing noun|one adp|for propn|Billy ?
+%gra:	1|2|DET 2|0|ROOT 3|4|CASE 4|2|NMOD 5|2|PUNCT
+*FAT:	&=gasps no [/] no oh [/] oh it's for Daddy !
+%mor:	intj|no intj|oh pron|it-Prs-Nom-S3~aux|be-Fin-Ind-Pres-S3 adp|for propn|Daddy !
+%gra:	1|6|DISCOURSE 2|6|DISCOURSE 3|6|NSUBJ 4|6|COP 5|6|CASE 6|0|ROOT 7|6|PUNCT
+*FAT:	&=sips oh I got it !
+%mor:	intj|oh pron|I-Prs-Nom-S1 verb|get-Fin-Ind-Past-S1-irr pron|it-Prs-Acc-S3 !
+%gra:	1|3|DISCOURSE 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|3|PUNCT
+*FAT:	your turn ?
+%mor:	pron|your-Prs-Gen-S2 noun|turn ?
+%gra:	1|2|NMOD-POSS 2|0|ROOT 3|2|PUNCT
+*CHI:	0 .
+%com:	child squeezes bottle on spoon and puts it in mouth .
+*FAT:	good job , &=eats .
+%mor:	adj|good-S1 noun|job cm|cm .
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT 4|2|PUNCT
+*FAT:	now how (a)bout some for babies .
+%mor:	adv|now adv|how adp|about det|some-Def-Ind adp|for noun|baby-Plur .
+%gra:	1|2|ADVMOD 2|0|ROOT 3|4|CASE 4|2|OBL 5|6|CASE 6|4|NMOD 7|2|PUNCT
+*FAT:	can you put some in for babies ?
+%mor:	aux|can-Fin-S pron|you-Prs-Nom-S2 verb|put-Inf-S det|some-Def-Ind adp|in adp|for noun|baby-Plur ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|3|COMPOUND-PRT 6|7|CASE 7|3|OBL 8|3|PUNCT
+*CHI:	0 .
+%com:	child squeezes bottle on top of spoon and feeds baby .
+*FAT:	there you go , good job , .
+%mor:	adv|there pron|you-Prs-Nom-S2 verb|go-Fin-Ind-Pres-S2 cm|cm adj|good-S1 noun|job cm|cm .
+%gra:	1|3|ADVMOD 2|3|NSUBJ 3|0|ROOT 4|6|PUNCT 5|6|AMOD 6|3|PARATAXIS 7|3|PUNCT 8|3|PUNCT
+*FAT:	good sharing .
+%mor:	adj|good-S1 noun|sharing-Ger .
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT
+*FAT:	now &~lil bit more , how about for the little baby ?
+%mor:	adv|now noun|bit adj|more-Cmp-S1 cm|cm adv|how adp|about adp|for det|the-Def-Art adj|little-S1 noun|baby ?
+%gra:	1|2|ADVMOD 2|3|OBL-UNMARKED 3|0|ROOT 4|6|PUNCT 5|6|ADVMOD 6|3|CONJ 7|10|CASE 8|10|DET 9|10|AMOD 10|3|OBL 11|3|PUNCT
+*CHI:	&~m &~m .
+*FAT:	can you give some for the little baby ?
+%mor:	aux|can-Fin-S pron|you-Prs-Nom-S2 verb|give-Inf-S det|some-Def-Ind adp|for det|the-Def-Art adj|little-S1 noun|baby ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|8|CASE 6|8|DET 7|8|AMOD 8|3|OBL 9|3|PUNCT
+*FAT:	good job , .
+%mor:	adj|good-S1 noun|job cm|cm .
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT 4|2|PUNCT
+*FAT:	oh did you get a little , here gotta clean the &~lil baby &~oh &~oh &~oh .
+%mor:	intj|oh aux|do-Fin-Ind-Past-S2-irr pron|you-Prs-Nom-S2 verb|get-Inf-S det|a-Ind-Art adj|little-S1 cm|cm adv|here verb|get-Part-Past-S-irr~part|to verb|clean-Inf-S det|the-Def-Art noun|baby-Acc .
+%gra:	1|4|DISCOURSE 2|4|AUX 3|4|NSUBJ 4|0|ROOT 5|6|DET 6|4|OBJ 7|9|PUNCT 8|9|ADVMOD 9|4|PARATAXIS 10|11|MARK 11|9|XCOMP 12|13|DET 13|11|OBJ 14|4|PUNCT
+*FAT:	xxx hold the spoon ?
+%mor:	verb|hold-Fin-Imp-S det|the-Def-Art noun|spoon-Acc ?
+%gra:	1|0|ROOT 2|3|DET 3|1|OBJ 4|1|PUNCT
+*FAT:	here .
+%mor:	adv|here .
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	sharing it ?
+%mor:	verb|share-Ger-S pron|it-Prs-Acc-S3 ?
+%gra:	1|0|ROOT 2|1|OBJ 3|1|PUNCT
+*CHI:	&~hm &~ah .
+*FAT:	yeah ?
+%mor:	intj|yeah ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	&~oop you got it the baby's eye !
+%mor:	pron|you-Prs-Nom-S2 verb|get-Fin-Ind-Past-S2-irr pron|it-Prs-Acc-S3 det|the-Def-Art noun|baby~part|s noun|eye !
+%gra:	1|2|NSUBJ 2|0|ROOT 3|2|OBJ 4|5|DET 5|7|NMOD-POSS 6|5|CASE 7|2|XCOMP 8|2|PUNCT
+*FAT:	oh no , can you clean the baby's eye ?
+%mor:	intj|oh intj|no cm|cm aux|can-Fin-S pron|you-Prs-Nom-S2 verb|clean-Inf-S det|the-Def-Art noun|baby~part|s noun|eye-Acc ?
+%gra:	1|6|DISCOURSE 2|6|DISCOURSE 3|2|PUNCT 4|6|AUX 5|6|NSUBJ 6|0|ROOT 7|8|DET 8|10|NMOD-POSS 9|8|CASE 10|6|OBJ 11|6|PUNCT
+*FAT:	can you clean the baby's eye ?
+%mor:	aux|can-Fin-S pron|you-Prs-Nom-S2 verb|clean-Inf-S det|the-Def-Art noun|baby~part|s noun|eye-Acc ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|5|DET 5|7|NMOD-POSS 6|5|CASE 7|3|OBJ 8|3|PUNCT
+*FAT:	no xxx the cups xxx .
+%mor:	intj|no det|the-Def-Art noun|cup-Plur .
+%gra:	1|3|DISCOURSE 2|3|DET 3|0|ROOT 4|3|PUNCT
+*FAT:	do like this .
+%mor:	verb|do-Fin-Imp-S adp|like pron|this-Dem-S1 .
+%gra:	1|0|ROOT 2|3|CASE 3|1|OBL 4|1|PUNCT
+*FAT:	go oh [/] oh say sorry .
+%mor:	verb|go-Fin-Imp-S intj|oh verb|say-Fin-Imp-S adj|sorry-S1 .
+%gra:	1|0|ROOT 2|3|DISCOURSE 3|1|PARATAXIS 4|3|XCOMP 5|1|PUNCT
+*FAT:	&=gasps where's the baby's hair ?
+%mor:	adv|where~aux|be-Fin-Ind-Pres-S3 det|the-Def-Art noun|baby~part|s noun|hair ?
+%gra:	1|0|ROOT 2|1|COP 3|4|DET 4|6|NMOD-POSS 5|4|CASE 6|1|NSUBJ 7|1|PUNCT
+@Eg
+*FAT:	&=gasps what'd you do ?
+%mor:	pron|what-Int-S1~aux|would-Fin-S pron|you-Prs-Nom-S2 verb|do-Inf-S ?
+%gra:	1|4|OBJ 2|4|AUX 3|4|NSUBJ 4|0|ROOT 5|4|PUNCT
+*FAT:	xxx is baby's head gonna get cold ?
+%mor:	aux|be-Fin-Ind-Pres-S3 noun|baby~part|s noun|head verb|go-Part-Pres-S~part|to verb|get-Inf-S adj|cold-S1 ?
+%gra:	1|5|AUX 2|4|NMOD-POSS 3|2|CASE 4|5|NSUBJ 5|0|ROOT 6|7|MARK 7|5|XCOMP 8|7|XCOMP 9|5|PUNCT
+*CHI:	0 .
+%com:	child took off baby's cap .
+*FAT:	xxx .
+*FAT:	pull &~ta .
+%mor:	verb|pull-Fin-Imp-S .
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	pull , come on .
+%mor:	verb|pull-Fin-Imp-S cm|cm verb|come-Fin-Imp-S adp|on .
+%gra:	1|0|ROOT 2|3|PUNCT 3|1|PARATAXIS 4|3|COMPOUND-PRT 5|1|PUNCT
+*FAT:	good job , .
+%mor:	adj|good-S1 noun|job cm|cm .
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT 4|2|PUNCT
+*FAT:	&=gasps &~wah baby got cold head .
+%mor:	noun|baby verb|get-Fin-Ind-Past-S3-irr adj|cold-S1 noun|head-Acc .
+%gra:	1|2|NSUBJ 2|0|ROOT 3|4|AMOD 4|2|OBJ 5|2|PUNCT
+*FAT:	put the hat on the baby .
+%com:	alarm rang at 9:46.
+%mor:	verb|put-Fin-Imp-S det|the-Def-Art noun|hat-Acc adp|on det|the-Def-Art noun|baby .
+%gra:	1|0|ROOT 2|3|DET 3|1|OBJ 4|6|CASE 5|6|DET 6|1|OBL 7|1|PUNCT
+*FAT:	gonna hat for &~th Billy's head ?
+%mor:	verb|go-Part-Pres-S~part|to verb|hat-Inf-S adp|for propn|Billy~part|s noun|head ?
+%gra:	1|0|ROOT 2|3|MARK 3|1|XCOMP 4|7|CASE 5|7|NMOD-POSS 6|5|CASE 7|3|OBL 8|1|PUNCT
+*FAT:	hm: ?
+%mor:	intj|hm ?
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	can you fit the hat on your head ?
+%mor:	aux|can-Fin-S pron|you-Prs-Nom-S2 verb|fit-Inf-S det|the-Def-Art noun|hat-Acc adp|on pron|your-Prs-Gen-S2 noun|head ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|5|DET 5|3|OBJ 6|8|CASE 7|8|NMOD-POSS 8|3|OBL 9|3|PUNCT
+*CHI:	0 .
+%com:	child tries to fit hat on his head .
+*FAT:	&~oop your head's too big &=laughs .
+%mor:	pron|your-Prs-Gen-S2 noun|head~aux|be-Fin-Ind-Pres-S3 adv|too adj|big-S1 .
+%gra:	1|2|NMOD-POSS 2|5|NSUBJ 3|5|COP 4|5|ADVMOD 5|0|ROOT 6|5|PUNCT
+*FAT:	it's too big , how (a)bout this little guy's head .
+%mor:	pron|it-Prs-Nom-S3~aux|be-Fin-Ind-Pres-S3 adv|too adj|big-S1 cm|cm adv|how adp|about det|this-Def-Dem-Sing adj|little-S1 noun|guy~part|s noun|head .
+%gra:	1|4|NSUBJ 2|4|COP 3|4|ADVMOD 4|0|ROOT 5|6|PUNCT 6|4|PARATAXIS 7|12|CASE 8|10|DET 9|10|AMOD 10|12|NMOD-POSS 11|10|CASE 12|6|OBL 13|4|PUNCT
+*FAT:	&=gasps peekaboo .
+%com:	the spelling for peekaboo is that of the one in the table for babytalk .
+%mor:	noun|peekaboo .
+%gra:	1|0|ROOT 2|1|PUNCT
+*FAT:	are you playing peekaboo with the baby ?
+%mor:	aux|be-Fin-Ind-Pres-S2 pron|you-Prs-Nom-S2 verb|play-Part-Pres-S noun|peekaboo-Acc adp|with det|the-Def-Art noun|baby ?
+%gra:	1|3|AUX 2|3|NSUBJ 3|0|ROOT 4|3|OBJ 5|7|CASE 6|7|DET 7|3|OBL 8|3|PUNCT
+*FAT:	xxx let me help you a little bit .
+%com:	experimenter told father at 10:14 that it was the end of the 10 minutes and asked father to clean up when he was ready .
+%mor:	verb|let-Fin-Imp-S pron|I-Prs-Acc-S1 verb|help-Inf-S pron|you-Prs-Acc-S2 det|a-Ind-Art adj|little-S1 noun|bit .
+%gra:	1|0|ROOT 2|1|OBJ 3|1|XCOMP 4|3|IOBJ 5|7|DET 6|7|AMOD 7|3|OBL-UNMARKED 8|1|PUNCT
+*FAT:	okay let's fix the hat .
+%mor:	intj|okay verb|let-Fin-Imp-S~pron|we-Prs-Acc-P1 verb|fix-Inf-S det|the-Def-Art noun|hat-Acc .
+%gra:	1|2|DISCOURSE 2|0|ROOT 3|2|OBJ 4|2|XCOMP 5|6|DET 6|4|OBJ 7|2|PUNCT
+*FAT:	fix his hat .
+%mor:	verb|fix-Inf-S pron|his-Prs-Gen-S3 noun|hat-Acc .
+%gra:	1|0|ROOT 2|3|NMOD-POSS 3|1|OBJ 4|1|PUNCT
+*FAT:	there we go , good job , .
+%mor:	pron|there-Int-S1 pron|we-Prs-Nom-P1 verb|go-Fin-Ind-Pres-P1 cm|cm adj|good-S1 noun|job cm|cm .
+%gra:	1|3|EXPL 2|3|NSUBJ 3|0|ROOT 4|6|PUNCT 5|6|AMOD 6|3|PARATAXIS 7|3|PUNCT 8|3|PUNCT
+*FAT:	good job , .
+%mor:	adj|good-S1 noun|job cm|cm .
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT 4|2|PUNCT
+*FAT:	alright now we hafta put the toys back ?
+%mor:	intj|alright adv|now pron|we-Prs-Nom-P1 aux|hafta-Fin-Ind-Pres-P1 verb|put-Fin-Ind-Past-P1-irr det|the-Def-Art noun|toy-Plur-Acc adv|back ?
+%gra:	1|5|DISCOURSE 2|5|ADVMOD 3|5|NSUBJ 4|5|AUX 5|0|ROOT 6|7|DET 7|5|OBJ 8|5|ADVMOD 9|5|PUNCT
+*FAT:	(o)kay it's time to clean up .
+%mor:	intj|okay pron|it-Prs-Nom-S3~aux|be-Fin-Ind-Pres-S3 noun|time part|to verb|clean-Inf-S adp|up .
+%gra:	1|4|DISCOURSE 2|4|NSUBJ 3|4|COP 4|0|ROOT 5|6|MARK 6|4|ACL 7|6|COMPOUND-PRT 8|4|PUNCT
+*CHI:	0 .
+%com:	child putting toys back in the bin .
+*FAT:	<good job> [/] good job !
+%mor:	adj|good-S1 noun|job !
+%gra:	1|2|AMOD 2|0|ROOT 3|2|PUNCT
+@End
