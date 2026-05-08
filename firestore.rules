@@ -10,7 +10,8 @@ rules_version = '2';
 //     writeable only by their owner.
 //   * Chat messages are readable by every authenticated user (so the
 //     community feed works) but only the original author may edit or
-//     delete their own messages.
+//     delete their own messages. Authorship is keyed by `userUid`,
+//     matching the schema written by the GroupChat screens.
 //   * No collection name is derived from user input — only the explicit
 //     names enumerated below are reachable via these rules.
 //   * Document-shape validation runs on every write so a malicious
@@ -34,10 +35,12 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Returns the resource's authorId field (null-safe).
+    // Returns the resource's userUid field (null-safe).
+    // The frontend writes userUid (see GroupChatScreen.tsx) so this is
+    // the canonical owner field for chat messages.
     function existingAuthor() {
-      return resource != null && 'authorId' in resource.data
-        ? resource.data.authorId
+      return resource != null && 'userUid' in resource.data
+        ? resource.data.userUid
         : null;
     }
 
@@ -46,9 +49,31 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == existingAuthor();
     }
 
-    // String validation helper.
+    // String validation helper. Allows non-empty strings up to maxLen.
     function isShortString(value, maxLen) {
       return value is string && value.size() > 0 && value.size() <= maxLen;
+    }
+
+    // Optional string — either absent or a string up to maxLen chars.
+    function isOptionalShortString(data, key, maxLen) {
+      return !(key in data) || (data[key] is string && data[key].size() <= maxLen);
+    }
+
+    // Validates the shape of a chat message at create-time. The frontend
+    // (GroupChatScreen.tsx, RealTimeGroupChatScreen.tsx) writes:
+    //   { text, userUid, userName, createdAt, image? }
+    // We accept either a populated text OR a populated image, both must
+    // sit alongside the canonical author / display fields.
+    function isValidChatMessage(data) {
+      return data.userUid is string && data.userUid == request.auth.uid
+        && data.userName is string && data.userName.size() > 0 && data.userName.size() <= 120
+        // createdAt is a server timestamp — enforce on create only.
+        && (
+          (isShortString(data.text, 4000)) ||
+          ('image' in data && data.image is string && data.image.size() > 0 && data.image.size() <= 4096)
+        )
+        && isOptionalShortString(data, 'text', 4000)
+        && isOptionalShortString(data, 'image', 4096);
     }
 
     // -----------------------------------------------------------------
@@ -101,16 +126,16 @@ service cloud.firestore {
       allow read: if isSignedIn();
 
       allow create: if isSignedIn()
-        && request.resource.data.authorId == request.auth.uid
-        && isShortString(request.resource.data.text, 4000)
-        && request.resource.data.createdAt == request.time;
+        && isValidChatMessage(request.resource.data);
 
-      // Only the author may edit their own message; they cannot
-      // overwrite the authorId / createdAt fields.
+      // Only the original author may edit their own message; they cannot
+      // rewrite the userUid (== authorship) or createdAt timestamp.
       allow update: if isMessageAuthor()
-        && request.resource.data.authorId == resource.data.authorId
-        && request.resource.data.createdAt == resource.data.createdAt
-        && isShortString(request.resource.data.text, 4000);
+        && request.resource.data.userUid == resource.data.userUid
+        && (!('createdAt' in request.resource.data) ||
+             request.resource.data.createdAt == resource.data.createdAt)
+        && isOptionalShortString(request.resource.data, 'text', 4000)
+        && isOptionalShortString(request.resource.data, 'image', 4096);
 
       allow delete: if isMessageAuthor();
     }
@@ -119,14 +144,14 @@ service cloud.firestore {
       allow read: if isSignedIn();
 
       allow create: if isSignedIn()
-        && request.resource.data.authorId == request.auth.uid
-        && isShortString(request.resource.data.text, 4000)
-        && request.resource.data.createdAt == request.time;
+        && isValidChatMessage(request.resource.data);
 
       allow update: if isMessageAuthor()
-        && request.resource.data.authorId == resource.data.authorId
-        && request.resource.data.createdAt == resource.data.createdAt
-        && isShortString(request.resource.data.text, 4000);
+        && request.resource.data.userUid == resource.data.userUid
+        && (!('createdAt' in request.resource.data) ||
+             request.resource.data.createdAt == resource.data.createdAt)
+        && isOptionalShortString(request.resource.data, 'text', 4000)
+        && isOptionalShortString(request.resource.data, 'image', 4096);
 
       allow delete: if isMessageAuthor();
     }
