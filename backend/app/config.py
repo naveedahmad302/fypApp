@@ -120,6 +120,14 @@ class Settings(BaseSettings):
         True,
         description="If true, never log raw request bodies.",
     )
+    log_format: str = Field(
+        "auto",
+        description=(
+            "Log output format: 'json' (one structured object per line, "
+            "preferred for log aggregators), 'text' (human-readable), or "
+            "'auto' which picks json in production and text otherwise."
+        ),
+    )
 
     # ---------------------------------------------------------------------
     # Validators
@@ -156,6 +164,16 @@ class Settings(BaseSettings):
     def expose_internal_errors(self) -> bool:
         """Whether to leak exception messages to the client."""
         return self.env != "production"
+
+    @property
+    def resolved_log_format(self) -> str:
+        """Resolve ``log_format=auto`` to a concrete format."""
+        choice = (self.log_format or "auto").lower()
+        if choice == "auto":
+            return "json" if self.is_production else "text"
+        if choice not in ("json", "text"):
+            return "json" if self.is_production else "text"
+        return choice
 
 
 @lru_cache(maxsize=1)

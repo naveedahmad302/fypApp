@@ -197,6 +197,14 @@ def require_auth_uid(
     # Stash on request.state so middleware (e.g. structured logging) can
     # include the UID without re-running verification.
     request.state.user_id = uid
+
+    # Also bind on the logging contextvar so every log line emitted in
+    # the rest of this request includes ``user_id`` automatically. The
+    # context is reset per-request by ErrorEnvelopeMiddleware.
+    from .logging_config import bind_user_id  # local import: avoid cycle
+
+    bind_user_id(uid)
+
     return uid
 
 
