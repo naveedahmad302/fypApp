@@ -272,6 +272,18 @@ def preprocess_matrix(
         decision boundary is meaningful again. Requires both
         ``mediapipe_stats.npz`` and ``scaler.pkl`` to be present;
         falls back to ``online_standardize`` otherwise.
+    ``"domain_adapt_self"``
+        Same as ``domain_adapt`` but ``mp_mean / mp_std`` are computed
+        from **the current batch itself** instead of the global stats
+        artefact. Equivalent to "calibration on the fly": every
+        eye-tracking session implicitly calibrates against its own
+        distribution. Designed for the 4–9 yr old screening use-case
+        where an explicit calibration step is impractical, but
+        per-user distribution alignment is still wanted before the
+        trained decision boundary is applied. Requires ``scaler.pkl``;
+        falls back to ``online_standardize`` if absent. Falls back to
+        ``domain_adapt`` (global stats) when the batch is too small
+        (< 2 frames) to produce meaningful per-feature std.
     ``"none"``
         Pass through unchanged (debug only).
     """
@@ -289,6 +301,8 @@ def preprocess_matrix(
         return np.zeros_like(feature_matrix)
     if mode == "domain_adapt":
         return _domain_adapt(model, feature_matrix)
+    if mode == "domain_adapt_self":
+        return _domain_adapt_self(model, feature_matrix)
     # default: trained_scaler
     if model.scaler is not None:
         return _apply_scaler(model.scaler, feature_matrix)
@@ -325,6 +339,69 @@ def _domain_adapt(
     aligned = (feature_matrix - mp.mean) / mp_std * trained_std + trained_mean
     # Now ``aligned`` lives in the trained input space — apply the
     # trained scaler so the model sees exactly what it saw at training.
+    return _apply_scaler(model.scaler, aligned)
+
+
+def _domain_adapt_self(
+    model: LoadedModel, feature_matrix: np.ndarray
+) -> np.ndarray:
+    """Per-session ("self") domain adaptation.
+
+    Compute ``mp_mean / mp_std`` from the **current** batch instead of
+    the global ``mediapipe_stats`` artefact, then apply the same
+    affine + trained-scaler pipeline as :func:`_domain_adapt`.
+
+    Why this exists
+    ---------------
+    The target audience for the ASD screening flow is 4–9 yr olds, who
+    cannot follow a multi-step calibration UI. Computing the per-user
+    shift+scale from the same camera capture used for prediction means
+    every session is implicitly calibrated against its own input
+    distribution. No extra UI step, no kid cooperation required.
+
+    Mathematically this is "online_standardize that respects the
+    trained decision boundary":
+
+        z         = (x - x.mean(0)) / x.std(0)        # per-batch z
+        aligned   = z * scaler.scale_ + scaler.mean_  # rescale to trained
+        result    = scaler.transform(aligned)         # then trained scaler
+
+    The composition recovers the trained-distribution geometry and
+    leaves the model's decision boundary meaningful.
+
+    Falls back to :func:`_domain_adapt` (global stats) when the batch
+    is too small (< 2 frames) to produce a usable std. Falls back to
+    ``online_standardize`` when ``scaler.pkl`` is absent.
+    """
+    if model.scaler is None:
+        logger.warning(
+            "domain_adapt_self requested but scaler missing; "
+            "falling back to online_standardize"
+        )
+        return preprocess_matrix(
+            model, feature_matrix, mode="online_standardize"
+        )
+
+    if feature_matrix.shape[0] < 2:
+        logger.info(
+            "domain_adapt_self: batch too small (n=%d) for self-stats; "
+            "falling back to global domain_adapt",
+            feature_matrix.shape[0],
+        )
+        return _domain_adapt(model, feature_matrix)
+
+    mp_mean = feature_matrix.mean(axis=0)
+    mp_std = feature_matrix.std(axis=0)
+    # Floor the per-feature std so a near-constant column does not
+    # explode the affine. 1e-3 matches MIN_CALIBRATION_STD in the
+    # saved-profile path (calibration.py).
+    mp_std = np.where(mp_std < 1e-3, 1.0, mp_std)
+
+    trained_mean = np.asarray(model.scaler.mean_, dtype=np.float64)
+    trained_std = np.asarray(model.scaler.scale_, dtype=np.float64)
+    trained_std = np.where(trained_std < 1e-9, 1.0, trained_std)
+
+    aligned = (feature_matrix - mp_mean) / mp_std * trained_std + trained_mean
     return _apply_scaler(model.scaler, aligned)
 
 
