@@ -1488,12 +1488,21 @@ def _analyze_frames(
 # ===================================================================
 
 
-def analyze_eye_tracking(
+def analyze_eye_tracking_legacy(
     user_id: str,
     frames_base64: list[str],
     frame_metadata: Optional[list[dict]] = None,
 ) -> EyeTrackingResponse:
-    """Analyse eye tracking frames and persist results.
+    """Legacy MediaPipe behavioural eye-tracking pipeline.
+
+    This is the original 8-dimensional rule-based scorer (gaze stability,
+    eye contact, fixation, tracking, atypical movement, social engagement,
+    stimming, habituation). It is preserved verbatim and remains
+    selectable via ``EYE_TRACKING_BACKEND=legacy_mediapipe`` or as the
+    automatic fallback when the trained-model artefact is missing.
+
+    The default backend is the v2 trained-model pipeline — see
+    ``services/eye_tracking_v2/pipeline.analyze_eye_tracking_v2``.
 
     Parameters
     ----------
@@ -1594,3 +1603,45 @@ def analyze_eye_tracking(
                 (assessment_id,),
             )
         raise RuntimeError(f"Eye tracking analysis failed: {e}") from e
+
+
+# ===================================================================
+# Dispatcher — routes between the v2 trained-model pipeline (default)
+# and the legacy MediaPipe behavioural pipeline (fallback).
+# ===================================================================
+def analyze_eye_tracking(
+    user_id: str,
+    frames_base64: list[str],
+    frame_metadata: Optional[list[dict]] = None,
+) -> EyeTrackingResponse:
+    """Public entry point used by the API router.
+
+    The active backend is controlled by the ``EYE_TRACKING_BACKEND``
+    environment variable (``new_model`` by default, ``legacy_mediapipe``
+    to force the original pipeline). The v2 pipeline transparently
+    falls back to the legacy one when the trained-model artefact is
+    missing, so this dispatcher is mainly an explicit override switch.
+    """
+    # Local import keeps the v2 package optional — the legacy pipeline
+    # works even if eye_tracking_v2 fails to import for any reason.
+    try:
+        from .eye_tracking_v2 import analyze_eye_tracking_v2, get_backend
+    except Exception:  # pragma: no cover - defensive
+        return analyze_eye_tracking_legacy(
+            user_id=user_id,
+            frames_base64=frames_base64,
+            frame_metadata=frame_metadata,
+        )
+
+    backend = get_backend()
+    if backend == "legacy_mediapipe":
+        return analyze_eye_tracking_legacy(
+            user_id=user_id,
+            frames_base64=frames_base64,
+            frame_metadata=frame_metadata,
+        )
+    return analyze_eye_tracking_v2(
+        user_id=user_id,
+        frames_base64=frames_base64,
+        frame_metadata=frame_metadata,
+    )
