@@ -20,8 +20,7 @@ import {
   Wifi,
 } from 'lucide-react-native';
 import { TProfileStackNavigationProps } from '../../../navigation/userStack/types';
-import { checkFirebaseConnection, ConnectionStatus } from '../../../firebase';
-import { signOutUser } from '../../../firebase/auth';
+
 import { useAuth } from '../../../context/AuthContext';
 import { getUserFromFirestore, IUser } from '../../../firebase/firestore';
 import { showSuccessToast, showErrorToast } from '../../../utils/toast';
@@ -29,13 +28,25 @@ import { showSuccessToast, showErrorToast } from '../../../utils/toast';
 const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({
   navigation,
 }) => {
-  const { setAuthenticated, setUser, user } = useAuth();
+  const { signOut, user, refreshUserData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<IUser | null>(null);
 
   useEffect(() => {
     loadUserProfile();
   }, [user?.uid]);
+
+  // Refresh data when screen comes into focus (after editing profile)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (user?.uid) {
+        refreshUserData();
+        loadUserProfile();
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, user?.uid, refreshUserData]);
 
   const loadUserProfile = async () => {
     if (!user?.uid) return;
@@ -59,10 +70,12 @@ const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({
 
   const handleLogout = async () => {
     try {
-      await signOutUser();
+      // signOut() goes through Firebase, which fires onAuthStateChanged
+      // and clears `isAuthenticated` / `user` automatically. The legacy
+      // setAuthenticated(false) + setUser(null) calls are no longer
+      // needed and would race the listener.
+      await signOut();
       showSuccessToast('You have been successfully logged out.', 'Logged Out');
-      setAuthenticated(false);
-      setUser(null);
     } catch (error: any) {
       showErrorToast(`Failed to log out: ${error.message}`, 'Logout Failed');
     }
@@ -94,7 +107,7 @@ const ProfileScreen: React.FC<TProfileStackNavigationProps<'Profile'>> = ({
                 )}
               </View>
               <Text className="text-2xl font-radio-canada font-bold text-gray-900 mb-1">
-                {userData?.fullName || user?.name || 'User'}
+                {userData?.fullName || user?.fullName || 'User'}
               </Text>
               <Text className="text-gray-500 font-radio-canada mb-1">
                 {userData?.email || user?.email || ''}
