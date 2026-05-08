@@ -235,28 +235,15 @@ DEFAULT_ADAPTER_CONFIG = AdapterConfig()
 #   3. If the stats file is ever absent, it degrades to
 #      online_standardize automatically — no hard failure.
 PreprocessingMode = Literal[
-    "trained_scaler",
-    "online_standardize",
-    "domain_adapt",
-    "domain_adapt_self",
-    "none",
+    "trained_scaler", "online_standardize", "domain_adapt", "none"
 ]
 
-# ``domain_adapt_self`` is the new default as of PR-I:
-# computes per-feature shift+scale from the current session itself
-# instead of the global mediapipe_stats.npz, so each user's eye-tracking
-# session is implicitly calibrated against its own distribution before
-# the trained decision boundary is applied. Designed for the 4-9 yr
-# old screening flow where an explicit calibration step is impractical.
-# Falls back to ``domain_adapt`` (global stats) when the batch is too
-# small (< 2 frames) for usable per-feature std.
-DEFAULT_PREPROCESSING_MODE: PreprocessingMode = "domain_adapt_self"
+DEFAULT_PREPROCESSING_MODE: PreprocessingMode = "domain_adapt"
 
 _VALID_PREPROCESSING_MODES: tuple[str, ...] = (
     "trained_scaler",
     "online_standardize",
     "domain_adapt",
-    "domain_adapt_self",
     "none",
 )
 
