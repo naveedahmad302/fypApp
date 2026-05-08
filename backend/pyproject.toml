@@ -15,11 +15,16 @@ librosa = "^0.10"
 mediapipe = "^0.10"
 opencv-python-headless = "^4.10"
 pydantic = "^2.10"
+pydantic-settings = "^2.6"
 python-multipart = "^0.0"
 aiofiles = "^24.1"
+# Firebase Admin SDK — verifies ID tokens issued by Firebase Auth.
+firebase-admin = "^7.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.15.10"
+pytest = "^8.3"
+httpx = "^0.28"
 
 [build-system]
 requires = ["poetry-core"]

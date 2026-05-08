@@ -420,8 +420,9 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
         return;
       }
       
+      // user_id is no longer sent: the backend uses the verified UID
+      // from the Authorization bearer token (see src/services/api.ts).
       const result = await submitEyeTracking({
-        user_id: user?.uid ?? 'anonymous',
         frames_base64: frames,
         frame_metadata: metadata.length > 0 ? metadata : undefined,
       });

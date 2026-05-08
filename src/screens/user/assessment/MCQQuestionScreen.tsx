@@ -76,8 +76,8 @@ const MCQQuestionScreen: React.FC<MCQQuestionScreenProps> = ({ navigation: navPr
         selected_option: option ?? 0,
       }));
 
+      // user_id is no longer sent: the backend derives it from the verified ID token.
       const result = await submitMCQAssessment({
-        user_id: user?.uid ?? 'anonymous',
         answers: mcqAnswers,
       });
 
