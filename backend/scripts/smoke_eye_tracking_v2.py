@@ -48,20 +48,41 @@ from backend.app.services.eye_tracking_v2 import (  # noqa: E402
 
 
 def _fake_landmarks() -> list[SimpleNamespace]:
-    """Construct 478 landmarks with realistic relative positions."""
+    """Construct 478 landmarks with realistic relative positions.
+
+    The iris clusters are spread out (centre + 4 cardinal samples) so
+    the iris-size monocular depth photogrammetry (PR-H) sees a non-zero
+    diameter and can recover Z. With ``frame_w=640``, the iris radius
+    here is ~3.5% of frame width (~22 px) ⇒ diameter ~45 px ⇒
+    Z ≈ 640 × 11.7 / 45 ≈ 166 mm — clamped up to ``depth_min_mm`` (100
+    mm) by the adapter, so the result is always ≥ 100 mm.
+    """
     pts = [SimpleNamespace(x=0.5, y=0.5, z=0.0) for _ in range(478)]
     # Eye corners (anatomical convention; image-left = user's right).
-    # Right outer (33), right inner (133)
     pts[33] = SimpleNamespace(x=0.40, y=0.45, z=-0.02)
     pts[133] = SimpleNamespace(x=0.46, y=0.45, z=-0.02)
-    # Left inner (362), left outer (263)
     pts[362] = SimpleNamespace(x=0.54, y=0.45, z=-0.02)
     pts[263] = SimpleNamespace(x=0.60, y=0.45, z=-0.02)
-    # Iris (5 pts each). Right iris cluster around 0.43, left around 0.57.
-    for i in (468, 469, 470, 471, 472):
-        pts[i] = SimpleNamespace(x=0.57, y=0.45, z=-0.02)  # user's left iris
-    for i in (473, 474, 475, 476, 477):
-        pts[i] = SimpleNamespace(x=0.43, y=0.45, z=-0.02)  # user's right iris
+
+    iris_r_norm = 0.035  # ~22 px at frame_w=640
+
+    # User's left iris (image right side), centre at 0.57.
+    lx = 0.57
+    ly = 0.45
+    pts[468] = SimpleNamespace(x=lx, y=ly, z=-0.02)              # centre
+    pts[469] = SimpleNamespace(x=lx - iris_r_norm, y=ly, z=-0.02)
+    pts[470] = SimpleNamespace(x=lx + iris_r_norm, y=ly, z=-0.02)
+    pts[471] = SimpleNamespace(x=lx, y=ly - iris_r_norm, z=-0.02)
+    pts[472] = SimpleNamespace(x=lx, y=ly + iris_r_norm, z=-0.02)
+
+    # User's right iris (image left side), centre at 0.43.
+    rx = 0.43
+    ry = 0.45
+    pts[473] = SimpleNamespace(x=rx, y=ry, z=-0.02)              # centre
+    pts[474] = SimpleNamespace(x=rx - iris_r_norm, y=ry, z=-0.02)
+    pts[475] = SimpleNamespace(x=rx + iris_r_norm, y=ry, z=-0.02)
+    pts[476] = SimpleNamespace(x=rx, y=ry - iris_r_norm, z=-0.02)
+    pts[477] = SimpleNamespace(x=rx, y=ry + iris_r_norm, z=-0.02)
     return pts
 
 
