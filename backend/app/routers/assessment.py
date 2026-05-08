@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 
+import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from ..auth import require_auth_uid
@@ -31,7 +32,22 @@ from ..schemas.assessment import (
     AssessmentType,
     AssessmentStatus,
 )
+from ..schemas.calibration import (
+    CalibrationProfileResponse,
+    CalibrationSamplesRequest,
+    CalibrationStatusResponse,
+)
+from ..services.calibration_store import (
+    delete_profile,
+    profile_summary,
+    save_profile,
+)
 from ..services.eye_tracking import analyze_eye_tracking
+from ..services.eye_tracking_v2.calibration import (
+    CalibrationError,
+    CalibrationSample,
+    build_profile_from_samples,
+)
 from ..services.mcq_assessment import assess_mcq
 from ..services.report_generator import generate_report, get_user_report
 from ..services.speech_analysis import analyze_speech
@@ -154,6 +170,118 @@ def eye_tracking_analysis(
     except Exception:
         logger.exception("Eye tracking failed for user=%s", current_user_id)
         raise HTTPException(status_code=500, detail="Eye tracking analysis failed.")
+
+
+# ---------------------------------------------------------------------------
+# Calibration (PR-H)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/calibration",
+    response_model=CalibrationProfileResponse,
+    status_code=status.HTTP_200_OK,
+)
+def submit_calibration(
+    request: CalibrationSamplesRequest,
+    current_user_id: str = Depends(rate_limited_user_id("light")),
+) -> CalibrationProfileResponse:
+    """Build and persist a per-user calibration profile.
+
+    Submit one or more sample groups (one per direction the user looked
+    at). Each sample group contains a list of MediaPipe-extracted
+    14-feature vectors in ``FEATURE_ORDER``. The server computes
+    per-feature mean / std over all submitted vectors and stores the
+    result keyed by the authenticated UID. Subsequent eye-tracking
+    inferences for this user use these per-user statistics in place of
+    the global ``mediapipe_stats.npz`` (PR-G).
+    """
+    settings = get_settings()
+    total_vectors = sum(len(s.vectors) for s in request.samples)
+    if total_vectors > settings.max_eye_tracking_frames * len(request.samples):
+        # Defensive cap. Calibration sample sizes are tiny in practice
+        # (e.g. 5 directions × 30 frames = 150 rows) so this is a guard
+        # against accidentally huge payloads, not normal usage.
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Calibration payload exceeds size limit.",
+        )
+
+    samples: list[CalibrationSample] = []
+    for group in request.samples:
+        try:
+            mat = np.asarray(group.vectors, dtype=np.float64)
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Calibration sample direction={group.direction!r} has "
+                    f"non-numeric values: {exc}"
+                ),
+            ) from exc
+        if mat.ndim != 2 or mat.shape[1] != 14:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Calibration sample direction={group.direction!r} must "
+                    f"be a list of length-14 vectors; got shape {mat.shape}."
+                ),
+            )
+        samples.append(
+            CalibrationSample(direction=group.direction, frame_vectors=mat)
+        )
+
+    try:
+        profile = build_profile_from_samples(
+            current_user_id, samples, notes=request.notes or ""
+        )
+    except CalibrationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+
+    save_profile(profile)
+    summary = profile_summary(current_user_id) or {}
+    return CalibrationProfileResponse(
+        user_id=profile.user_id,
+        schema_version=profile.schema_version,
+        n_samples=profile.n_samples,
+        captured_at=profile.captured_at.isoformat(),
+        updated_at=summary.get("updated_at"),
+        notes=profile.notes,
+    )
+
+
+@router.get("/calibration", response_model=CalibrationStatusResponse)
+def get_calibration_status(
+    current_user_id: str = Depends(require_auth_uid),
+) -> CalibrationStatusResponse:
+    """Return whether the authenticated user has a calibration profile."""
+    summary = profile_summary(current_user_id)
+    if summary is None:
+        return CalibrationStatusResponse(has_calibration=False)
+    return CalibrationStatusResponse(
+        has_calibration=True,
+        profile=CalibrationProfileResponse(
+            user_id=current_user_id,
+            schema_version=summary["schema_version"],
+            n_samples=summary["n_samples"],
+            captured_at=summary["captured_at"],
+            updated_at=summary["updated_at"],
+        ),
+    )
+
+
+@router.delete(
+    "/calibration", status_code=status.HTTP_204_NO_CONTENT
+)
+def clear_calibration(
+    current_user_id: str = Depends(require_auth_uid),
+) -> None:
+    """Delete the authenticated user's calibration profile."""
+    delete_profile(current_user_id)
+    return None
 
 
 # ---------------------------------------------------------------------------
