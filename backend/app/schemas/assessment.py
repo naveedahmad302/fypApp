@@ -37,8 +37,17 @@ class FrameMetadata(BaseModel):
 
 
 class EyeTrackingRequest(BaseModel):
-    """Request schema for eye tracking analysis. Accepts base64-encoded image frames."""
-    user_id: str = Field(..., description="Firebase user UID")
+    """Request schema for eye tracking analysis. Accepts base64-encoded image frames.
+
+    .. note::
+       The ``user_id`` field is accepted for backwards compatibility but is
+       **ignored** server-side. The owning UID is taken from the verified
+       Firebase ID token in the ``Authorization`` header.
+    """
+    user_id: Optional[str] = Field(
+        None,
+        description="DEPRECATED — ignored. UID is derived from the verified ID token.",
+    )
     frames_base64: list[str] = Field(
         ...,
         description="List of base64-encoded image frames from the front camera",
@@ -148,10 +157,17 @@ class EyeTrackingResponse(BaseModel):
 # --- Speech Analysis Schemas ---
 
 class SpeechAnalysisRequest(BaseModel):
-    """Request schema for speech analysis. Accepts base64-encoded audio."""
-    user_id: str = Field(..., description="Firebase user UID")
+    """Request schema for speech analysis. Accepts base64-encoded audio.
+
+    The ``user_id`` field is accepted for backwards compatibility but is
+    **ignored** server-side; ownership is bound to the verified ID token.
+    """
+    user_id: Optional[str] = Field(
+        None,
+        description="DEPRECATED — ignored. UID is derived from the verified ID token.",
+    )
     audio_base64: str = Field(..., description="Base64-encoded audio file (WAV or MP3)")
-    audio_format: str = Field("wav", description="Audio format: wav or mp3")
+    audio_format: str = Field("wav", description="Audio format: wav, mp3 or m4a")
 
 
 class SpeechMetrics(BaseModel):
@@ -220,8 +236,15 @@ class MCQAnswer(BaseModel):
 
 
 class MCQAssessmentRequest(BaseModel):
-    """Request schema for MCQ assessment scoring."""
-    user_id: str = Field(..., description="Firebase user UID")
+    """Request schema for MCQ assessment scoring.
+
+    The ``user_id`` field is accepted for backwards compatibility but is
+    **ignored** server-side; ownership is bound to the verified ID token.
+    """
+    user_id: Optional[str] = Field(
+        None,
+        description="DEPRECATED — ignored. UID is derived from the verified ID token.",
+    )
     answers: list[MCQAnswer] = Field(
         ...,
         description="List of MCQ answers",
@@ -250,8 +273,16 @@ class MCQAssessmentResponse(BaseModel):
 # --- Combined Report Schemas ---
 
 class GenerateReportRequest(BaseModel):
-    """Request to generate a combined ASD assessment report."""
-    user_id: str = Field(..., description="Firebase user UID")
+    """Request to generate a combined ASD assessment report.
+
+    The ``user_id`` field is accepted for backwards compatibility but is
+    **overwritten** server-side with the verified UID from the ID token
+    before any database write happens.
+    """
+    user_id: Optional[str] = Field(
+        None,
+        description="DEPRECATED — overwritten with the verified UID from the ID token.",
+    )
     eye_tracking_assessment_id: Optional[str] = None
     speech_assessment_id: Optional[str] = None
     mcq_assessment_id: Optional[str] = None

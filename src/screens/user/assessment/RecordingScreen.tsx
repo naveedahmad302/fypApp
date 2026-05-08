@@ -356,8 +356,8 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
           return;
         }
 
+        // user_id is no longer sent: the backend derives it from the verified ID token.
         const result = await submitSpeechAnalysis({
-          user_id: user?.uid ?? 'anonymous',
           audio_base64: audioBase64,
           audio_format: 'mp4',
         });
@@ -381,6 +381,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
           }
         }
         setError(errorMessage);
+      } finally {
         setIsSubmitting(false);
       }
     } else {

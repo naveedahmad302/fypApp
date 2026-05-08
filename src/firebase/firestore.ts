@@ -22,10 +22,34 @@ export const saveUserToFirestore = async (uid: string, email: string, fullName: 
       email,
       fullName,
       createdAt: firestore.FieldValue.serverTimestamp(),
+      updatedAt: firestore.FieldValue.serverTimestamp(),
+      lastLoginAt: firestore.FieldValue.serverTimestamp(),
     });
   } catch (error: any) {
     throw new Error(error.message);
   }
+};
+
+/**
+ * Stamp the authenticated user's last-login timestamp.
+ *
+ * Called by AuthContext from inside the auth-state listener whenever
+ * Firebase signals a new signed-in session. Uses ``merge: true`` so we
+ * don't disturb other profile fields if the document was already
+ * created by sign-up. Failures are non-fatal — the caller logs and
+ * moves on rather than blocking the login flow.
+ */
+export const recordLoginInFirestore = async (uid: string) => {
+  await firestore()
+    .collection('users')
+    .doc(uid)
+    .set(
+      {
+        lastLoginAt: firestore.FieldValue.serverTimestamp(),
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
 };
 
 // Fetch user data from Firestore

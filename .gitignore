@@ -73,3 +73,33 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# --- Security hardening additions ---
+# Environment / secrets files (never commit real ones).
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/.env.local
+
+# Firebase Admin service-account credentials.
+backend/credentials/
+backend/credentials/*.json
+**/firebase-admin.json
+**/serviceAccountKey.json
+
+# Frontend runtime config overrides (local dev only).
+src/config/runtime.local.ts
+
+# Python venvs / caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Firestore emulator tests
+firestore-tests/node_modules/
+firestore-tests/.emulator-data/
+firestore-tests/firestore-debug.log
+firestore-tests/firebase-debug.log

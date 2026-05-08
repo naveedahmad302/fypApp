@@ -1,7 +1,22 @@
-"""API routes for ASD assessment endpoints."""
+"""API routes for ASD assessment endpoints.
 
-from fastapi import APIRouter, HTTPException
+Every route in this module is authenticated via the
+``require_auth_uid`` dependency. The verified Firebase UID — and **only**
+that UID — is used as the data-ownership key. Any ``user_id`` field that
+might still be present in a request body is ignored.
+"""
 
+from __future__ import annotations
+
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from ..auth import require_auth_uid
+from ..config import get_settings
+from ..database import get_db
+from ..inference_runner import run_with_timeout
+from ..rate_limit import rate_limited_user_id
 from ..schemas.assessment import (
     EyeTrackingRequest,
     EyeTrackingResponse,
@@ -17,111 +32,208 @@ from ..schemas.assessment import (
     AssessmentStatus,
 )
 from ..services.eye_tracking import analyze_eye_tracking
-from ..services.speech_analysis import analyze_speech
 from ..services.mcq_assessment import assess_mcq
 from ..services.report_generator import generate_report, get_user_report
-from ..database import get_db
+from ..services.speech_analysis import analyze_speech
+from ..upload_validation import validate_audio_upload, validate_image_frames
+
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/assessment", tags=["Assessment"])
 
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _enforce_payload_caps_eye(request: EyeTrackingRequest) -> None:
+    """Defensive payload caps on the eye-tracking endpoint."""
+    settings = get_settings()
+    if len(request.frames_base64) > settings.max_eye_tracking_frames:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=(
+                f"Too many frames in one request "
+                f"(max {settings.max_eye_tracking_frames})."
+            ),
+        )
+    for frame in request.frames_base64:
+        if len(frame) > settings.max_image_base64_chars:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="One or more frames exceed the per-frame size limit.",
+            )
+
+
+def _enforce_payload_caps_speech(request: SpeechAnalysisRequest) -> None:
+    settings = get_settings()
+    if len(request.audio_base64) > settings.max_audio_base64_chars:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Audio payload exceeds size limit.",
+        )
+    if request.audio_format.lower() not in {"wav", "mp3", "m4a"}:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Unsupported audio format. Allowed: wav, mp3, m4a.",
+        )
+
+
+def _enforce_payload_caps_mcq(request: MCQAssessmentRequest) -> None:
+    settings = get_settings()
+    if len(request.answers) > settings.max_mcq_answers:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="MCQ answer list is unexpectedly large.",
+        )
+
+
+def _assert_assessment_owned(assessment_id: str, user_id: str) -> None:
+    """Raise 404 if ``assessment_id`` is not owned and live for ``user_id``.
+
+    We deliberately return 404 (not 403) so that an attacker cannot
+    enumerate assessment IDs belonging to other users. Soft-deleted
+    rows are treated as not-existing for ownership purposes — the
+    audit trail remains in the table but ordinary requests cannot
+    interact with the row.
+    """
+    if not assessment_id:
+        return
+    with get_db() as conn:
+        row = conn.execute(
+            "SELECT user_id FROM assessments "
+            "WHERE id = ? AND deleted_at IS NULL",
+            (assessment_id,),
+        ).fetchone()
+    if row is None or row["user_id"] != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Assessment not found.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Eye tracking
+# ---------------------------------------------------------------------------
+
+
 @router.post("/eye-tracking", response_model=EyeTrackingResponse)
-def eye_tracking_analysis(request: EyeTrackingRequest) -> EyeTrackingResponse:
+def eye_tracking_analysis(
+    request: EyeTrackingRequest,
+    current_user_id: str = Depends(rate_limited_user_id("heavy")),
+) -> EyeTrackingResponse:
     """Analyze eye tracking data from camera frames.
 
-    Accepts base64-encoded image frames captured from the front camera
-    during the eye tracking assessment. Uses MediaPipe Face Mesh to
-    detect eye landmarks, calculate gaze patterns, fixation duration,
-    blink rate, and other metrics relevant to ASD screening.
-
-    Returns detailed gaze metrics and an ASD risk score.
+    Owner of the resulting assessment is the authenticated user. Any
+    ``user_id`` field present in the request body is ignored.
     """
-    try:
-        # Convert FrameMetadata pydantic models to dicts for the service
-        frame_meta = None
-        if request.frame_metadata:
-            frame_meta = [fm.model_dump() for fm in request.frame_metadata]
+    _enforce_payload_caps_eye(request)
+    # Verify each frame is actually a JPEG/PNG. Rejects payloads that
+    # are merely *named* image but contain something else.
+    validate_image_frames(request.frames_base64)
 
-        result = analyze_eye_tracking(
-            user_id=request.user_id,
+    frame_meta = None
+    if request.frame_metadata:
+        frame_meta = [fm.model_dump() for fm in request.frame_metadata]
+
+    try:
+        return run_with_timeout(
+            "eye_tracking",
+            analyze_eye_tracking,
+            user_id=current_user_id,
             frames_base64=request.frames_base64,
             frame_metadata=frame_meta,
         )
-        return result
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Eye tracking analysis failed: {str(e)}",
-        )
+    except HTTPException:
+        raise
+    except RuntimeError as exc:
+        logger.warning("Eye tracking runtime error for user=%s: %s", current_user_id, exc)
+        raise HTTPException(status_code=500, detail="Eye tracking analysis failed.")
+    except Exception:
+        logger.exception("Eye tracking failed for user=%s", current_user_id)
+        raise HTTPException(status_code=500, detail="Eye tracking analysis failed.")
+
+
+# ---------------------------------------------------------------------------
+# Speech analysis
+# ---------------------------------------------------------------------------
 
 
 @router.post("/speech", response_model=SpeechAnalysisResponse)
-def speech_analysis(request: SpeechAnalysisRequest) -> SpeechAnalysisResponse:
-    """Analyze speech patterns from audio recording.
+def speech_analysis(
+    request: SpeechAnalysisRequest,
+    current_user_id: str = Depends(rate_limited_user_id("heavy")),
+) -> SpeechAnalysisResponse:
+    """Analyze speech patterns from audio recording."""
+    _enforce_payload_caps_speech(request)
+    # Magic-byte verification overrides whatever extension the client
+    # claims; downstream code uses the canonical format we return.
+    canonical_format = validate_audio_upload(
+        request.audio_base64,
+        request.audio_format,
+    )
 
-    Accepts a base64-encoded audio file (WAV or MP3) recorded during
-    the speech assessment. Uses librosa for audio feature extraction
-    including pitch analysis, energy patterns, MFCC features, pause
-    detection, and speech rate estimation.
-
-    Returns speech metrics and an ASD risk score based on prosody analysis.
-    """
     try:
-        result = analyze_speech(
-            user_id=request.user_id,
+        return run_with_timeout(
+            "speech",
+            analyze_speech,
+            user_id=current_user_id,
             audio_base64=request.audio_base64,
-            audio_format=request.audio_format,
+            audio_format=canonical_format,
         )
-        return result
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Speech analysis failed: {str(e)}",
-        )
+    except HTTPException:
+        raise
+    except RuntimeError as exc:
+        logger.warning("Speech analysis runtime error for user=%s: %s", current_user_id, exc)
+        raise HTTPException(status_code=500, detail="Speech analysis failed.")
+    except Exception:
+        logger.exception("Speech analysis failed for user=%s", current_user_id)
+        raise HTTPException(status_code=500, detail="Speech analysis failed.")
+
+
+# ---------------------------------------------------------------------------
+# MCQ
+# ---------------------------------------------------------------------------
 
 
 @router.post("/mcq", response_model=MCQAssessmentResponse)
-def mcq_assessment(request: MCQAssessmentRequest) -> MCQAssessmentResponse:
-    """Score MCQ behavioral questionnaire responses.
+def mcq_assessment(
+    request: MCQAssessmentRequest,
+    current_user_id: str = Depends(rate_limited_user_id("light")),
+) -> MCQAssessmentResponse:
+    """Score MCQ behavioral questionnaire responses."""
+    _enforce_payload_caps_mcq(request)
 
-    Accepts answers to the behavioral questionnaire. Each answer is
-    scored against ASD-informed criteria covering domains like social
-    interaction, communication, sensory processing, cognitive style,
-    and flexibility.
-
-    Returns individual question scores, total score, risk level,
-    and behavioral insights.
-    """
     try:
-        result = assess_mcq(
-            user_id=request.user_id,
+        return assess_mcq(
+            user_id=current_user_id,
             answers=request.answers,
         )
-        return result
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"MCQ assessment failed: {str(e)}",
-        )
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("MCQ scoring failed for user=%s", current_user_id)
+        raise HTTPException(status_code=500, detail="MCQ assessment failed.")
+
+
+# ---------------------------------------------------------------------------
+# Combined report
+# ---------------------------------------------------------------------------
 
 
 @router.post("/report/generate", response_model=ReportResponse)
 def generate_assessment_report(
     request: GenerateReportRequest,
+    current_user_id: str = Depends(require_auth_uid),
 ) -> ReportResponse:
     """Generate a combined ASD assessment report.
 
     Aggregates results from eye tracking, speech analysis, and MCQ
-    assessment modules using weighted scoring to produce a comprehensive
-    ASD risk assessment report with personalized recommendations.
-
-    At least one assessment module must be completed to generate a report.
+    assessment modules using weighted scoring. Each referenced
+    assessment is checked to ensure it belongs to the authenticated
+    user before being included.
     """
     if not any([
         request.eye_tracking_assessment_id,
@@ -129,46 +241,118 @@ def generate_assessment_report(
         request.mcq_assessment_id,
     ]):
         raise HTTPException(
-            status_code=400,
-            detail="At least one assessment ID must be provided",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one assessment ID must be provided.",
         )
+
+    # Ownership checks — IDs must belong to the caller.
+    _assert_assessment_owned(request.eye_tracking_assessment_id or "", current_user_id)
+    _assert_assessment_owned(request.speech_assessment_id or "", current_user_id)
+    _assert_assessment_owned(request.mcq_assessment_id or "", current_user_id)
+
+    # Force the canonical user_id (overwrite anything the client sent).
+    safe_request = request.model_copy(update={"user_id": current_user_id})
 
     try:
-        result = generate_report(request)
-        return result
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Report generation failed: {str(e)}",
-        )
+        return run_with_timeout("report_generate", generate_report, safe_request)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Report generation failed for user=%s", current_user_id)
+        raise HTTPException(status_code=500, detail="Report generation failed.")
 
 
-@router.get("/report/{user_id}", response_model=ReportResponse)
-def get_report(user_id: str) -> ReportResponse:
-    """Get the latest assessment report for a user.
-
-    Returns the most recent combined assessment report including
-    scores from all completed modules, risk level, and recommendations.
-    """
-    result = get_user_report(user_id)
+@router.get("/report", response_model=ReportResponse)
+def get_report_for_current_user(
+    current_user_id: str = Depends(require_auth_uid),
+) -> ReportResponse:
+    """Get the latest report for the authenticated user."""
+    result = get_user_report(current_user_id)
     if not result:
         raise HTTPException(
-            status_code=404,
-            detail=f"No report found for user {user_id}",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No report found.",
         )
     return result
 
 
-@router.get("/history/{user_id}", response_model=UserAssessmentHistory)
-def get_assessment_history(user_id: str) -> UserAssessmentHistory:
-    """Get assessment history for a user.
+# Legacy path kept for backwards compatibility — but ownership is now
+# strictly enforced. Calling it for a different UID returns 404.
+@router.get("/report/{user_id}", response_model=ReportResponse, deprecated=True)
+def get_report_legacy(
+    user_id: str,
+    current_user_id: str = Depends(require_auth_uid),
+) -> ReportResponse:
+    if user_id != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No report found.",
+        )
+    result = get_user_report(current_user_id)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No report found.",
+        )
+    return result
 
-    Returns a list of all assessments (eye tracking, speech, MCQ)
-    completed by the user, ordered by most recent first.
+
+# ---------------------------------------------------------------------------
+# History
+# ---------------------------------------------------------------------------
+
+
+@router.get("/history", response_model=UserAssessmentHistory)
+def get_assessment_history_for_current_user(
+    current_user_id: str = Depends(require_auth_uid),
+) -> UserAssessmentHistory:
+    """Get assessment history for the authenticated user."""
+    return _load_history(current_user_id)
+
+
+@router.delete("/{assessment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def soft_delete_assessment(
+    assessment_id: str,
+    current_user_id: str = Depends(require_auth_uid),
+) -> None:
+    """Soft-delete an assessment owned by the caller.
+
+    The row stays in the database with `deleted_at` populated so the
+    audit trail remains intact, but every owner-scoped query filters
+    soft-deleted rows out, so the data is effectively invisible to the
+    user. We deliberately reject the request with 404 if the row is
+    not owned (or is already soft-deleted) so an attacker cannot
+    distinguish "doesn't exist" from "belongs to someone else".
     """
+    _assert_assessment_owned(assessment_id, current_user_id)
+    with get_db() as conn:
+        conn.execute(
+            "UPDATE assessments "
+            "SET deleted_at = datetime('now'), updated_at = datetime('now') "
+            "WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            (assessment_id, current_user_id),
+        )
+
+
+@router.get("/history/{user_id}", response_model=UserAssessmentHistory, deprecated=True)
+def get_assessment_history_legacy(
+    user_id: str,
+    current_user_id: str = Depends(require_auth_uid),
+) -> UserAssessmentHistory:
+    if user_id != current_user_id:
+        # Don't reveal whether the requested user exists.
+        return UserAssessmentHistory(
+            user_id=current_user_id, assessments=[], total_count=0
+        )
+    return _load_history(current_user_id)
+
+
+def _load_history(user_id: str) -> UserAssessmentHistory:
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT id, type, status, created_at FROM assessments WHERE user_id = ? ORDER BY created_at DESC",
+            "SELECT id, type, status, created_at FROM assessments "
+            "WHERE user_id = ? AND deleted_at IS NULL "
+            "ORDER BY created_at DESC",
             (user_id,),
         ).fetchall()
 
@@ -181,7 +365,6 @@ def get_assessment_history(user_id: str) -> UserAssessmentHistory:
         )
         for row in rows
     ]
-
     return UserAssessmentHistory(
         user_id=user_id,
         assessments=assessments,
@@ -189,13 +372,19 @@ def get_assessment_history(user_id: str) -> UserAssessmentHistory:
     )
 
 
+# ---------------------------------------------------------------------------
+# MCQ question bank — public read-only metadata.
+# ---------------------------------------------------------------------------
+
+
 @router.get("/questions")
-def get_mcq_questions() -> dict:
+def get_mcq_questions(
+    current_user_id: str = Depends(require_auth_uid),
+) -> dict:
     """Get the list of MCQ questions for the assessment.
 
-    Returns all available questions with their options.
-    The frontend can use this to dynamically load questions
-    instead of hardcoding them.
+    Auth is required to keep the question bank private to logged-in
+    users; no per-user data is returned.
     """
     from ..services.mcq_assessment import ALL_QUESTIONS
 
