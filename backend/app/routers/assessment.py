@@ -88,16 +88,20 @@ def _enforce_payload_caps_mcq(request: MCQAssessmentRequest) -> None:
 
 
 def _assert_assessment_owned(assessment_id: str, user_id: str) -> None:
-    """Raise 404 if ``assessment_id`` is not owned by ``user_id``.
+    """Raise 404 if ``assessment_id`` is not owned and live for ``user_id``.
 
     We deliberately return 404 (not 403) so that an attacker cannot
-    enumerate assessment IDs belonging to other users.
+    enumerate assessment IDs belonging to other users. Soft-deleted
+    rows are treated as not-existing for ownership purposes — the
+    audit trail remains in the table but ordinary requests cannot
+    interact with the row.
     """
     if not assessment_id:
         return
     with get_db() as conn:
         row = conn.execute(
-            "SELECT user_id FROM assessments WHERE id = ?",
+            "SELECT user_id FROM assessments "
+            "WHERE id = ? AND deleted_at IS NULL",
             (assessment_id,),
         ).fetchone()
     if row is None or row["user_id"] != user_id:
@@ -290,6 +294,30 @@ def get_assessment_history_for_current_user(
     return _load_history(current_user_id)
 
 
+@router.delete("/{assessment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def soft_delete_assessment(
+    assessment_id: str,
+    current_user_id: str = Depends(require_auth_uid),
+) -> None:
+    """Soft-delete an assessment owned by the caller.
+
+    The row stays in the database with `deleted_at` populated so the
+    audit trail remains intact, but every owner-scoped query filters
+    soft-deleted rows out, so the data is effectively invisible to the
+    user. We deliberately reject the request with 404 if the row is
+    not owned (or is already soft-deleted) so an attacker cannot
+    distinguish "doesn't exist" from "belongs to someone else".
+    """
+    _assert_assessment_owned(assessment_id, current_user_id)
+    with get_db() as conn:
+        conn.execute(
+            "UPDATE assessments "
+            "SET deleted_at = datetime('now'), updated_at = datetime('now') "
+            "WHERE id = ? AND user_id = ? AND deleted_at IS NULL",
+            (assessment_id, current_user_id),
+        )
+
+
 @router.get("/history/{user_id}", response_model=UserAssessmentHistory, deprecated=True)
 def get_assessment_history_legacy(
     user_id: str,
@@ -307,7 +335,8 @@ def _load_history(user_id: str) -> UserAssessmentHistory:
     with get_db() as conn:
         rows = conn.execute(
             "SELECT id, type, status, created_at FROM assessments "
-            "WHERE user_id = ? ORDER BY created_at DESC",
+            "WHERE user_id = ? AND deleted_at IS NULL "
+            "ORDER BY created_at DESC",
             (user_id,),
         ).fetchall()
 
