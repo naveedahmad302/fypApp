@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import CustomText from '../../../components/CustomText';
 import { useAssessment } from '../../../context/AssessmentContext';
+import EyeModelFeaturesPanel from './components/EyeModelFeaturesPanel';
 
 interface TrackingStatusScreenProps {
   navigation?: any;
@@ -83,6 +84,7 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
     eyeTrackingBehaviorScores,
     eyeTrackingEyeDetected,
     eyeTrackingFeedbackMessage,
+    eyeTrackingModelFeatures,
   } = useAssessment();
 
   const riskScore = eyeTrackingScore ?? 0;
@@ -92,8 +94,16 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
   const behaviorScores = eyeTrackingBehaviorScores;
   const eyeDetected = eyeTrackingEyeDetected;
   const feedbackMessage = eyeTrackingFeedbackMessage;
+  const modelFeatures = eyeTrackingModelFeatures;
   const riskInfo = getRiskInfo(riskScore);
   const confInfo = getConfidenceInfo(confidence);
+
+  // When the v2 trained-model backend is active the headline numbers
+  // and grouped feature panels come from `modelFeatures`. The legacy
+  // 8-dimension behaviour breakdown is hidden in that case (it would
+  // be all-zero placeholders) but kept in the file so flipping the
+  // backend env var brings it straight back.
+  const isV2Backend = !!modelFeatures;
 
   const handleTryAgain = () => {
     const nav = navProp || navigation;
@@ -158,8 +168,11 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
             </View>
           )}
 
-          {/* ─── Behavior Analysis (8 Dimensions) ─── */}
-          {behaviorScores && eyeDetected && (
+          {/* ─── v2 trained-model feature panel (default backend) ─── */}
+          <EyeModelFeaturesPanel features={modelFeatures} />
+
+          {/* ─── Behavior Analysis (8 Dimensions) — legacy backend only ─── */}
+          {!isV2Backend && behaviorScores && eyeDetected && (
             <View className="bg-white p-5 rounded-2xl shadow-lg shadow-gray-200 mb-4" style={{
               shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
             }}>
@@ -185,7 +198,8 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
             </View>
           )}
 
-          {/* ─── Detailed Metrics ─── */}
+          {/* ─── Detailed Metrics — legacy backend only ─── */}
+          {!isV2Backend && (
           <View className="bg-white p-5 rounded-2xl shadow-lg shadow-gray-200 mb-4" style={{
             shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2,
           }}>
@@ -211,6 +225,7 @@ const TrackingStatusScreen: React.FC<TrackingStatusScreenProps> = ({ navigation:
               </CustomText>
             </View>
           </View>
+          )}
 
           {/* ─── Insights ─── */}
           {insights.length > 0 && (

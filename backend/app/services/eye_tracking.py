@@ -70,6 +70,29 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "face_landmarker.task")
 # Optional hand landmarker model for stimming detection
 HAND_MODEL_PATH = os.path.join(os.path.dirname(__file__), "hand_landmarker.task")
 
+
+def _ensure_face_landmarker_file() -> str:
+    """Download the face_landmarker.task file on first use if missing.
+
+    Makes the backend self-bootstrapping on Windows / fresh CI /
+    containers where ``setup.sh`` was never run. Safe to call repeatedly
+    — it's a no-op once the file exists. Returns the resolved path.
+    """
+    from pathlib import Path
+
+    from .eye_tracking_v2.mediapipe_assets import ensure_face_landmarker
+
+    return str(ensure_face_landmarker(Path(MODEL_PATH)))
+
+
+def _ensure_hand_landmarker_file() -> str:
+    """Download the hand_landmarker.task file on first use if missing."""
+    from pathlib import Path
+
+    from .eye_tracking_v2.mediapipe_assets import ensure_hand_landmarker
+
+    return str(ensure_hand_landmarker(Path(HAND_MODEL_PATH)))
+
 # ===================================================================
 # MediaPipe Face Mesh landmark indices
 # ===================================================================
@@ -201,8 +224,9 @@ def _sigmoid(x: float, midpoint: float, steepness: float) -> float:
 
 def _create_face_landmarker() -> FaceLandmarker:
     """Create a MediaPipe FaceLandmarker with high confidence thresholds."""
+    model_path = _ensure_face_landmarker_file()
     options = FaceLandmarkerOptions(
-        base_options=BaseOptions(model_asset_path=MODEL_PATH),
+        base_options=BaseOptions(model_asset_path=model_path),
         running_mode=RunningMode.IMAGE,
         num_faces=1,
         min_face_detection_confidence=FACE_DETECTION_CONFIDENCE,
@@ -216,9 +240,13 @@ def _create_face_landmarker() -> FaceLandmarker:
 def _create_hand_landmarker():
     """Create a MediaPipe HandLandmarker for stimming detection.
 
-    Returns None if the model file is not available.
+    Hand landmarker is optional; if the download fails for any reason
+    we silently disable stimming detection rather than blocking the
+    whole assessment (which only needs the face landmarker).
     """
-    if not os.path.exists(HAND_MODEL_PATH):
+    try:
+        hand_path = _ensure_hand_landmarker_file()
+    except Exception:
         return None
     try:
         from mediapipe.tasks.python.vision import (
@@ -227,7 +255,7 @@ def _create_hand_landmarker():
         )
 
         options = HandLandmarkerOptions(
-            base_options=BaseOptions(model_asset_path=HAND_MODEL_PATH),
+            base_options=BaseOptions(model_asset_path=hand_path),
             running_mode=RunningMode.IMAGE,
             num_hands=2,
             min_hand_detection_confidence=0.5,
