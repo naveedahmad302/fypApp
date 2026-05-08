@@ -154,4 +154,45 @@ describe('/users/{uid} — update', () => {
       ),
     );
   });
+
+  test('owner can stamp lastLoginAt + updatedAt without disturbing immutables', async () => {
+    // Mirrors what AuthContext.recordLoginInFirestore writes on every
+    // sign-in via the auth-state listener.
+    await seedAliceProfile();
+    await assertSucceeds(
+      setDoc(
+        doc(aliceDb(), 'users', ALICE_UID),
+        {
+          lastLoginAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      ),
+    );
+  });
+
+  test('another user CANNOT stamp lastLoginAt on someone else\'s profile', async () => {
+    await seedAliceProfile();
+    await assertFails(
+      setDoc(
+        doc(bobDb(), 'users', ALICE_UID),
+        { lastLoginAt: serverTimestamp() },
+        { merge: true },
+      ),
+    );
+  });
+
+  test('owner CANNOT rewrite createdAt while stamping lastLoginAt', async () => {
+    await seedAliceProfile();
+    await assertFails(
+      setDoc(
+        doc(aliceDb(), 'users', ALICE_UID),
+        {
+          lastLoginAt: serverTimestamp(),
+          createdAt: serverTimestamp(), // attempt to forge account age
+        },
+        { merge: true },
+      ),
+    );
+  });
 });
