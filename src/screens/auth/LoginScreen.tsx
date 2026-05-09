@@ -7,7 +7,7 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import CustomText from '../../components/CustomText';
 import AlertModal from '../../components/AlertModal';
 import { signIn, signInWithGoogle } from '../../firebase/auth';
-import { getUserFromFirestore, createFirestoreDocumentForAuthUser } from '../../firebase/firestore';
+import { getUserFromFirestore, createFirestoreDocumentForAuthUser, IUser } from '../../firebase/firestore';
 import { SocialLogin } from '../../components/SocialLogin';
 import { showSuccessToast, showErrorToast, showInfoToast } from '../../utils/toast';
 
@@ -56,11 +56,7 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
     setTimeout(() => {
       setAuthenticated(true);
       if (userData) {
-        setUser({
-          name: userData.fullName,
-          email: userData.email,
-          uid: userData.uid
-        });
+        setUser(userData);
       }
     }, 1500);
   } catch (error: any) {
@@ -108,17 +104,13 @@ const handleGoogleSignIn = async () => {
     setTimeout(() => {
       setAuthenticated(true);
       if (userData) {
-        setUser({
-          name: userData.fullName,
-          email: userData.email,
-          uid: userData.uid
-        });
+        setUser(userData);
       } else if (user.email && user.displayName) {
         setUser({
-          name: user.displayName,
+          uid: user.uid,
           email: user.email,
-          uid: user.uid
-        });
+          fullName: user.displayName,
+        } as IUser);
       }
     }, 1500);
   } catch (error: any) {

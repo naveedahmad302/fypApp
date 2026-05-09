@@ -6,9 +6,9 @@ import { TAuthStackNavigationProps } from '../../navigation/authStack/types';
 import { Mail, Lock, User, Eye, EyeOff, Check, Square } from 'lucide-react-native';
 import CustomText from '../../components/CustomText';
 import { signUp, signInWithGoogle } from '../../firebase/auth';
-import { saveUserToFirestore, getUserFromFirestore } from '../../firebase/firestore';
+import { saveUserToFirestore, getUserFromFirestore, IUser } from '../../firebase/firestore';
 import { SocialLogin } from '../../components/SocialLogin';
-import { showSuccessToast, showErrorToast, showWarningToast } from '../../utils/toast';
+import { showSuccessToast, showErrorToast, showWarningToast, showInfoToast } from '../../utils/toast';
 
 const SignupScreen: React.FC<TAuthStackNavigationProps<'Signup'>> = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -122,10 +122,10 @@ const handleGoogleSignUp = async () => {
         setTimeout(() => {
           setAuthenticated(true);
           setUser({
-            name: user.displayName || '',
+            uid: user.uid,
             email: user.email || '',
-            uid: user.uid
-          });
+            fullName: user.displayName || '',
+          } as IUser);
         }, 1500);
       }
     }

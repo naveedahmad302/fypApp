@@ -48,20 +48,26 @@ from backend.app.services.eye_tracking_v2 import (  # noqa: E402
 
 
 def _fake_landmarks() -> list[SimpleNamespace]:
-    """Construct 478 landmarks with realistic relative positions."""
-    pts = [SimpleNamespace(x=0.5, y=0.5, z=0.0) for _ in range(478)]
+    """Construct 478 landmarks with realistic relative positions.
+
+    The iris z is positive so the adapter's mm-per-unit projection
+    yields an eye Z around +200 mm — inside the physical-sanity bound
+    declared by ``FEATURE_RANGE_BOUNDS['eye_pos_*_z_mm']``.
+    """
+    iris_z = 0.5
+    pts = [SimpleNamespace(x=0.5, y=0.5, z=iris_z) for _ in range(478)]
     # Eye corners (anatomical convention; image-left = user's right).
     # Right outer (33), right inner (133)
-    pts[33] = SimpleNamespace(x=0.40, y=0.45, z=-0.02)
-    pts[133] = SimpleNamespace(x=0.46, y=0.45, z=-0.02)
+    pts[33] = SimpleNamespace(x=0.40, y=0.45, z=iris_z)
+    pts[133] = SimpleNamespace(x=0.46, y=0.45, z=iris_z)
     # Left inner (362), left outer (263)
-    pts[362] = SimpleNamespace(x=0.54, y=0.45, z=-0.02)
-    pts[263] = SimpleNamespace(x=0.60, y=0.45, z=-0.02)
+    pts[362] = SimpleNamespace(x=0.54, y=0.45, z=iris_z)
+    pts[263] = SimpleNamespace(x=0.60, y=0.45, z=iris_z)
     # Iris (5 pts each). Right iris cluster around 0.43, left around 0.57.
     for i in (468, 469, 470, 471, 472):
-        pts[i] = SimpleNamespace(x=0.57, y=0.45, z=-0.02)  # user's left iris
+        pts[i] = SimpleNamespace(x=0.57, y=0.45, z=iris_z)  # user's left iris
     for i in (473, 474, 475, 476, 477):
-        pts[i] = SimpleNamespace(x=0.43, y=0.45, z=-0.02)  # user's right iris
+        pts[i] = SimpleNamespace(x=0.43, y=0.45, z=iris_z)  # user's right iris
     return pts
 
 
