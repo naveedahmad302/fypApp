@@ -73,8 +73,7 @@ header so HSTS is set on https responses only. Set
 | 4.2 | Magic-byte verification for audio (WAV/MP3/M4A only) | ✅ | PR #6 |
 | 4.3 | Magic-byte verification for images (JPEG/PNG only) | ✅ | PR #6 |
 | 4.4 | Mixed-format frame batches rejected | ✅ | PR #6 |
-| 4.5 | Eye-tracking 14-feature physical-range guards | ✅ | PR #9 |
-| 4.6 | NaN / inf rejection before model inference | ✅ | PR #2 |
+| 4.5 | NaN / inf rejection before legacy MediaPipe pipeline | ✅ | PR #6 |
 
 ## 5. Inference & ML Hardening
 
@@ -153,10 +152,10 @@ Run these from a clean machine after every release tag:
 ## 10. Known follow-ups (not blockers)
 
 - Subprocess-based hard-cancel for inference (5.7).
-- Retrain the eye-tracking model on MediaPipe-derived feature vectors so
-  `EYE_TRACKING_PREPROC=trained_scaler` can be used without OOD
-  saturation. The `online_standardize` mode currently in use is a
-  workaround.
+- Retrain or replace the eye-tracking model on MediaPipe-derived feature
+  vectors. The current legacy heuristic pipeline (blink rate, gaze
+  stability, joint attention) is a rule-based scorer rather than a
+  learned classifier.
 - M-CHAT-R/F + AQ-10 questionnaire upgrade for the MCQ module.
 - ASDSpeech-trained classifier for the speech module.
 - Sentry / GCP Error Reporting wiring (6.6).
