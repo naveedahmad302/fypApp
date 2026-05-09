@@ -8,8 +8,7 @@ pipeline (`backend/app/services/eye_tracking_v2/`).
 | File | Purpose |
 |---|---|
 | `autism_model_weights.npz` | NumPy-extracted weights of the trained Keras MLP. Loaded at runtime via `keras_mlp.py` — no TensorFlow / Keras dependency. |
-| `scaler.pkl` | sklearn `StandardScaler` fitted on the original eye-tracker training data. Used by both `EYE_TRACKING_PREPROC=trained_scaler` and `EYE_TRACKING_PREPROC=domain_adapt`. |
-| `mediapipe_stats.npz` | Per-feature mean/std of the MediaPipe-derived input distribution. Used by `EYE_TRACKING_PREPROC=domain_adapt` to bridge to the trained scale. Rebuild via `python -m backend.scripts.build_mediapipe_stats`. |
+| `scaler.pkl` | sklearn `StandardScaler` fitted on the original eye-tracker training data. Optional at runtime; only used when `EYE_TRACKING_PREPROC=trained_scaler`. |
 | `label_encoder.pkl` | sklearn `LabelEncoder`. Reference only — the class index mapping is also in `metadata.json`. |
 | `metadata.json` | Class index, feature names, training-distribution notes. |
 
@@ -71,42 +70,25 @@ different. Applying the trained scaler to webcam data places inputs
 several σ outside the training distribution, which collapses the
 softmax output toward a degenerate value.
 
-The pipeline therefore defaults to (PR-G):
+The pipeline therefore defaults to:
 
 ```
-EYE_TRACKING_PREPROC=domain_adapt
+EYE_TRACKING_PREPROC=online_standardize
 ```
 
-which applies a per-feature affine map
+which z-scores each request's batch using its own per-column mean/std.
+This keeps the MLP's input statistics close to the (zero-mean,
+unit-variance) regime it was trained on, regardless of camera or
+screen geometry.
 
-```
-x_aligned = (x_raw - mp_mean) / mp_std * trained_std + trained_mean
-```
-
-before the trained scaler. The MediaPipe stats `(mp_mean, mp_std)` come
-from `mediapipe_stats.npz` shipped in this directory and are sampled
-over a broad, plausible head-pose distribution — see
-`backend/scripts/build_mediapipe_stats.py`. The aligned input lives in
-the same space the MLP saw at training time, so the trained decision
-boundary is meaningful again.
-
-Fallback chain when `domain_adapt` is selected but stats / scaler are
-missing: a warning is logged and the system degrades to
-`online_standardize` rather than producing silently wrong outputs.
-
-The earlier workaround `EYE_TRACKING_PREPROC=online_standardize`
-(per-batch z-score) is still available; use it only when the trained
-decision boundary is not trusted on a particular input.
-
-You can switch to the device-trained scaler directly with:
+You can switch back to the device-trained scaler with:
 
 ```
 EYE_TRACKING_PREPROC=trained_scaler
 ```
 
 — useful only when wiring in a real eye-tracker that produces
-hardware-equivalent values; saturates at P(ASD) ≈ 1.0 on MediaPipe
-inputs.
+hardware-equivalent values.
 
 ## Selecting the backend at runtime
 
@@ -114,7 +96,6 @@ inputs.
 |---|---|
 | `EYE_TRACKING_BACKEND=new_model` (default) | Use the trained MLP. Falls back to legacy MediaPipe behavioural pipeline if any artefact is missing. |
 | `EYE_TRACKING_BACKEND=legacy_mediapipe` | Force the original 8-dimensional behavioural pipeline. |
-| `EYE_TRACKING_PREPROC=domain_adapt` (default) | MediaPipe → trained-distribution affine + trained scaler. |
-| `EYE_TRACKING_PREPROC=online_standardize` | Per-batch z-score (legacy workaround for MediaPipe inputs). |
-| `EYE_TRACKING_PREPROC=trained_scaler` | Apply the saved StandardScaler directly (real eye-tracker hardware only). |
+| `EYE_TRACKING_PREPROC=online_standardize` (default) | Z-score per batch. Recommended for MediaPipe-fed inputs. |
+| `EYE_TRACKING_PREPROC=trained_scaler` | Apply the saved StandardScaler. |
 | `EYE_TRACKING_PREPROC=none` | Pass raw values straight to the MLP (debug only). |

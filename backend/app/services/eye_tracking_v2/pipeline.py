@@ -29,13 +29,10 @@ from ...database import get_db
 from ...schemas.assessment import (
     AssessmentStatus,
     BehaviorScores,
-    EyeFeatureSummary,
-    EyeModelFeatures,
     EyeTrackingResponse,
     FrameAnalysisLog,
     GazeMetrics,
 )
-from .calibration import apply_calibration_to_loaded_model
 from .config import (
     FEATURE_ORDER,
     PipelineConfig,
@@ -51,18 +48,9 @@ from .model_runner import (
     load_model,
     run_inference,
 )
-from .smoothing import (
-    DEFAULT_SMOOTHING_CONFIG,
-    apply_temporal_stabilisation,
-)
 from .validation import FeatureValidationError
 
 logger = logging.getLogger("eye_tracking_v2.pipeline")
-
-# Cap how many per-frame 14-vectors we ship back to the frontend so the
-# payload stays small even on long captures. The frontend uses this for
-# the live debug panel; a 60-frame ring buffer is plenty.
-MAX_PER_FRAME_PAYLOAD = 60
 
 
 # ---------------------------------------------------------------------------
@@ -94,14 +82,10 @@ def _get_face_landmarker(config: PipelineConfig):
     )
 
     # Re-use the legacy module's task file so we don't ship duplicates.
-    # The helper auto-downloads the file on first use, which keeps the
-    # backend self-bootstrapping on Windows / fresh CI / containers.
     from .. import eye_tracking as legacy
 
-    model_path = legacy._ensure_face_landmarker_file()  # noqa: SLF001
-
     options = FaceLandmarkerOptions(
-        base_options=BaseOptions(model_asset_path=model_path),
+        base_options=BaseOptions(model_asset_path=legacy.MODEL_PATH),
         running_mode=RunningMode.IMAGE,
         num_faces=1,
         min_face_detection_confidence=config.adapter.min_face_detection_confidence,
@@ -220,79 +204,13 @@ def extract_feature_matrix(
 # ---------------------------------------------------------------------------
 # Response assembly
 # ---------------------------------------------------------------------------
-def _build_feature_payload(
-    *,
-    cfg: PipelineConfig,
-    feature_matrix: np.ndarray,
-    inference: InferenceResult,
-    n_frames_total: int,
-) -> EyeModelFeatures:
-    """Build the v2 EyeModelFeatures payload sent to the frontend.
-
-    The summary stats are computed on the raw (pre-preprocessing) 14
-    vectors so the values shown in the UI map 1:1 to the canonical
-    feature names (mm and px), not the post-scaler z-scores.
-    """
-    summaries: list[EyeFeatureSummary] = []
-    if feature_matrix.shape[0] > 0:
-        means = feature_matrix.mean(axis=0)
-        mins = feature_matrix.min(axis=0)
-        maxs = feature_matrix.max(axis=0)
-        stds = feature_matrix.std(axis=0)
-        last_row = feature_matrix[-1]
-        for i, name in enumerate(FEATURE_ORDER):
-            # Build via dict to keep ruff/pylint from flagging the
-            # `min=`/`max=` kwargs that intentionally match the JSON
-            # field names exposed to the frontend.
-            summaries.append(
-                EyeFeatureSummary.model_validate(
-                    {
-                        "name": name,
-                        "mean": float(means[i]),
-                        "min": float(mins[i]),
-                        "max": float(maxs[i]),
-                        "std": float(stds[i]),
-                        "last": float(last_row[i]),
-                    }
-                )
-            )
-    else:
-        summaries = [EyeFeatureSummary(name=n) for n in FEATURE_ORDER]
-
-    per_frame_tail = feature_matrix[-MAX_PER_FRAME_PAYLOAD:]
-    per_frame: list[list[float]] = [
-        [float(v) for v in row] for row in per_frame_tail
-    ]
-
-    label_classes: list[str] = []
-    raw_classes = inference.model_metadata.get("label_encoder_classes")
-    if isinstance(raw_classes, list):
-        label_classes = [str(c) for c in raw_classes]
-
-    return EyeModelFeatures(
-        backend=str(cfg.backend),
-        preprocessing=str(cfg.preprocessing),
-        feature_order=list(FEATURE_ORDER),
-        summary=summaries,
-        per_frame=per_frame,
-        asd_probability=float(inference.asd_probability),
-        confidence=float(inference.confidence),
-        n_frames_used=int(inference.n_frames_used),
-        n_frames_total=int(n_frames_total),
-        label_classes=label_classes,
-    )
-
-
 def _build_response(
     *,
-    cfg: PipelineConfig,
     assessment_id: str,
     inference: InferenceResult,
-    feature_matrix: np.ndarray,
     frame_log: list[FrameAnalysisLog],
     eye_detected: bool,
     feedback: Optional[str],
-    n_frames_total: int,
 ) -> EyeTrackingResponse:
     """Map an InferenceResult into the existing EyeTrackingResponse schema."""
     asd_risk_score = round(float(inference.asd_probability) * 100.0, 2)
@@ -308,13 +226,6 @@ def _build_response(
         f"Frames analysed: {inference.n_frames_used}",
     ]
 
-    model_features = _build_feature_payload(
-        cfg=cfg,
-        feature_matrix=feature_matrix,
-        inference=inference,
-        n_frames_total=n_frames_total,
-    )
-
     return EyeTrackingResponse(
         assessment_id=assessment_id,
         status=AssessmentStatus.COMPLETED,
@@ -328,7 +239,6 @@ def _build_response(
         insights=insights,
         frame_log=frame_log,
         feedback_message=feedback,
-        model_features=model_features,
     )
 
 
@@ -369,23 +279,6 @@ def analyze_eye_tracking_v2(
             len(frames_base64),
         )
 
-        # ----------------------------------------------------------------
-        # 1a. Temporal stabilisation: blink / outlier rejection + EMA
-        # smoothing across frames. This runs BEFORE preprocessing so
-        # the trained scaler / domain_adapt sees a noise-reduced signal.
-        # See ``smoothing.py`` for the algorithm and parameters.
-        # ----------------------------------------------------------------
-        if n_used > 0:
-            feature_matrix, smoothing_stats = apply_temporal_stabilisation(
-                feature_matrix, DEFAULT_SMOOTHING_CONFIG
-            )
-            logger.info(
-                "eye_tracking_v2: smoothing dropped=%d/%d alpha=%.2f",
-                smoothing_stats["n_dropped"],
-                smoothing_stats["n_in"],
-                smoothing_stats["alpha"],
-            )
-
         if n_used == 0:
             with get_db() as conn:
                 conn.execute(
@@ -425,26 +318,6 @@ def analyze_eye_tracking_v2(
                 frame_metadata=frame_metadata,
                 assessment_id=assessment_id,
             )
-
-        # ----------------------------------------------------------------
-        # 2a. Apply this user's calibration profile (PR-H) when present.
-        # Replaces the model's global ``mediapipe_stats`` with the user's
-        # personally-fitted mean/std, so domain_adapt's affine map is
-        # tuned to the actual user behind the camera. No-op when no
-        # profile exists for this user.
-        # ----------------------------------------------------------------
-        try:
-            from ..calibration_store import load_profile
-
-            user_profile = load_profile(user_id)
-        except Exception:  # pragma: no cover - defensive
-            logger.exception(
-                "eye_tracking_v2: calibration lookup failed for user=%s; "
-                "continuing with global stats",
-                user_id,
-            )
-            user_profile = None
-        model = apply_calibration_to_loaded_model(model, user_profile)
 
         # ----------------------------------------------------------------
         # 3. Run inference + persist the row.
@@ -506,14 +379,11 @@ def analyze_eye_tracking_v2(
             )
 
         return _build_response(
-            cfg=cfg,
             assessment_id=assessment_id,
             inference=inference,
-            feature_matrix=feature_matrix,
             frame_log=frame_log,
             eye_detected=True,
             feedback=None,
-            n_frames_total=len(frames_base64),
         )
 
     except FeatureValidationError as exc:

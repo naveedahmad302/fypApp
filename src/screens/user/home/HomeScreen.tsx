@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import Svg, { Circle } from 'react-native-svg';
 import { 
   THomeTabStackParamsList,
   TBottomTabsStackParamsList 
@@ -20,7 +19,7 @@ type Props = HomeScreenNavigationProp;
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const { completedCount, eyeTrackingComplete, speechComplete, mcqComplete } = useAssessment();
-  const progressPercent = completedCount === 0 ? 0 : completedCount === 1 ? 33 : completedCount === 2 ? 66 : 100;
+  const progressPercent = Math.round((completedCount / 3) * 100);
 
   const getNextStep = () => {
     if (!eyeTrackingComplete) return { step: 1, name: 'Eye Assessment', desc: 'Analyse gaze patterns and visual attention', time: '3-4 min' };
@@ -45,46 +44,39 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           {/* Circular Progress */}
           <View className="items-center mb-6">
             <View className="relative mb-6">
-              {/* SVG Progress Circle */}
-              <View className="absolute inset-0 w-36 h-36 items-center justify-center">
-                <Svg width="144" height="144" className="absolute">
-                  {/* Background Circle */}
-                  <Circle
-                    cx="72"
-                    cy="72"
-                    r="64"
-                    stroke="#e5e7eb"
-                    strokeWidth="8"
-                    fill="none"
-                  />
-                  {/* Progress Circle */}
-                  <Circle
-                    cx="72"
-                    cy="72"
-                    r="64"
-                    stroke="#3b82f6"
-                    strokeWidth="8"
-                    fill="none"
-                    strokeDasharray={`${2 * Math.PI * 64}`}
-                    strokeDashoffset={`${2 * Math.PI * 64 * (1 - progressPercent / 100)}`}
-                    strokeLinecap="round"
-                    transform={`rotate(-90 72 72)`}
-                    opacity={completedCount > 0 ? 1 : 0}
-                  />
-                </Svg>
-              </View>
-              
-              {/* Center Content */}
-              <View className={`w-36 h-36 rounded-full items-center justify-center ${completedCount > 0 ? 'bg-[#F5F7FA]' : 'bg-white'}`}>
-                <Text className={`text-3xl font-bold font-radio-canada ${completedCount > 0 ? 'text-blue-600' : 'text-blue-500'}`}>{completedCount}</Text>
+              <View className="w-36 h-36 rounded-full border-8 shadow-sm items-center justify-center">
+                <Text className="text-3xl font-bold font-radio-canada text-blue-500">{completedCount}</Text>
                 <Text className="text-sm font-normal text-[#6B7280]">of 3</Text>
+              </View>
+              <View className="absolute inset-0 w-36 h-36">
+                <View
+                  className="w-full h-full rounded-full border-8"
+                  style={{
+                    borderTopColor: '#e5e7eb',
+                    borderRightColor: '#e5e7eb',
+                    borderBottomColor: '#e5e7eb',
+                    borderLeftColor: '#e5e7eb',
+                    transform: [{ rotate: '45deg' }]
+                  }}
+                />
+                <View
+                  className="absolute inset-0 w-36 h-36 rounded-full"
+                  style={{
+                    borderTopWidth:0,
+                    borderTopColor: '#3b82f6',
+                    borderRightWidth: 0,
+                    borderBottomWidth: 0,
+                    borderLeftWidth: 0,
+                    transform: [{ rotate: '45deg' }]
+                  }}
+                />
               </View>
             </View>
 
             {/* Progress Text */}
             <View className="flex-row items-center">
               <Text className="text-yellow-500 text-lg mr-2">⭐</Text>
-              <Text className={`font-medium ${completedCount > 0 ? 'text-blue-700' : 'text-gray-700'}`}>{progressPercent}% Complete</Text>
+              <Text className="text-gray-700 font-medium">{progressPercent}% Complete</Text>
             </View>
           </View>
 

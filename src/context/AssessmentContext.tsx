@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type {
   GazeMetrics,
   EyeTrackingResponse,
-  EyeModelFeatures,
   SpeechMetrics,
   SpeechAnalysisResponse,
   SpeechFeatures,
@@ -30,8 +29,6 @@ interface AssessmentState {
   eyeTrackingFrameLog: FrameAnalysisLog[];
   eyeTrackingFeedbackMessage: string | null;
   eyeTrackingEyeDetected: boolean;
-  /** v2 trained-model feature payload (14-vector summary + per-frame samples). */
-  eyeTrackingModelFeatures: EyeModelFeatures | null;
 
   /** Full model output for speech analysis. */
   speechMetrics: SpeechMetrics | null;
@@ -76,7 +73,6 @@ const initialState: AssessmentState = {
   eyeTrackingFrameLog: [],
   eyeTrackingFeedbackMessage: null,
   eyeTrackingEyeDetected: true,
-  eyeTrackingModelFeatures: null,
   speechMetrics: null,
   speechFeatures: null,
   speechBehavioralFlags: null,
@@ -120,7 +116,6 @@ export const AssessmentProvider: React.FC<AssessmentProviderProps> = ({ children
       eyeTrackingFrameLog: result.frame_log ?? [],
       eyeTrackingFeedbackMessage: result.feedback_message ?? null,
       eyeTrackingEyeDetected: result.eye_detected ?? true,
-      eyeTrackingModelFeatures: result.model_features ?? null,
       eyeTrackingComplete: true,
     }));
   };

@@ -34,17 +34,8 @@ logger = logging.getLogger("eye_tracking_v2.validation")
 # child sitting in front of a tablet — so legitimate users are never
 # clipped.
 #
-# eye_pos_*_mm — depth/lateral offset from the camera. The bounds
-#   accommodate two very different input regimes that this code may
-#   receive a 14-vector from:
-#     a) Real eye-tracker hardware → Z ≈ 200..1100 mm, X/Y ≈ ±100 mm
-#        (the distribution the MLP was trained on).
-#     b) MediaPipe Face Mesh → Z is unitless and roughly in
-#        [-100, +100], X/Y are pixel-derived approximations centred on
-#        the eye region (~150..280 px).
-#   Bounds therefore have to be the union of both regimes — narrower
-#   bounds were tried in PR-F but rejected the entire MediaPipe input
-#   distribution.
+# eye_pos_*_mm  — Z is depth from camera; tablet/phone usage is 200–700 mm,
+#                 X/Y from camera centre rarely exceeds ±300 mm.
 # pupil_*_px    — sensor coords for a 1080p camera fit comfortably in
 #                 [-200, 2200] (tiny negative margin lets the iris just
 #                 outside the frame still validate).
@@ -54,10 +45,10 @@ logger = logging.getLogger("eye_tracking_v2.validation")
 FEATURE_RANGE_BOUNDS: dict[str, tuple[float, float]] = {
     "eye_pos_right_x_mm": (-500.0, 500.0),
     "eye_pos_right_y_mm": (-500.0, 500.0),
-    "eye_pos_right_z_mm": (-200.0, 2000.0),
+    "eye_pos_right_z_mm": (50.0, 2000.0),
     "eye_pos_left_x_mm":  (-500.0, 500.0),
     "eye_pos_left_y_mm":  (-500.0, 500.0),
-    "eye_pos_left_z_mm":  (-200.0, 2000.0),
+    "eye_pos_left_z_mm":  (50.0, 2000.0),
     "pupil_right_x_px":   (-300.0, 4000.0),
     "pupil_right_y_px":   (-300.0, 4000.0),
     "pupil_left_x_px":    (-300.0, 4000.0),

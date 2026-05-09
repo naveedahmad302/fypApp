@@ -9,33 +9,33 @@ import { CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react-native';
 
 const toastProps: BaseToastProps = {
   text1Style: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
     color: '#1F2937',
-    marginBottom: 3,
+    marginBottom: 4,
   },
   text2Style: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '400',
     color: '#6B7280',
-    lineHeight: 18,
+    lineHeight: 20,
   },
-  text2NumberOfLines: 8,
+  text2NumberOfLines: 10,
   style: {
     height: 'auto',
-    minHeight: 55,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    marginHorizontal: 12,
+    minHeight: 60,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginHorizontal: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
   },
 };
 
@@ -46,7 +46,7 @@ export const toastConfig: ToastConfig = {
       {...toastProps}
       style={[toastProps.style, styles.success]}
       renderLeadingIcon={() => (
-        <CheckCircle size={22} color="#10B981" style={styles.icon} />
+        <CheckCircle size={25} color="#10B981" style={styles.icon} />
       )}
     />
   ),
@@ -56,7 +56,7 @@ export const toastConfig: ToastConfig = {
       {...toastProps}
       style={[toastProps.style, styles.error]}
       renderLeadingIcon={() => (
-        <XCircle size={22} color="#EF4444" style={styles.icon} />
+        <XCircle size={25} color="#EF4444" style={styles.icon} />
       )}
     />
   ),
@@ -66,7 +66,7 @@ export const toastConfig: ToastConfig = {
       {...toastProps}
       style={[toastProps.style, styles.warning]}
       renderLeadingIcon={() => (
-        <AlertCircle size={22} color="#F59E0B" style={styles.icon} />
+        <AlertCircle size={25} color="#F59E0B" style={styles.icon} />
       )}
     />
   ),
@@ -76,7 +76,7 @@ export const toastConfig: ToastConfig = {
       {...toastProps}
       style={[toastProps.style, styles.info]}
       renderLeadingIcon={() => (
-        <Info size={22} color="#3B82F6" style={styles.icon} />
+        <Info size={25} color="#3B82F6" style={styles.icon} />
       )}
     />
   ),
@@ -87,7 +87,7 @@ export const showSuccessToast = (text: string, title?: string) => {
     type: 'success',
     text1: title,
     text2: text,
-    visibilityTime: 3500,
+    visibilityTime: 4000,
     autoHide: true,
     swipeable: true,
     position: 'top',
@@ -99,7 +99,7 @@ export const showErrorToast = (text: string, title?: string) => {
     type: 'error',
     text1: title,
     text2: text,
-    visibilityTime: 6000,
+    visibilityTime: 7000,
     autoHide: true,
     swipeable: true,
     position: 'top',
@@ -111,7 +111,7 @@ export const showInfoToast = (text: string, title?: string) => {
     type: 'info',
     text1: title,
     text2: text,
-    visibilityTime: 3500,
+    visibilityTime: 4000,
     autoHide: true,
     swipeable: true,
     position: 'top',
@@ -119,11 +119,12 @@ export const showInfoToast = (text: string, title?: string) => {
 };
 
 export const showWarningToast = (text: string, title?: string) => {
+
   Toast.show({
     type: 'warning',
     text1: title,
     text2: text,
-    visibilityTime: 4000,
+    visibilityTime: 4500,
     autoHide: true,
     swipeable: true,
     position: 'top',
@@ -164,6 +165,6 @@ const styles = StyleSheet.create({
     zIndex: 1000000,
   },
   icon: {
-    marginRight: -6,
+    marginRight: -8,
   },
 });

@@ -24,7 +24,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 logger = logging.getLogger("eye_tracking_v2.config")
 
@@ -83,15 +83,6 @@ FEATURE_NAMES_CANDIDATES = (
 METADATA_CANDIDATES = (
     "metadata.json",
     "model_metadata.json",
-)
-# Per-feature mean/std of the MediaPipe-derived input distribution.
-# Built once via ``backend/scripts/build_mediapipe_stats.py`` and used by
-# ``preprocess_matrix(mode="domain_adapt")`` to rescale MediaPipe inputs
-# into the trained-eye-tracker space before the trained scaler is
-# applied. Optional — without it, ``domain_adapt`` falls back to
-# ``online_standardize``.
-MEDIAPIPE_STATS_CANDIDATES = (
-    "mediapipe_stats.npz",
 )
 
 
@@ -165,39 +156,6 @@ class AdapterConfig:
     min_face_detection_confidence: float = 0.5
     min_face_presence_confidence: float = 0.5
 
-    # ------------------------------------------------------------------
-    # Monocular depth photogrammetry (PR-H)
-    # ------------------------------------------------------------------
-    # Mean horizontal iris diameter across the human population in mm.
-    # Anatomical literature pegs this at 11.7 ± 0.5 mm, with very low
-    # inter-individual variation — small enough that we can use it as a
-    # known reference length for monocular depth estimation. We use it
-    # to derive Z (mm) from the iris diameter measured in pixels:
-    #
-    #     Z_mm  =  focal_length_px  *  iris_diameter_mm  /  iris_diameter_px
-    #
-    # This replaces the earlier "scale MediaPipe's relative-depth
-    # channel by IPD-derived mm/unit" which produced a near-zero,
-    # near-constant Z that the trained model never learned anything
-    # useful from.
-    iris_diameter_mm: float = 11.7
-
-    # Effective focal length of the user's camera in pixels, derived by
-    # the adapter at runtime from the input frame width when this is
-    # ``None``. The default heuristic ``focal_px = frame_width`` is
-    # close enough to typical phone front-cameras (~70° HFOV ⇒ focal_px
-    # ≈ 0.71 × frame_w) and laptop webcams (~60° HFOV ⇒ focal_px ≈ 0.87
-    # × frame_w) for the depth estimate to land in the right regime
-    # (300–1200 mm). Set explicitly when the device is known.
-    focal_length_px: Optional[float] = None
-
-    # Depth values outside this window are treated as sensor noise (face
-    # too close/far, iris occluded, MediaPipe degenerate). Generous
-    # margins so legitimate phone/tablet usage at 200–700 mm always
-    # validates while still rejecting pathological frames.
-    depth_min_mm: float = 100.0
-    depth_max_mm: float = 1500.0
-
 
 DEFAULT_ADAPTER_CONFIG = AdapterConfig()
 
@@ -208,44 +166,20 @@ DEFAULT_ADAPTER_CONFIG = AdapterConfig()
 # How to bring a per-frame 14-vector into the value range the trained
 # model expects.
 #
-# - "trained_scaler"     Apply the saved StandardScaler. Correct when
-#                        inputs come from the same hardware eye-tracker
-#                        that produced the training data. Saturates if
-#                        you feed it MediaPipe values directly.
+# - "trained_scaler"     Apply the saved StandardScaler. This is correct
+#                        when inputs come from the same hardware
+#                        eye-tracker that produced the training data.
 # - "online_standardize" Standardise per-batch using the batch's own
-#                        mean/std. Workaround for MediaPipe approximations
-#                        when no domain-adapt stats are available — keeps
-#                        the model responsive but its decision boundary is
-#                        no longer calibrated.
-# - "domain_adapt"       Per-feature affine map from the MediaPipe input
-#                        distribution to the trained-eye-tracker space,
-#                        followed by the trained scaler. Recovers the
-#                        trained decision boundary on MediaPipe inputs.
-#                        Requires ``mediapipe_stats.npz`` next to the
-#                        model weights; falls back to online_standardize
-#                        if missing.
+#                        mean/std. Best when inputs are MediaPipe
+#                        approximations whose absolute scale differs
+#                        from the eye-tracker training distribution.
 # - "none"               Feed raw values straight in (debug only).
 #
-# Default = "domain_adapt" because:
-#   1. mediapipe_stats.npz now ships with the model artefacts, so the
-#      mode works out of the box on a fresh clone.
-#   2. It uses the trained decision boundary instead of a per-batch
-#      z-score, which is what the user actually wants when they ask
-#      "is the trained model active?".
-#   3. If the stats file is ever absent, it degrades to
-#      online_standardize automatically — no hard failure.
-PreprocessingMode = Literal[
-    "trained_scaler", "online_standardize", "domain_adapt", "none"
-]
+# Default = "online_standardize" because this backend is fed by webcam
+# MediaPipe approximations, NOT a real eye-tracker. See README.
+PreprocessingMode = Literal["trained_scaler", "online_standardize", "none"]
 
-DEFAULT_PREPROCESSING_MODE: PreprocessingMode = "domain_adapt"
-
-_VALID_PREPROCESSING_MODES: tuple[str, ...] = (
-    "trained_scaler",
-    "online_standardize",
-    "domain_adapt",
-    "none",
-)
+DEFAULT_PREPROCESSING_MODE: PreprocessingMode = "online_standardize"
 
 
 def get_preprocessing_mode() -> PreprocessingMode:
@@ -253,7 +187,7 @@ def get_preprocessing_mode() -> PreprocessingMode:
     raw = os.environ.get(
         "EYE_TRACKING_PREPROC", DEFAULT_PREPROCESSING_MODE
     ).strip().lower()
-    if raw not in _VALID_PREPROCESSING_MODES:
+    if raw not in ("trained_scaler", "online_standardize", "none"):
         logger.warning(
             "Unknown EYE_TRACKING_PREPROC=%r; falling back to %r",
             raw,

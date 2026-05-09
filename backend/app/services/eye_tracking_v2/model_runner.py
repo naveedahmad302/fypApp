@@ -36,7 +36,6 @@ from .config import (
     FEATURE_NAMES_CANDIDATES,
     FEATURE_ORDER,
     METADATA_CANDIDATES,
-    MEDIAPIPE_STATS_CANDIDATES,
     MODEL_CANDIDATES,
     SCALER_CANDIDATES,
 )
@@ -54,23 +53,6 @@ class ModelArtefactMissing(FileNotFoundError):
 
 
 @dataclass
-class MediaPipeStats:
-    """Per-feature mean/std of the MediaPipe-derived feature distribution.
-
-    Used by ``preprocess_matrix(mode="domain_adapt")`` to map MediaPipe
-    inputs into the trained-eye-tracker scale before applying the
-    saved StandardScaler. Built once via
-    ``backend/scripts/build_mediapipe_stats.py`` and persisted as an
-    .npz alongside the model weights.
-    """
-
-    mean: np.ndarray  # shape (14,)
-    std: np.ndarray   # shape (14,), strictly positive
-    n: int = 0
-    artefact_path: Optional[Path] = None
-
-
-@dataclass
 class LoadedModel:
     """A bundle of model + scaler + metadata, ready for inference."""
 
@@ -80,7 +62,6 @@ class LoadedModel:
     metadata: dict[str, Any] = field(default_factory=dict)
     artefact_path: Optional[Path] = None
     scaler_path: Optional[Path] = None
-    mediapipe_stats: Optional[MediaPipeStats] = None
 
 
 # ---------------------------------------------------------------------------
@@ -159,12 +140,6 @@ def load_model(model_root: Path) -> LoadedModel:
         with metadata_path.open() as fh:
             metadata = dict(json.load(fh))
 
-    mp_stats: Optional[MediaPipeStats] = None
-    mp_stats_path = _first_existing(model_root, MEDIAPIPE_STATS_CANDIDATES)
-    if mp_stats_path is not None:
-        mp_stats = _load_mediapipe_stats(mp_stats_path)
-        logger.info("Loaded MediaPipe stats from %s", mp_stats_path)
-
     return LoadedModel(
         estimator=estimator,
         scaler=scaler,
@@ -172,31 +147,6 @@ def load_model(model_root: Path) -> LoadedModel:
         metadata=metadata,
         artefact_path=model_path,
         scaler_path=scaler_path,
-        mediapipe_stats=mp_stats,
-    )
-
-
-def _load_mediapipe_stats(path: Path) -> MediaPipeStats:
-    """Load ``mediapipe_stats.npz`` and validate its shape."""
-    with np.load(path, allow_pickle=True) as data:
-        mean = np.asarray(data["mean"], dtype=np.float64)
-        std = np.asarray(data["std"], dtype=np.float64)
-        n_arr = data["n"] if "n" in data.files else np.array([0])
-    if mean.shape != (len(FEATURE_ORDER),) or std.shape != (len(FEATURE_ORDER),):
-        raise FeatureValidationError(
-            f"mediapipe_stats.npz has wrong shape: mean={mean.shape}, "
-            f"std={std.shape}; expected ({len(FEATURE_ORDER)},)"
-        )
-    if not np.all(std > 0):
-        raise FeatureValidationError(
-            "mediapipe_stats.npz contains non-positive std entries; "
-            "rebuild via backend/scripts/build_mediapipe_stats.py"
-        )
-    return MediaPipeStats(
-        mean=mean,
-        std=std,
-        n=int(np.asarray(n_arr).flatten()[0]),
-        artefact_path=path,
     )
 
 
@@ -261,17 +211,6 @@ def preprocess_matrix(
         whose absolute scale differs from the training distribution.
         With a single sample (std == 0) we fall back to the trained
         scaler if present, else zero-fill.
-    ``"domain_adapt"``
-        Per-feature affine map from the MediaPipe-derived distribution
-        to the trained-eye-tracker distribution::
-
-            x' = (x - mp_mean) / mp_std * trained_std + trained_mean
-
-        followed by the trained StandardScaler. The result lives in the
-        same space the model saw at training time, so the trained
-        decision boundary is meaningful again. Requires both
-        ``mediapipe_stats.npz`` and ``scaler.pkl`` to be present;
-        falls back to ``online_standardize`` otherwise.
     ``"none"``
         Pass through unchanged (debug only).
     """
@@ -287,45 +226,10 @@ def preprocess_matrix(
         if model.scaler is not None:
             return _apply_scaler(model.scaler, feature_matrix)
         return np.zeros_like(feature_matrix)
-    if mode == "domain_adapt":
-        return _domain_adapt(model, feature_matrix)
     # default: trained_scaler
     if model.scaler is not None:
         return _apply_scaler(model.scaler, feature_matrix)
     return feature_matrix
-
-
-def _domain_adapt(
-    model: LoadedModel, feature_matrix: np.ndarray
-) -> np.ndarray:
-    """Map MediaPipe inputs into the trained-distribution space.
-
-    The transform is ``y = (x - mp_mean) / mp_std * trained_std +
-    trained_mean`` then the trained StandardScaler. If either
-    ``mediapipe_stats`` or ``scaler`` is absent we degrade to
-    ``online_standardize`` rather than producing silently wrong
-    results.
-    """
-    if model.mediapipe_stats is None or model.scaler is None:
-        logger.warning(
-            "domain_adapt requested but %s missing; falling back to "
-            "online_standardize",
-            "mediapipe_stats" if model.mediapipe_stats is None else "scaler",
-        )
-        return preprocess_matrix(
-            model, feature_matrix, mode="online_standardize"
-        )
-
-    mp = model.mediapipe_stats
-    trained_mean = np.asarray(model.scaler.mean_, dtype=np.float64)
-    trained_std = np.asarray(model.scaler.scale_, dtype=np.float64)
-    trained_std = np.where(trained_std < 1e-9, 1.0, trained_std)
-    mp_std = np.where(mp.std < 1e-9, 1.0, mp.std)
-
-    aligned = (feature_matrix - mp.mean) / mp_std * trained_std + trained_mean
-    # Now ``aligned`` lives in the trained input space — apply the
-    # trained scaler so the model sees exactly what it saw at training.
-    return _apply_scaler(model.scaler, aligned)
 
 
 def _apply_scaler(scaler: Any, X: np.ndarray) -> np.ndarray:
