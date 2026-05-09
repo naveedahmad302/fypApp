@@ -9,7 +9,7 @@ import { showSuccessToast, showErrorToast } from '../../../utils/toast';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { user, updateUserProfile } = useAuth();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -68,10 +68,6 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       
       console.log('Updating user data:', updateData);
       await updateUserInFirestore(user.uid, updateData);
-      
-      // Update the user context to reflect changes across all screens
-      updateUserProfile(updateData);
-      
       showSuccessToast('Profile updated successfully!', 'Success');
       
       // Safe navigation back

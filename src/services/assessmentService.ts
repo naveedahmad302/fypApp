@@ -65,37 +65,6 @@ export interface FrameAnalysisLog {
   hand_near_eye?: boolean;
 }
 
-/** Aggregated stats for one column of the canonical 14-feature vector. */
-export interface EyeFeatureSummary {
-  name: string;
-  mean: number;
-  min: number;
-  max: number;
-  std: number;
-  last: number;
-}
-
-/** v2 (trained-model) feature dump returned alongside the legacy fields.
- *
- * Names mirror the backend FEATURE_ORDER tuple exactly. Frontend code
- * should treat the whole block as optional — when the backend is
- * running the legacy MediaPipe pipeline this will be undefined and
- * the UI must fall back to the legacy `metrics` / `behavior_scores`
- * blocks.
- */
-export interface EyeModelFeatures {
-  backend: string;
-  preprocessing: string;
-  feature_order: string[];
-  summary: EyeFeatureSummary[];
-  per_frame: number[][];
-  asd_probability: number;
-  confidence: number;
-  n_frames_used: number;
-  n_frames_total: number;
-  label_classes: string[];
-}
-
 export interface EyeTrackingResponse {
   assessment_id: string;
   status: string;
@@ -107,8 +76,6 @@ export interface EyeTrackingResponse {
   insights: string[];
   frame_log: FrameAnalysisLog[];
   feedback_message?: string;
-  /** Populated only when the v2 trained-model backend is active. */
-  model_features?: EyeModelFeatures;
 }
 
 // --- Speech Analysis ---

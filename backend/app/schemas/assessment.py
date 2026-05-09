@@ -95,48 +95,6 @@ class FrameAnalysisLog(BaseModel):
     hand_near_eye: Optional[bool] = Field(None, description="Hand detected near eye")
 
 
-class EyeFeatureSummary(BaseModel):
-    """Aggregated stats for a single column of the 14-feature vector.
-
-    Field names are deliberately ``min`` / ``max`` (matching the
-    frontend ``EyeFeatureSummary`` interface) so the JSON contract
-    stays simple. They shadow Python's ``min`` / ``max`` builtins only
-    inside this model definition, which has no method body that needs
-    those builtins.
-    """
-    name: str = Field(..., description="Canonical feature name from FEATURE_ORDER")
-    mean: float = 0.0
-    min: float = 0.0
-    max: float = 0.0
-    std: float = 0.0
-    last: float = Field(0.0, description="Value from the most recent valid frame")
-
-
-class EyeModelFeatures(BaseModel):
-    """v2 (trained-model) feature dump exposed alongside the legacy fields.
-
-    This is populated only when the v2 pipeline is active (default).
-    Frontend code should treat it as optional and fall back to the
-    legacy ``metrics`` / ``behavior_scores`` block when missing.
-    """
-    backend: str = Field(..., description="Active backend: 'new_model' or 'legacy_mediapipe'")
-    preprocessing: str = Field(..., description="Preprocessing mode: online_standardize | trained_scaler | none")
-    feature_order: list[str] = Field(default_factory=list, description="Canonical 14-feature names, in column order")
-    summary: list[EyeFeatureSummary] = Field(default_factory=list, description="Per-feature aggregated stats over the batch")
-    per_frame: list[list[float]] = Field(
-        default_factory=list,
-        description="Most recent K per-frame 14-vectors (oldest first). K capped server-side to keep payload small.",
-    )
-    asd_probability: float = Field(0.0, description="Trained-model probability of ASD class (0-1)")
-    confidence: float = Field(0.0, description="Confidence derived from sample count + agreement (0-1)")
-    n_frames_used: int = Field(0, description="Number of frames whose feature vectors made it into the model")
-    n_frames_total: int = Field(0, description="Number of frames submitted by the client")
-    label_classes: list[str] = Field(
-        default_factory=list,
-        description="Class names in label-encoder order, e.g. ['ASD', 'Neurotypical']",
-    )
-
-
 class EyeTrackingResponse(BaseModel):
     assessment_id: str
     status: AssessmentStatus
@@ -148,10 +106,6 @@ class EyeTrackingResponse(BaseModel):
     insights: list[str] = Field(default_factory=list)
     frame_log: list[FrameAnalysisLog] = Field(default_factory=list, description="Per-frame detection log")
     feedback_message: Optional[str] = Field(None, description="Real-time feedback message for the user")
-    model_features: Optional[EyeModelFeatures] = Field(
-        None,
-        description="v2 trained-model feature dump (14-vector summary + prediction). Optional for backwards compatibility.",
-    )
 
 
 # --- Speech Analysis Schemas ---

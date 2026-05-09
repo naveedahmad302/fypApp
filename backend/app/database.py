@@ -140,20 +140,6 @@ def init_db() -> None:
             CREATE INDEX IF NOT EXISTS idx_assessments_user_id ON assessments(user_id);
             CREATE INDEX IF NOT EXISTS idx_assessments_type ON assessments(type);
             CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);
-
-            -- Per-user eye-tracking calibration profiles (PR-H).
-            -- One row per user (PRIMARY KEY enforces this); upsert on
-            -- recalibration. The JSON payload is opaque to SQL — see
-            -- ``services/calibration_store.py`` and
-            -- ``services/eye_tracking_v2/calibration.py``.
-            CREATE TABLE IF NOT EXISTS eye_calibration_profiles (
-                user_id TEXT PRIMARY KEY,
-                schema_version INTEGER NOT NULL,
-                profile_json TEXT NOT NULL,
-                n_samples INTEGER NOT NULL,
-                captured_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-            );
         """)
 
         # --- Lightweight column migrations.
