@@ -261,10 +261,16 @@ def _score_answers(answers: list[MCQAnswer]) -> tuple[list[QuestionScore], float
 
 
 def _determine_risk_level(score: float) -> RiskLevel:
-    """Determine ASD risk level from MCQ score."""
-    if score >= 65:
+    """Determine ASD risk level from MCQ score.
+    
+    Updated thresholds for improved accuracy with 50% weight:
+    - HIGH: >= 60 (more sensitive to catch potential cases)
+    - MODERATE: >= 41 (aligned with overall assessment)
+    - LOW: < 40
+    """
+    if score >= 60:
         return RiskLevel.HIGH
-    elif score >= 40:
+    elif score >= 41:
         return RiskLevel.MODERATE
     else:
         return RiskLevel.LOW
@@ -297,9 +303,9 @@ def _generate_behavioral_insights(
     
     if mchat_scores:
         avg_mchat = sum(mchat_scores) / len(mchat_scores)
-        if avg_mchat > 70:
+        if avg_mchat > 65:
             insights.append("M-CHAT-R responses indicate significant ASD risk markers in toddler")
-        elif avg_mchat > 50:
+        elif avg_mchat > 41:
             insights.append("M-CHAT-R responses show moderate ASD indicators in toddler")
         else:
             insights.append("M-CHAT-R responses within typical developmental range")
@@ -316,9 +322,9 @@ def _generate_behavioral_insights(
     
     if cast_scores:
         avg_cast = sum(cast_scores) / len(cast_scores)
-        if avg_cast > 70:
+        if avg_cast > 65:
             insights.append("CAST responses indicate strong ASD traits in school-age child")
-        elif avg_cast > 50:
+        elif avg_cast > 41:
             insights.append("CAST responses show moderate ASD characteristics")
         else:
             insights.append("CAST responses within typical range for school-age child")
@@ -335,27 +341,27 @@ def _generate_behavioral_insights(
     
     if additional_scores:
         avg_additional = sum(additional_scores) / len(additional_scores)
-        if avg_additional > 70:
+        if avg_additional > 65:
             insights.append("Additional MCQ responses indicate strong ASD behavioral patterns")
-        elif avg_additional > 50:
+        elif avg_additional > 41:
             insights.append("Additional MCQ responses show moderate ASD characteristics")
         else:
             insights.append("Additional MCQ responses within typical range")
 
-    # Domain-specific insights for both tools
+    # Domain-specific insights for both tools (updated thresholds)
     # Joint attention issues
     joint_attention = domain_scores.get("joint_attention", [])
-    if joint_attention and sum(joint_attention) / len(joint_attention) > 70:
+    if joint_attention and sum(joint_attention) / len(joint_attention) > 65:
         insights.append("Joint attention difficulties — core ASD indicator")
 
     # Social communication
     social_comm = domain_scores.get("social_communication", []) + domain_scores.get("conversation", [])
-    if social_comm and sum(social_comm) / len(social_comm) > 70:
+    if social_comm and sum(social_comm) / len(social_comm) > 65:
         insights.append("Social communication challenges — ASD hallmark")
 
     # Repetitive behaviors
     repetitive = domain_scores.get("repetitive_behaviors", [])
-    if repetitive and sum(repetitive) / len(repetitive) > 70:
+    if repetitive and sum(repetitive) / len(repetitive) > 65:
         insights.append("Repetitive behaviors present — significant ASD indicator")
 
     # Overall summary

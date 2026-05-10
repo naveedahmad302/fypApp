@@ -401,7 +401,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                     )}
 
                     {/* Speech Analysis Results */}
-                    {hasRecorded && (
+                    {/* {hasRecorded && (
                         <View className="mt-5 mb-8">
                             <View className="bg-white rounded-2xl p-6 shadow-lg shadow-gray-200 border border-gray-100" style={{
                                 shadowColor: '#000',
@@ -466,7 +466,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                                 </View>
                             </View>
                         </View>
-                    )}
+                    )} */}
                 </View>
             </ScrollView>
         </SafeAreaView>

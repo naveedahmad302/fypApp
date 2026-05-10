@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Share, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Eye, Mic, FileText, AlertTriangle, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react-native';
+import { Eye, Mic, FileText, AlertTriangle, ChevronDown, ChevronUp, AlertCircle, Download } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../../context/AuthContext';
 import { useAssessment } from '../../../context/AssessmentContext';
 import { fetchReport, ReportResponse } from '../../../services/assessmentService';
+import { downloadPDFReport } from '../../../services/pdfGenerator';
 
 /** Small inline metric used in the expanded module panel. */
 const InlineMetric = ({ label, value }: { label: string; value: string | number }) => (
@@ -87,6 +88,33 @@ const ReportScreen: React.FC = () => {
     setExpandedModule(expandedModule === moduleName ? null : moduleName);
   };
 
+  const handleDownloadPDFReport = useCallback(async () => {
+    try {
+      if (!report) {
+        Alert.alert('Error', 'No report data available to download');
+        return;
+      }
+
+      // Prepare report data for PDF generator
+      const reportData = {
+        overall_score: report.overall_score,
+        risk_percentage: report.risk_percentage,
+        risk_level: report.risk_level,
+        eye_tracking: report.eye_tracking,
+        speech_analysis: report.speech_analysis,
+        mcq_assessment: report.mcq_assessment,
+        recommendations: report.recommendations || []
+      };
+
+      // Use structured PDF generator
+      await downloadPDFReport(reportData);
+
+    } catch (error) {
+      console.error('Failed to download report:', error);
+      Alert.alert('Error', 'Failed to generate report for download');
+    }
+  }, [report]);
+
   if (loading) {
     return (
       <SafeAreaView edges={[]} className="flex-1 bg-[#F5F7FA]">
@@ -116,8 +144,14 @@ const ReportScreen: React.FC = () => {
     );
   }
 
-  const overallScore = Math.round(report.overall_score);
+  // Display risk score directly instead of inverse overall score
+  const overallScore = Math.round(report.risk_percentage || 0);
   const riskColor = getRiskColor(report.risk_level);
+  
+  // Debug: Log actual values
+  console.log('[Report Debug] Risk Score (displayed):', overallScore);
+  console.log('[Report Debug] Risk Level:', report.risk_level);
+  console.log('[Report Debug] Original Overall Score:', report.overall_score);
 
   const modules = [
     {
@@ -183,7 +217,7 @@ const ReportScreen: React.FC = () => {
                 </View>
                 <View className="flex-row items-center">
                   <Text className="text-lg font-bold mr-2" style={{ color: mod.color }}>
-                    {Math.round(mod.data.score)}
+                    {Math.round(mod.data.risk_score)}
                   </Text>
                   {expandedModule === mod.name ? (
                     <ChevronUp size={16} color="#9CA3AF" />
@@ -338,6 +372,15 @@ const ReportScreen: React.FC = () => {
               Please consult a qualified healthcare professional for a comprehensive evaluation.
             </Text>
           </View>
+
+          {/* Download PDF Button */}
+          <TouchableOpacity
+            className="bg-[#4A90E2] p-4 rounded-xl mb-6 shadow-sm"
+            onPress={handleDownloadPDFReport}
+            activeOpacity={0.8}
+          >
+            <Text className="text-white font-semibold text-center">Download Report as PDF</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

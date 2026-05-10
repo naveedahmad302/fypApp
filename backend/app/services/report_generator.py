@@ -18,9 +18,9 @@ from ..schemas.assessment import (
 
 # Module weights for combined scoring
 MODULE_WEIGHTS = {
-    "eye_tracking": 0.35,  # Eye contact and gaze patterns are strong ASD indicators
-    "speech": 0.30,  # Speech prosody and patterns
-    "mcq": 0.35,  # Behavioral questionnaire
+    "eye_tracking": 0.25,  # Eye contact and gaze patterns are strong ASD indicators
+    "speech": 0.25,  # Speech prosody and patterns
+    "mcq": 0.50,  # Behavioral questionnaire - primary assessment weight
 }
 
 
@@ -72,73 +72,124 @@ def _generate_recommendations(
     speech_result: dict | None,
     mcq_result: dict | None,
 ) -> list[str]:
-    """Generate personalized recommendations based on assessment results."""
+    """Generate personalized recommendations based on three-assessment results."""
     recommendations: list[str] = []
 
+    # Combined assessment recommendations
     if risk_level == RiskLevel.HIGH:
         recommendations.append(
-            "We recommend consulting with a healthcare professional "
-            "specializing in autism spectrum disorders for a comprehensive evaluation."
+            "HIGH RISK: Strong ASD indicators detected across multiple assessments. "
+            "Immediate consultation with autism specialist recommended for comprehensive evaluation."
         )
         recommendations.append(
-            "Consider scheduling a formal diagnostic assessment with a "
-            "developmental pediatrician or clinical psychologist."
+            "Schedule diagnostic assessment with developmental pediatrician or clinical psychologist "
+            "specializing in autism spectrum disorders."
+        )
+        recommendations.append(
+            "Early intervention services may be beneficial - explore occupational therapy, "
+            "speech therapy, and social skills training."
         )
     elif risk_level == RiskLevel.MODERATE:
         recommendations.append(
-            "Some indicators suggest further evaluation may be beneficial. "
-            "Consider discussing these results with your healthcare provider."
+            "MODERATE RISK: Some ASD indicators present across assessments. "
+            "Discuss results with healthcare provider for further evaluation."
+        )
+        recommendations.append(
+            "Consider developmental monitoring and targeted interventions for specific concerns."
+        )
+        recommendations.append(
+            "Speech therapy or social skills training may help address identified areas."
         )
     else:
         recommendations.append(
-            "Results are within typical ranges. Continue monitoring "
-            "development and consult a professional if concerns arise."
+            "LOW RISK: Assessment results within typical developmental ranges."
+        )
+        recommendations.append(
+            "Continue monitoring developmental milestones and social communication skills."
+        )
+        recommendations.append(
+            "Consult professional if new concerns arise or if development plateaus."
         )
 
-    # Eye tracking specific recommendations
-    if eye_result:
-        attention_score = eye_result.get("attention_score", 0)
-        if attention_score < 40:
-            recommendations.append(
-                "Eye tracking shows reduced attention patterns. Activities "
-                "that encourage joint attention and eye contact may be helpful."
+    # Overall assessment recommendations based on three-module results
+    if risk_level == RiskLevel.HIGH:
+        recommendations.append(
+                "STRONG ASD INDICATORS: Multiple assessment modules show concerning patterns. "
+                "Immediate comprehensive evaluation by autism specialist recommended."
             )
-        gaze_pattern = eye_result.get("gaze_pattern_type", "")
-        if gaze_pattern == "avoidant":
-            recommendations.append(
-                "Gaze avoidance patterns were detected. Social skills "
-                "training focusing on comfortable eye contact may be beneficial."
+        recommendations.append(
+                "Focus on social communication development, joint attention skills, and adaptive behaviors."
+            )
+        recommendations.append(
+                "Consider early intervention services: occupational therapy, speech therapy, and ABA therapy."
+            )
+        recommendations.append(
+                "Develop structured routines and visual supports to improve daily functioning."
+            )
+    elif risk_level == RiskLevel.MODERATE:
+        recommendations.append(
+                "MODERATE ASD INDICATORS: Some assessment areas show atypical patterns. "
+                "Further evaluation by healthcare provider recommended for clarity."
+            )
+        recommendations.append(
+                "Target specific areas of concern identified in assessments with focused interventions."
+            )
+        recommendations.append(
+                "Social skills training and communication therapy may address identified challenges."
+            )
+        recommendations.append(
+                "Monitor developmental progress and adjust support strategies as needed."
+            )
+    else:
+        recommendations.append(
+                "TYPICAL DEVELOPMENT: Assessment results within normal ranges. "
+                "Continue monitoring developmental milestones and social communication."
+            )
+        recommendations.append(
+                "Maintain supportive environment for continued healthy development."
+            )
+        recommendations.append(
+                "Regular developmental check-ups recommended to track progress."
             )
 
-    # Speech specific recommendations
-    if speech_result:
-        monotone = speech_result.get("monotone_score", 0)
-        if monotone > 60:
-            recommendations.append(
-                "Speech analysis indicates limited vocal variation. "
-                "Speech therapy focusing on prosody and intonation may help."
-            )
-        wpm = speech_result.get("words_per_minute", 0)
-        if wpm < 80:
-            recommendations.append(
-                "Speaking rate is below typical range. Speech-language "
-                "therapy may help develop more fluent communication."
-            )
+    # Integrated recommendations based on assessment patterns
+    completed_count = sum([
+        1 for result in [eye_result, speech_result, mcq_result] 
+        if result and result.get("status") == "completed"
+    ])
+    
+    if completed_count == 3:
+        recommendations.append(
+            "COMPLETE ASSESSMENT: All three modules completed for comprehensive evaluation. "
+            "Results provide holistic view across behavioral, visual, and verbal domains."
+        )
+    elif completed_count == 2:
+        recommendations.append(
+            "PARTIAL ASSESSMENT: Two modules completed. "
+            "Consider completing remaining assessment for more comprehensive evaluation."
+        )
+    elif completed_count == 1:
+        recommendations.append(
+            "LIMITED ASSESSMENT: Only one module completed. "
+            "Complete additional assessments for more accurate risk evaluation."
+        )
 
-    # MCQ specific recommendations
-    if mcq_result:
-        risk = mcq_result.get("risk_level", "low")
-        if risk == "high":
-            recommendations.append(
-                "Behavioral questionnaire responses indicate significant "
-                "ASD-associated traits across multiple domains."
-            )
+    # Resource recommendations
+    if risk_level in [RiskLevel.HIGH, RiskLevel.MODERATE]:
+        recommendations.append(
+            "RESOURCES: Contact local autism support organizations and early intervention services."
+        )
+        recommendations.append(
+            "RESOURCES: Explore parent training programs and educational support services."
+        )
+        recommendations.append(
+            "RESOURCES: Consider assistive technology and communication aids if needed."
+        )
 
-    # General recommendations
+    # Medical disclaimer
     recommendations.append(
-        "This assessment is a screening tool and should not be used as "
-        "a definitive diagnosis. Professional clinical evaluation is "
-        "recommended for accurate diagnosis."
+        "MEDICAL DISCLAIMER: This is a screening tool, not diagnostic. "
+        "Professional clinical evaluation required for formal ASD diagnosis."
     )
 
     return recommendations
@@ -232,10 +283,10 @@ def generate_report(request: GenerateReportRequest) -> ReportResponse:
     # Overall score is inverse of risk (higher score = better)
     overall_score = round(100 - overall_risk, 1)
 
-    # Determine risk level
-    if overall_risk >= 65:
+    # Determine risk level (aligned with MCQ 50% weight thresholds)
+    if overall_risk >= 60:
         risk_level = RiskLevel.HIGH
-    elif overall_risk >= 40:
+    elif overall_risk >= 41:
         risk_level = RiskLevel.MODERATE
     else:
         risk_level = RiskLevel.LOW
