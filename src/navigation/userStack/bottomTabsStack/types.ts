@@ -16,7 +16,6 @@ export type THomeTabStackParamsList = {
 export type TAssessmentTabStackParamsList = {
   Assessment: undefined;
   EyeTrackingAnalysis: undefined;
-  TrackingStatusScreen: undefined;
   RecordingScreen: undefined;
   SpeechProgressScreen: undefined;
   MCQAssessmentScreen: undefined;

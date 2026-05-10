@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TAssessmentTabStackParamsList } from './types';
 import AssessmentScreen from '../../../screens/user/assessment/AssessmentScreen';
 import EyeTrackingAnalysisScreen from '../../../screens/user/assessment/EyeTrackingAnalysisScreen';
-import TrackingStatusScreen from '../../../screens/user/assessment/TrackingStatusScreen';
 import RecordingScreen from '../../../screens/user/assessment/RecordingScreen';
 import SpeechProgressScreen from '../../../screens/user/assessment/SpeechProgressScreen';
 import MCQAssessmentScreen from '../../../screens/user/assessment/MCQAssessmentScreen';
@@ -21,8 +20,6 @@ const AssessmentStack: React.FC = () => {
       case 'Assessment':
         return 'Assessment Journey';
       case 'EyeTrackingAnalysis':
-        return 'Eye Tracking';
-      case 'TrackingStatusScreen':
         return 'Eye Tracking';
       case 'RecordingScreen':
         return 'Speech Analysis';
@@ -60,7 +57,6 @@ const AssessmentStack: React.FC = () => {
     >
       <Stack.Screen name="Assessment" component={AssessmentScreen} />
       <Stack.Screen name="EyeTrackingAnalysis" component={EyeTrackingAnalysisScreen} />
-      <Stack.Screen name="TrackingStatusScreen" component={TrackingStatusScreen} />
       <Stack.Screen name="RecordingScreen" component={RecordingScreen} />
       <Stack.Screen name="SpeechProgressScreen" component={SpeechProgressScreen} />
       <Stack.Screen name="MCQAssessmentScreen" component={MCQAssessmentScreen} />

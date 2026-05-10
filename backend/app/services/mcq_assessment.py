@@ -1,7 +1,9 @@
 """MCQ assessment scoring service.
 
-Scores behavioral questionnaire responses using weighted ASD-informed criteria
-inspired by standardized screening tools (AQ-10, M-CHAT-R).
+Scores behavioral questionnaire responses using standardized screening tools:
+- M-CHAT-R (Modified Checklist for Autism in Toddlers) for 16-30 months
+- CAST (Childhood Autism Spectrum Test) for 4-11 years
+
 Each question maps to specific behavioral domains relevant to ASD detection.
 """
 
@@ -17,138 +19,204 @@ from ..schemas.assessment import (
     RiskLevel,
 )
 
-# Question bank with ASD-relevant scoring weights
-# Each option has a score (0-100) indicating ASD-related behavioral tendency
-# Higher score = more typical of ASD traits
-QUESTIONS = {
+# M-CHAT-R (Modified Checklist for Autism in Toddlers)
+# Target: 16-30 months
+# These 10 items are "Critical Items" that most strongly predict ASD risk in toddlers
+M_CHAT_R_QUESTIONS = {
     1: {
-        "text": "How often do you get lost in thought?",
-        "domain": "cognitive_absorption",
+        "text": "If you point at something across the room, does your child look at it?",
+        "domain": "joint_attention",
         "asd_weight": 0.15,
         "options": [
-            {"text": "Never - always aware", "score": 20},
-            {"text": "Rarely - stay focused", "score": 30},
-            {"text": "Sometimes - when engaged", "score": 50},
-            {"text": "Often - frequently absorbed", "score": 75},
-            {"text": "Always - almost always lost", "score": 90},
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
         ],
     },
     2: {
-        "text": "How do you approach complex problems?",
-        "domain": "problem_solving",
-        "asd_weight": 0.20,
+        "text": "Does your child point with one finger to show you something interesting?",
+        "domain": "gesture_communication",
+        "asd_weight": 0.15,
         "options": [
-            {"text": "Break into smaller steps", "score": 70},
-            {"text": "Look for patterns", "score": 80},
-            {"text": "Discuss with others", "score": 20},
-            {"text": "Trust intuition", "score": 40},
-            {"text": "Take time to reflect", "score": 60},
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
         ],
     },
     3: {
-        "text": "How do you prefer to learn?",
-        "domain": "learning_style",
+        "text": "Does your child play pretend (e.g., talk on a toy phone, feed a doll)?",
+        "domain": "imaginative_play",
         "asd_weight": 0.15,
         "options": [
-            {"text": "Hands-on experience", "score": 50},
-            {"text": "Reading materials", "score": 60},
-            {"text": "Visual aids", "score": 70},
-            {"text": "Listening to explanations", "score": 30},
-            {"text": "Trial and error", "score": 55},
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
         ],
     },
     4: {
-        "text": "What describes your social energy?",
-        "domain": "social_interaction",
-        "asd_weight": 0.30,
+        "text": "Does your child respond when you call their name?",
+        "domain": "response_to_name",
+        "asd_weight": 0.20,
         "options": [
-            {"text": "Gain energy from social", "score": 10},
-            {"text": "Need both social and alone", "score": 30},
-            {"text": "Comfortable in both", "score": 40},
-            {"text": "Prefer small groups", "score": 65},
-            {"text": "Gain energy from solitude", "score": 85},
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
         ],
     },
     5: {
-        "text": "How do you make decisions?",
-        "domain": "decision_making",
+        "text": "Does your child look you in the eye when you are talking or playing?",
+        "domain": "eye_contact",
         "asd_weight": 0.20,
         "options": [
-            {"text": "Logic and facts", "score": 75},
-            {"text": "Gut feelings", "score": 25},
-            {"text": "Consider others", "score": 20},
-            {"text": "Weigh all options", "score": 65},
-            {"text": "Quick decisions", "score": 35},
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
         ],
     },
-}
-
-# Extended question bank for comprehensive assessment
-EXTENDED_QUESTIONS = {
     6: {
-        "text": "How do you react to unexpected changes in routine?",
-        "domain": "flexibility",
-        "asd_weight": 0.25,
+        "text": "Does your child try to copy what you do (e.g., wave, clap)?",
+        "domain": "imitation",
+        "asd_weight": 0.15,
         "options": [
-            {"text": "Easily adapt", "score": 10},
-            {"text": "Mild discomfort but manage", "score": 30},
-            {"text": "Need time to adjust", "score": 55},
-            {"text": "Significant distress", "score": 80},
-            {"text": "Very difficult to handle", "score": 95},
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
         ],
     },
     7: {
-        "text": "How do you interpret sarcasm or figurative language?",
-        "domain": "communication",
-        "asd_weight": 0.25,
+        "text": "If you turn to look at something, does your child look too?",
+        "domain": "joint_attention",
+        "asd_weight": 0.15,
         "options": [
-            {"text": "Easily understand", "score": 10},
-            {"text": "Usually get it", "score": 25},
-            {"text": "Sometimes miss it", "score": 50},
-            {"text": "Often take literally", "score": 75},
-            {"text": "Almost always literal", "score": 90},
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
         ],
     },
     8: {
-        "text": "How sensitive are you to sensory input (lights, sounds, textures)?",
-        "domain": "sensory_processing",
-        "asd_weight": 0.20,
+        "text": "Does your child try to get you to watch them (e.g., 'Look at me')?",
+        "domain": "social_initiation",
+        "asd_weight": 0.15,
         "options": [
-            {"text": "Not sensitive at all", "score": 10},
-            {"text": "Slightly sensitive", "score": 30},
-            {"text": "Moderately sensitive", "score": 50},
-            {"text": "Very sensitive", "score": 75},
-            {"text": "Extremely sensitive", "score": 95},
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
         ],
     },
     9: {
-        "text": "Do you have specific interests or hobbies you focus on intensely?",
-        "domain": "restricted_interests",
-        "asd_weight": 0.20,
+        "text": "Does your child understand when you tell them to do something?",
+        "domain": "comprehension",
+        "asd_weight": 0.15,
         "options": [
-            {"text": "Many varied interests", "score": 15},
-            {"text": "Several interests", "score": 25},
-            {"text": "A few focused interests", "score": 50},
-            {"text": "One or two intense interests", "score": 75},
-            {"text": "Single all-consuming interest", "score": 90},
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
         ],
     },
     10: {
-        "text": "How comfortable are you with eye contact during conversation?",
-        "domain": "social_communication",
-        "asd_weight": 0.30,
+        "text": "Does your child make unusual finger movements near their eyes?",
+        "domain": "repetitive_behaviors",
+        "asd_weight": 0.15,
         "options": [
-            {"text": "Very comfortable", "score": 10},
-            {"text": "Generally comfortable", "score": 25},
-            {"text": "Depends on the person", "score": 45},
-            {"text": "Often uncomfortable", "score": 75},
-            {"text": "Very uncomfortable", "score": 90},
+            {"text": "Yes", "score": 90},
+            {"text": "No", "score": 10},
         ],
     },
 }
 
+# CAST (Childhood Autism Spectrum Test)
+# Target: 4-11 years
+# These 10 questions focus on social communication and repetitive behaviors
+CAST_QUESTIONS = {
+    11: {
+        "text": "Does child join in playing games with other children easily?",
+        "domain": "social_interaction",
+        "asd_weight": 0.15,
+        "options": [
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
+        ],
+    },
+    12: {
+        "text": "Can child keep a two-way conversation going easily?",
+        "domain": "conversation",
+        "asd_weight": 0.15,
+        "options": [
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
+        ],
+    },
+    13: {
+        "text": "Do they find it easy to 'read between the lines' when someone talks?",
+        "domain": "social_comprehension",
+        "asd_weight": 0.15,
+        "options": [
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
+        ],
+    },
+    14: {
+        "text": "Do they have an interest that takes up almost all their time?",
+        "domain": "restricted_interests",
+        "asd_weight": 0.15,
+        "options": [
+            {"text": "Yes", "score": 90},
+            {"text": "No", "score": 10},
+        ],
+    },
+    15: {
+        "text": "Do they take things very literally (miss jokes or sarcasm)?",
+        "domain": "literal_thinking",
+        "asd_weight": 0.15,
+        "options": [
+            {"text": "Yes", "score": 90},
+            {"text": "No", "score": 10},
+        ],
+    },
+    16: {
+        "text": "Do they struggle to work out what someone is feeling from their face?",
+        "domain": "emotion_recognition",
+        "asd_weight": 0.15,
+        "options": [
+            {"text": "Yes", "score": 90},
+            {"text": "No", "score": 10},
+        ],
+    },
+    17: {
+        "text": "Do they like to do things over and over in exactly the same way?",
+        "domain": "repetitive_behaviors",
+        "asd_weight": 0.15,
+        "options": [
+            {"text": "Yes", "score": 90},
+            {"text": "No", "score": 10},
+        ],
+    },
+    18: {
+        "text": "Do they often bring things they are interested in to show you?",
+        "domain": "social_sharing",
+        "asd_weight": 0.10,
+        "options": [
+            {"text": "Yes", "score": 10},
+            {"text": "No", "score": 90},
+        ],
+    },
+    19: {
+        "text": "Is their voice unusual (e.g., very flat, monotonous, or too loud)?",
+        "domain": "vocal_characteristics",
+        "asd_weight": 0.15,
+        "options": [
+            {"text": "Yes", "score": 90},
+            {"text": "No", "score": 10},
+        ],
+    },
+    20: {
+        "text": "Do they have an unusual memory for details (e.g., car numbers, dates)?",
+        "domain": "detail_focused_memory",
+        "asd_weight": 0.10,
+        "options": [
+            {"text": "Yes", "score": 90},
+            {"text": "No", "score": 10},
+        ],
+    },
+}
+
+# Additional MCQ questions - all duplicates removed
+# Questions 29-30 were duplicates of CAST questions 19-20, so no additional unique questions remain
+ADDITIONAL_QUESTIONS = {}
+
 # Merge all questions
-ALL_QUESTIONS = {**QUESTIONS, **EXTENDED_QUESTIONS}
+ALL_QUESTIONS = {**M_CHAT_R_QUESTIONS, **CAST_QUESTIONS, **ADDITIONAL_QUESTIONS}
 
 
 def _score_answers(answers: list[MCQAnswer]) -> tuple[list[QuestionScore], float, float]:
@@ -218,53 +286,77 @@ def _generate_behavioral_insights(
                 domain_scores[domain] = []
             domain_scores[domain].append(qs.score)
 
-    # Social interaction insights
-    social_scores = domain_scores.get("social_interaction", []) + domain_scores.get("social_communication", [])
-    if social_scores:
-        avg_social = sum(social_scores) / len(social_scores)
-        if avg_social > 65:
-            insights.append("Responses indicate preference for limited social interaction — notable ASD trait")
-        elif avg_social > 40:
-            insights.append("Moderate social preferences — some indicators of social differences")
+    # M-CHAT-R specific insights (toddler assessment)
+    mchat_domains = ["joint_attention", "gesture_communication", "imaginative_play", 
+                   "response_to_name", "eye_contact", "imitation", 
+                   "social_initiation", "comprehension", "repetitive_behaviors"]
+    mchat_scores = []
+    for domain in mchat_domains:
+        if domain in domain_scores:
+            mchat_scores.extend(domain_scores[domain])
+    
+    if mchat_scores:
+        avg_mchat = sum(mchat_scores) / len(mchat_scores)
+        if avg_mchat > 70:
+            insights.append("M-CHAT-R responses indicate significant ASD risk markers in toddler")
+        elif avg_mchat > 50:
+            insights.append("M-CHAT-R responses show moderate ASD indicators in toddler")
         else:
-            insights.append("Social responses within typical range")
+            insights.append("M-CHAT-R responses within typical developmental range")
 
-    # Cognitive style insights
-    cognitive_scores = domain_scores.get("problem_solving", []) + domain_scores.get("cognitive_absorption", [])
-    if cognitive_scores:
-        avg_cognitive = sum(cognitive_scores) / len(cognitive_scores)
-        if avg_cognitive > 65:
-            insights.append("Strong systematic/pattern-based thinking style")
+    # CAST specific insights (children 4-11 years)
+    cast_domains = ["social_interaction", "conversation", "social_comprehension", 
+                  "restricted_interests", "literal_thinking", "emotion_recognition",
+                  "repetitive_behaviors", "social_sharing", "vocal_characteristics", 
+                  "detail_focused_memory"]
+    cast_scores = []
+    for domain in cast_domains:
+        if domain in domain_scores:
+            cast_scores.extend(domain_scores[domain])
+    
+    if cast_scores:
+        avg_cast = sum(cast_scores) / len(cast_scores)
+        if avg_cast > 70:
+            insights.append("CAST responses indicate strong ASD traits in school-age child")
+        elif avg_cast > 50:
+            insights.append("CAST responses show moderate ASD characteristics")
         else:
-            insights.append("Balanced cognitive approach")
+            insights.append("CAST responses within typical range for school-age child")
 
-    # Communication insights
-    comm_scores = domain_scores.get("communication", [])
-    if comm_scores:
-        avg_comm = sum(comm_scores) / len(comm_scores)
-        if avg_comm > 60:
-            insights.append("Tendency toward literal interpretation — common in ASD")
+    # Additional MCQ insights (questions 21-30)
+    additional_domains = ["social_interaction", "conversation", "social_comprehension",
+                       "restricted_interests", "literal_thinking", "emotion_recognition",
+                       "repetitive_behaviors", "social_sharing", "vocal_characteristics",
+                       "detail_focused_memory"]
+    additional_scores = []
+    for domain in additional_domains:
+        if domain in domain_scores:
+            additional_scores.extend(domain_scores[domain])
+    
+    if additional_scores:
+        avg_additional = sum(additional_scores) / len(additional_scores)
+        if avg_additional > 70:
+            insights.append("Additional MCQ responses indicate strong ASD behavioral patterns")
+        elif avg_additional > 50:
+            insights.append("Additional MCQ responses show moderate ASD characteristics")
+        else:
+            insights.append("Additional MCQ responses within typical range")
 
-    # Sensory processing insights
-    sensory_scores = domain_scores.get("sensory_processing", [])
-    if sensory_scores:
-        avg_sensory = sum(sensory_scores) / len(sensory_scores)
-        if avg_sensory > 60:
-            insights.append("Heightened sensory sensitivity reported — common ASD indicator")
+    # Domain-specific insights for both tools
+    # Joint attention issues
+    joint_attention = domain_scores.get("joint_attention", [])
+    if joint_attention and sum(joint_attention) / len(joint_attention) > 70:
+        insights.append("Joint attention difficulties — core ASD indicator")
 
-    # Flexibility insights
-    flex_scores = domain_scores.get("flexibility", [])
-    if flex_scores:
-        avg_flex = sum(flex_scores) / len(flex_scores)
-        if avg_flex > 60:
-            insights.append("Difficulty with routine changes — may indicate need for predictability")
+    # Social communication
+    social_comm = domain_scores.get("social_communication", []) + domain_scores.get("conversation", [])
+    if social_comm and sum(social_comm) / len(social_comm) > 70:
+        insights.append("Social communication challenges — ASD hallmark")
 
-    # Restricted interests
-    interest_scores = domain_scores.get("restricted_interests", [])
-    if interest_scores:
-        avg_interest = sum(interest_scores) / len(interest_scores)
-        if avg_interest > 60:
-            insights.append("Intense focused interests reported — characteristic ASD trait")
+    # Repetitive behaviors
+    repetitive = domain_scores.get("repetitive_behaviors", [])
+    if repetitive and sum(repetitive) / len(repetitive) > 70:
+        insights.append("Repetitive behaviors present — significant ASD indicator")
 
     # Overall summary
     if risk_level == RiskLevel.HIGH:

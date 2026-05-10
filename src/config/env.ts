@@ -92,7 +92,7 @@ export interface RuntimeConfig {
 const DEFAULTS: RuntimeConfig = {
   googleWebClientId:
     '996258236172-49328nk2f3vhe9ejufq125mis22b18n4.apps.googleusercontent.com',
-  apiBaseUrl: Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000',
+  apiBaseUrl: 'http://192.168.1.9:8000', // Laptop IP for external device access
   requireHttps: false,
   enableApiDebugLogs: __DEV__,
 };

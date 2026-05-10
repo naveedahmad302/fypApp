@@ -1,6 +1,17 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  withSequence,
+  interpolate,
+  FadeInUp,
+  FadeIn,
+  Layout,
+} from 'react-native-reanimated';
 import { useAuth } from '../../context/AuthContext';
 import { TAuthStackNavigationProps } from '../../navigation/authStack/types';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
@@ -11,6 +22,9 @@ import { getUserFromFirestore, createFirestoreDocumentForAuthUser, IUser } from 
 import { SocialLogin } from '../../components/SocialLogin';
 import { showSuccessToast, showErrorToast, showInfoToast } from '../../utils/toast';
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedView = Animated.createAnimatedComponent(View);
+
 const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +32,42 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { setAuthenticated, setUser } = useAuth();
+
+  // Animation values
+  const fadeAnim = useSharedValue(0);
+  const slideAnim = useSharedValue(50);
+  const buttonScale = useSharedValue(1);
+  const loadingProgress = useSharedValue(0);
+
+  useEffect(() => {
+    // Entrance animation
+    fadeAnim.value = withTiming(1, { duration: 600 });
+    slideAnim.value = withTiming(0, { duration: 600 });
+  }, []);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: fadeAnim.value,
+    transform: [{ translateY: slideAnim.value }],
+  }));
+
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
+
+  const loadingStyle = useAnimatedStyle(() => ({
+    opacity: loadingProgress.value,
+    transform: [
+      { scale: interpolate(loadingProgress.value, [0, 1], [0.8, 1]) },
+    ],
+  }));
+
+  const handlePressIn = () => {
+    buttonScale.value = withSpring(0.95, { stiffness: 400, damping: 17 });
+  };
+
+  const handlePressOut = () => {
+    buttonScale.value = withSpring(1, { stiffness: 400, damping: 17 });
+  };
 
   const handleLogin = async () => {
   if (!email || !password) {
@@ -33,6 +83,7 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
   }
 
   setIsLoading(true);
+  loadingProgress.value = withTiming(1, { duration: 300 });
 
   try {
     console.log('Attempting login with email:', email);
@@ -79,12 +130,14 @@ const LoginScreen: React.FC<TAuthStackNavigationProps<'Login'>> = ({ navigation 
       showErrorToast(`Login failed: ${error.message || 'Unknown error'}`, 'Login Error');
     }
   } finally {
+    loadingProgress.value = withTiming(0, { duration: 200 });
     setIsLoading(false);
   }
 };
 
 const handleGoogleSignIn = async () => {
   setIsGoogleLoading(true);
+  loadingProgress.value = withTiming(1, { duration: 300 });
 
   try {
     const user = await signInWithGoogle();
@@ -116,6 +169,7 @@ const handleGoogleSignIn = async () => {
   } catch (error: any) {
     showErrorToast('Failed to sign in with Google. Please try again.', 'Google Sign-In Failed');
   } finally {
+    loadingProgress.value = withTiming(0, { duration: 200 });
     setIsGoogleLoading(false);
   }
 };
@@ -123,14 +177,14 @@ const handleGoogleSignIn = async () => {
   return (
     <SafeAreaView className="flex-1 bg-[#F7F8FA]">
       <ScrollView contentContainerClassName="flex-grow justify-center p-5">
-        <View className="w-full max-w-md mx-auto">
+        <AnimatedView style={containerStyle} className="w-full max-w-md mx-auto">
           <CustomText weight={700} className="text-4xl font-bold text-center text-gray-900 mb-2">
             Welcome Back
           </CustomText>
           <CustomText weight={400} className="text-base text-center text-gray-600 mb-10">
             Sign in to continue your journey
           </CustomText>
-          <View className='bg-[#FFFFFF] p-5 rounded-3xl shadow-2xl shadow-[#000000] mb-10' style={{
+          <AnimatedView entering={FadeInUp.delay(100).duration(500)} className='bg-[#FFFFFF] p-5 rounded-3xl shadow-2xl shadow-[#000000] mb-10' style={{
             shadowColor: "#000",
             shadowOffset: {
               width: 0,
@@ -141,7 +195,7 @@ const handleGoogleSignIn = async () => {
             elevation: 8,
           }}>
             {/* Email Input */}
-            <View className="mb-5">
+            <AnimatedView entering={FadeInUp.delay(200).duration(400)} className="mb-5">
               <CustomText weight={500} className="text-base font-medium mb-2 text-gray-800">
                 Email
               </CustomText>
@@ -158,10 +212,10 @@ const handleGoogleSignIn = async () => {
                   placeholderTextColor="#999"
                 />
               </View>
-            </View>
+            </AnimatedView>
 
             {/* Password Input */}
-            <View className="mb-5">
+            <AnimatedView entering={FadeInUp.delay(300).duration(400)} className="mb-5">
               <CustomText weight={500} className="text-base font-medium mb-2 text-gray-800">
                 Password
               </CustomText>
@@ -188,7 +242,7 @@ const handleGoogleSignIn = async () => {
                   )}
                 </TouchableOpacity>
               </View>
-            </View>
+            </AnimatedView>
 
             {/* Forgot Password */}
             <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} className="self-end mb-6">
@@ -196,30 +250,37 @@ const handleGoogleSignIn = async () => {
                 Forgot Password?
               </CustomText>
             </TouchableOpacity>
-          </View>
+          </AnimatedView>
 
           {/* Sign In Button */}
-          <TouchableOpacity
-            className="bg-[#4A90E2] py-4 rounded-2xl items-center mb-6 shadow-lg"
+          <AnimatedPressable
+            style={buttonAnimatedStyle}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            className="bg-[#4A90E2] py-4 rounded-2xl items-center mb-6 shadow-lg overflow-hidden"
             onPress={handleLogin}
             disabled={isLoading}
           >
+            <AnimatedView style={loadingStyle} className="absolute inset-0 bg-[#3B7DD8]" pointerEvents="none" />
             {isLoading ? (
-              <ActivityIndicator color="#fff" />
+              <View className="flex-row items-center">
+                <ActivityIndicator color="#fff" size="small" />
+                <CustomText weight={600} className="text-white text-base font-semibold ml-2">Signing In...</CustomText>
+              </View>
             ) : (
               <CustomText weight={600} className="text-white text-base font-semibold">Sign In</CustomText>
             )}
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {/* Sign Up Link */}
-          <View className="flex-row justify-center mb-8">
+          <AnimatedView entering={FadeInUp.delay(500).duration(400)} className="flex-row justify-center mb-8">
             <CustomText weight={400} className="text-sm text-gray-600">
               Don't have an account?
             </CustomText>
             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
               <CustomText weight={500} className="text-sm text-[#4A90E2] font-medium"> Sign Up</CustomText>
             </TouchableOpacity>
-          </View>
+          </AnimatedView>
 
           {/* Divider */}
           <View className="flex-row items-center mb-6">
@@ -248,8 +309,10 @@ const handleGoogleSignIn = async () => {
               </>
             )}
         </TouchableOpacity> */}
-          <SocialLogin />
-        </View>
+          <AnimatedView entering={FadeInUp.delay(600).duration(400)}>
+            <SocialLogin />
+          </AnimatedView>
+        </AnimatedView>
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, TouchableOpacity, Alert, ActivityIndicator, ScrollView, Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  FadeInUp,
+  interpolate,
+} from 'react-native-reanimated';
 import { useAuth } from '../../context/AuthContext';
 import { TAuthStackNavigationProps } from '../../navigation/authStack/types';
 import { Mail, Lock, User, Eye, EyeOff, Check, Square } from 'lucide-react-native';
@@ -9,6 +17,9 @@ import { signUp, signInWithGoogle } from '../../firebase/auth';
 import { saveUserToFirestore, getUserFromFirestore, IUser } from '../../firebase/firestore';
 import { SocialLogin } from '../../components/SocialLogin';
 import { showSuccessToast, showErrorToast, showWarningToast, showInfoToast } from '../../utils/toast';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedView = Animated.createAnimatedComponent(View);
 
 const SignupScreen: React.FC<TAuthStackNavigationProps<'Signup'>> = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -21,6 +32,39 @@ const SignupScreen: React.FC<TAuthStackNavigationProps<'Signup'>> = ({ navigatio
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const { setAuthenticated, setUser } = useAuth();
+
+  // Animation values
+  const fadeAnim = useSharedValue(0);
+  const slideAnim = useSharedValue(50);
+  const buttonScale = useSharedValue(1);
+  const loadingProgress = useSharedValue(0);
+
+  useEffect(() => {
+    fadeAnim.value = withTiming(1, { duration: 600 });
+    slideAnim.value = withTiming(0, { duration: 600 });
+  }, []);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: fadeAnim.value,
+    transform: [{ translateY: slideAnim.value }],
+  }));
+
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
+
+  const loadingStyle = useAnimatedStyle(() => ({
+    opacity: loadingProgress.value,
+    transform: [{ scale: interpolate(loadingProgress.value, [0, 1], [0.8, 1]) }],
+  }));
+
+  const handlePressIn = () => {
+    buttonScale.value = withSpring(0.95, { stiffness: 400, damping: 17 });
+  };
+
+  const handlePressOut = () => {
+    buttonScale.value = withSpring(1, { stiffness: 400, damping: 17 });
+  };
 
   const handleSignup = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
@@ -51,6 +95,7 @@ const SignupScreen: React.FC<TAuthStackNavigationProps<'Signup'>> = ({ navigatio
     }
     
     setIsLoading(true);
+    loadingProgress.value = withTiming(1, { duration: 300 });
     
     try {
       // Create user with email and password
@@ -91,12 +136,14 @@ const SignupScreen: React.FC<TAuthStackNavigationProps<'Signup'>> = ({ navigatio
       
       showErrorToast(errorMessage, 'Signup Failed');
     } finally {
+      loadingProgress.value = withTiming(0, { duration: 200 });
       setIsLoading(false);
     }
   };
 
 const handleGoogleSignUp = async () => {
   setIsGoogleLoading(true);
+  loadingProgress.value = withTiming(1, { duration: 300 });
 
   try {
     const user = await signInWithGoogle();
@@ -132,6 +179,7 @@ const handleGoogleSignUp = async () => {
   } catch (error: any) {
     showErrorToast('Failed to sign up with Google. Please try again.', 'Google Sign-Up Failed');
   } finally {
+    loadingProgress.value = withTiming(0, { duration: 200 });
     setIsGoogleLoading(false);
   }
 };
@@ -139,7 +187,7 @@ const handleGoogleSignUp = async () => {
   return (
     <SafeAreaView edges={[]} className="flex-1 bg-[#F7F8FA]">
       <ScrollView contentContainerClassName="flex-grow justify-center p-5">
-        <View className="w-full max-w-md mx-auto">
+        <AnimatedView style={containerStyle} className="w-full max-w-md mx-auto">
           <CustomText weight={700} className="text-4xl font-bold text-center text-gray-900 mb-2">
             Create Account
           </CustomText>
@@ -147,9 +195,9 @@ const handleGoogleSignUp = async () => {
             Join our supportive community today
           </CustomText>
           
-          <View className='bg-[#FFFFFF] p-5 rounded-3xl shadow-2xl shadow-[#000000] mb-10'>
+          <AnimatedView entering={FadeInUp.delay(100).duration(500)} className='bg-[#FFFFFF] p-5 rounded-3xl shadow-2xl shadow-[#000000] mb-10'>
             {/* Full Name Input */}
-            <View className="mb-5">
+            <AnimatedView entering={FadeInUp.delay(200).duration(400)} className="mb-5">
               <CustomText weight={500} className="text-base font-medium mb-2 text-gray-800">
                 Full Name
               </CustomText>
@@ -165,10 +213,10 @@ const handleGoogleSignUp = async () => {
                   placeholderTextColor="#999"
                 />
               </View>
-            </View>
+            </AnimatedView>
 
             {/* Email Input */}
-            <View className="mb-5">
+            <AnimatedView entering={FadeInUp.delay(300).duration(400)} className="mb-5">
               <CustomText weight={500} className="text-base font-medium mb-2 text-gray-800">
                 Email
               </CustomText>
@@ -185,10 +233,10 @@ const handleGoogleSignUp = async () => {
                   placeholderTextColor="#999"
                 />
               </View>
-            </View>
+            </AnimatedView>
 
             {/* Password Input */}
-            <View className="mb-5">
+            <AnimatedView entering={FadeInUp.delay(400).duration(400)} className="mb-5">
               <CustomText weight={500} className="text-base font-medium mb-2 text-gray-800">
                 Password
               </CustomText>
@@ -215,10 +263,10 @@ const handleGoogleSignUp = async () => {
                   )}
                 </TouchableOpacity>
               </View>
-            </View>
+            </AnimatedView>
 
             {/* Confirm Password Input */}
-            <View className="mb-5">
+            <AnimatedView entering={FadeInUp.delay(500).duration(400)} className="mb-5">
               <CustomText weight={500} className="text-base font-medium mb-2 text-gray-800">
                 Confirm Password
               </CustomText>
@@ -245,10 +293,10 @@ const handleGoogleSignUp = async () => {
                   )}
                 </TouchableOpacity>
               </View>
-            </View>
+            </AnimatedView>
 
             {/* Terms and Conditions */}
-            <View className="flex-row items-start mb-2">
+            <AnimatedView entering={FadeInUp.delay(600).duration(400)} className="flex-row items-start mb-2">
               <TouchableOpacity 
                 onPress={() => setAgreeToTerms(!agreeToTerms)}
                 className="mt-1 mr-3"
@@ -271,31 +319,38 @@ const handleGoogleSignUp = async () => {
                   </CustomText>
                 </CustomText>
               </View>
-            </View>
-          </View>
+            </AnimatedView>
+          </AnimatedView>
 
           {/* Sign Up Button */}
-          <TouchableOpacity
-            className="bg-[#4A90E2] py-4 rounded-2xl items-center mb-6 shadow-lg"
+          <AnimatedPressable
+            style={buttonAnimatedStyle}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            className="bg-[#4A90E2] py-4 rounded-2xl items-center mb-6 shadow-lg overflow-hidden"
             onPress={handleSignup}
             disabled={isLoading}
           >
+            <AnimatedView style={loadingStyle} className="absolute inset-0 bg-[#3B7DD8]" pointerEvents="none" />
             {isLoading ? (
-              <ActivityIndicator color="#fff" />
+              <View className="flex-row items-center">
+                <ActivityIndicator color="#fff" size="small" />
+                <CustomText weight={600} className="text-white text-base font-semibold ml-2">Creating...</CustomText>
+              </View>
             ) : (
               <CustomText weight={600} className="text-white text-base font-semibold">Create Account</CustomText>
             )}
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {/* Sign In Link */}
-          <View className="flex-row justify-center mb-8">
+          <AnimatedView entering={FadeInUp.delay(700).duration(400)} className="flex-row justify-center mb-8">
             <CustomText weight={400} className="text-sm text-gray-600">
               Already have an account?
             </CustomText>
             <TouchableOpacity onPress={() => navigation.navigate('Login', {})}>
               <CustomText weight={500} className="text-sm text-[#4A90E2] font-medium"> Sign In</CustomText>
             </TouchableOpacity>
-          </View>
+          </AnimatedView>
 
           {/* Divider */}
           <View className="flex-row items-center mb-6">
@@ -305,7 +360,9 @@ const handleGoogleSignUp = async () => {
           </View>
 
           {/* Google Button */}
-          <SocialLogin />
+          <AnimatedView entering={FadeInUp.delay(800).duration(400)}>
+            <SocialLogin />
+          </AnimatedView>
           {/* <TouchableOpacity 
             className="w-48 h-14 flex-row items-center justify-center border border-gray-200 rounded-xl py-3 bg-white mx-auto"
             onPress={handleGoogleSignUp}
@@ -324,7 +381,7 @@ const handleGoogleSignUp = async () => {
               </>
             )}
           </TouchableOpacity> */}
-        </View>
+        </AnimatedView>
       </ScrollView>
     </SafeAreaView>
   );

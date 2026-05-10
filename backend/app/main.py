@@ -94,13 +94,13 @@ app.add_middleware(
 # 3. Attach security headers to every response.
 app.add_middleware(SecurityHeadersMiddleware)
 
-# 4. CORS — strict allow-list, never a wildcard combined with credentials.
+# 4. CORS — allow all origins for development (external emulator access).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_settings.cors_allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
     max_age=600,
 )
 

@@ -102,7 +102,7 @@ class Settings(BaseSettings):
         description="Max length of base64 audio submitted to /speech.",
     )
     max_image_base64_chars: int = Field(
-        2 * 1024 * 1024,
+        8 * 1024 * 1024,
         description="Max length of a single base64 frame submitted to /eye-tracking.",
     )
     max_eye_tracking_frames: int = Field(

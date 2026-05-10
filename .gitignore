@@ -89,7 +89,7 @@ backend/credentials/*.json
 **/serviceAccountKey.json
 
 # Frontend runtime config overrides (local dev only).
-src/config/runtime.local.ts
+# src/config/runtime.local.ts
 
 # Python venvs / caches
 .venv/

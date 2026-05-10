@@ -156,7 +156,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
                 // user_id is no longer sent: the backend derives it from the verified ID token.
                 const result = await submitSpeechAnalysis({
                     audio_base64: audioBase64,
-                    audio_format: 'mp4',
+                    audio_format: 'm4a',
                 });
                 setSpeechResult(result);
                 setSpeechMetrics(result.metrics);

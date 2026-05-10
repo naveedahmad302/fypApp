@@ -10,7 +10,7 @@ import { submitEyeTracking, healthCheck } from '../../../services/assessmentServ
 import type { FrameMetadata } from '../../../services/assessmentService';
 import { API_BASE_URL } from '../../../services/api';
 
-const CAPTURE_INTERVAL_MS = 500;
+const CAPTURE_INTERVAL_MS = 2000; // 2 seconds = ~9 frames for 18s tracking
 
 // ── Multi-phase durations (ms) ──
 const PHASE_FREE_GAZE_MS = 6000;
@@ -138,6 +138,8 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
     try {
       const photo: PhotoFile = await camera.current.takePhoto({
         qualityPrioritization: 'speed',
+        quality: 0.7, // Reduce quality to decrease file size
+        skipProcessing: true, // Skip additional processing for speed
       } as any);
 
       const response = await fetch(`file://${photo.path}`);
@@ -433,7 +435,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
         'Eye detected:', result.eye_detected,
       );
       setEyeTrackingResult(result);
-      navigation.navigate('TrackingStatusScreen' as never);
+      navigation.navigate('SpeechProgressScreen' as never);
     } catch (err) {
       console.error('[EyeTracking] Submission failed:', err);
       
@@ -618,7 +620,7 @@ const EyeTrackingAnalysisScreen: React.FC = () => {
               Analyzing eye tracking data across 8 dimensions...
             </Text>
             <Text className="text-gray-400 mt-1 text-xs">
-              This may take a few seconds
+              This may take up to 2 minutes
             </Text>
           </View>
         )}

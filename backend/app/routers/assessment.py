@@ -145,6 +145,7 @@ def eye_tracking_analysis(
             user_id=current_user_id,
             frames_base64=request.frames_base64,
             frame_metadata=frame_meta,
+            timeout_seconds=120.0,  # Longer timeout for eye tracking
         )
     except HTTPException:
         raise
