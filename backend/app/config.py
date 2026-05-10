@@ -76,6 +76,12 @@ class Settings(BaseSettings):
         "",
         description="Expected Firebase project ID. Verified tokens must match.",
     )
+    # --- LLM Services ----------------------------------------------------
+    # Groq API key for LLM-based speech analysis
+    groq_api_key: str = Field(
+        "",
+        description="Groq API key for LLM autism prediction from speech.",
+    )
 
     # --- HTTP layer -------------------------------------------------------
     # Stored as ``str | list[str]`` to keep pydantic-settings from trying

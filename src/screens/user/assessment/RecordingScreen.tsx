@@ -153,19 +153,51 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ navigation: navProp }
             try {
                 setIsSubmitting(true);
                 setError(null);
+                console.log('[Speech] Starting analysis with audio length:', audioBase64.length);
+                
                 // user_id is no longer sent: the backend derives it from the verified ID token.
                 const result = await submitSpeechAnalysis({
                     audio_base64: audioBase64,
                     audio_format: 'm4a',
                 });
+                
+                console.log('[Speech] Analysis completed successfully:', result);
                 setSpeechResult(result);
                 setSpeechMetrics(result.metrics);
                 setSpeechInsights(result.insights);
                 const nav = navProp || navigation;
                 nav.navigate('MCQAssessmentScreen' as never);
-            } catch (err) {
-                console.error('Speech analysis failed:', err);
-                setError('Failed to analyze speech. Please try again or tap "Try Another" to re-record.');
+            } catch (err: any) {
+                console.error('[Speech] Analysis failed:', err);
+                console.error('[Speech] Error details:', {
+                    message: err.message,
+                    status: err.status,
+                    data: err.data,
+                    stack: err.stack
+                });
+                
+                // Provide more specific error messages based on error type
+                let errorMessage = 'Failed to analyze speech. Please try again or tap "Try Another" to re-record.';
+                
+                if (err.message) {
+                    if (err.message.includes('Audio processing failed')) {
+                        errorMessage = 'Audio file could not be processed. Please try recording again with clearer audio.';
+                    } else if (err.message.includes('Audio analysis failed')) {
+                        errorMessage = 'Speech analysis encountered an error. Please try recording again.';
+                    } else if (err.message.includes('Database operation failed')) {
+                        errorMessage = 'Server database error. Please try again in a few moments.';
+                    } else if (err.message.includes('timeout')) {
+                        errorMessage = 'Analysis took too long. Please try with a shorter recording.';
+                    } else if (err.status === 413) {
+                        errorMessage = 'Audio file is too large. Please record a shorter sample.';
+                    } else if (err.status === 415) {
+                        errorMessage = 'Audio format not supported. Please try recording again.';
+                    } else if (err.status >= 500) {
+                        errorMessage = 'Server error occurred. Please try again later.';
+                    }
+                }
+                
+                setError(errorMessage);
                 setIsSubmitting(false);
                 return;
             } finally {

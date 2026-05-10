@@ -163,7 +163,7 @@ def eye_tracking_analysis(
 
 
 @router.post("/speech", response_model=SpeechAnalysisResponse)
-def speech_analysis(
+async def speech_analysis(
     request: SpeechAnalysisRequest,
     current_user_id: str = Depends(rate_limited_user_id("heavy")),
 ) -> SpeechAnalysisResponse:
@@ -177,9 +177,7 @@ def speech_analysis(
     )
 
     try:
-        return run_with_timeout(
-            "speech",
-            analyze_speech,
+        return await analyze_speech(
             user_id=current_user_id,
             audio_base64=request.audio_base64,
             audio_format=canonical_format,

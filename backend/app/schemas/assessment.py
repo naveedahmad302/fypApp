@@ -94,7 +94,6 @@ class FrameAnalysisLog(BaseModel):
     phase: Optional[str] = Field(None, description="Assessment phase")
     hand_near_eye: Optional[bool] = Field(None, description="Hand detected near eye")
 
-
 class EyeTrackingResponse(BaseModel):
     assessment_id: str
     status: AssessmentStatus
@@ -106,7 +105,6 @@ class EyeTrackingResponse(BaseModel):
     insights: list[str] = Field(default_factory=list)
     frame_log: list[FrameAnalysisLog] = Field(default_factory=list, description="Per-frame detection log")
     feedback_message: Optional[str] = Field(None, description="Real-time feedback message for the user")
-
 
 # --- Speech Analysis Schemas ---
 
